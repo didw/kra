@@ -11,7 +11,7 @@ url = "%s?meet=%d&ServiceKey=%s" % (race_url, meet, service_key)
 request = Request(url)
 request.get_method = lambda: 'GET'
 response_body = urlopen(request).read()
-fout = open("data/getTR_%d.xml" % (meet), 'w')
+fout = open("../xml/getTR_%d.xml" % (meet), 'w')
 fout.write(response_body)
 fout.close()
 print "download completed"

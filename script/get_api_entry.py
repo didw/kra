@@ -14,7 +14,7 @@ url = "%s?ServiceKey=%s&meet=%d&rcDate=%d" % (race_url, service_key, meet, date)
 request = Request(url)
 request.get_method = lambda: 'GET'
 response_body = urlopen(request).read()
-fout = open("data/get_entry_%d_%d.xml" % (meet, date), 'w')
+fout = open("../xml/entry/get_entry_%d_%d.xml" % (meet, date), 'w')
 fout.write(response_body)
 fout.close()
 print "%d is downloaded" % date

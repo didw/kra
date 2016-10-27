@@ -27,7 +27,7 @@ while date > datetime.date(2011, 01, 01):
     request = "%s%dsdb1.txt&meet=%d" % (race_url, date_s, meet)
     try:
         response_body = urlopen(request).read()
-        fout = open("../download/horse/horse_%d_%d.txt" % (meet, date_s), 'w')
+        fout = open("../txt/horse/horse_%d_%d.txt" % (meet, date_s), 'w')
         fout.write(response_body)
         fout.close()
         print "[%s] data is downloaded" % date_s

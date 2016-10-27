@@ -16,7 +16,7 @@ for year in range(1993, 1900, -1):
         request = Request(url)
         request.get_method = lambda: 'GET'
         response_body = urlopen(request).read()
-        fout = open("data/getrace_%d_%d.xml" % (meet, date), 'w')
+        fout = open("../xml/race/getrace_%d_%d.xml" % (meet, date), 'w')
         fout.write(response_body)
         fout.close()
         print "%d is downloaded" % date
