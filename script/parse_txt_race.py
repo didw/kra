@@ -13,7 +13,6 @@ afile = open('../data/race/20161023dacom11.rpt')
 
 # skip header
 for i in range(10):
-
     line = afile.readline()
     line = unicode(line, 'euc-kr').encode('utf-8')
     if HEADER.search(line) is not None:
