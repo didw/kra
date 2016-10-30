@@ -6,7 +6,7 @@ import datetime
 import os.path
 
 
-NEXT = re.compile(unicode(r'마 체 중|단승식', 'utf-8').encode('utf-8'))
+NEXT = re.compile(unicode(r'마 체 중|단승식|복승식|매출액', 'utf-8').encode('utf-8'))
 WORD = re.compile(r"[^\s]+")
 
 
@@ -16,6 +16,7 @@ def parse_txt_race(input_file):
         # skip header
         humidity = 0
         read_done = False
+        hr_num = [0, 0]
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
@@ -33,6 +34,7 @@ def parse_txt_race(input_file):
                 break
         if read_done:
             break
+
         # 순위 마번    마    명      산지   성별 연령 부담중량 기수명 조교사   마주명           레이팅
         cnt = 0
         for _ in range(300):
@@ -44,6 +46,18 @@ def parse_txt_race(input_file):
                 break
             if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:5]) is None:
                 continue
+            # 1위와 2위 번호 가져오기
+            if hr_num[0] == 0:
+                hr_num[0] = re.search(unicode(r'\s*\d\s+\d+', 'utf-8').encode('utf-8'), line[:10]).group().split()[1]
+            elif hr_num[1] == 0:
+                hr_num[1] = re.search(unicode(r'\s*\d\s+\d+', 'utf-8').encode('utf-8'), line[:10]).group().split()[1]
+            hr_num[0] = int(hr_num[0])
+            hr_num[1] = int(hr_num[1])
+            if hr_num[0] > hr_num[1]:
+                tmp = hr_num[0]
+                hr_num[0] = hr_num[1]
+                hr_num[1] = tmp
+
             words = WORD.findall(line)
             adata = [course, humidity]
             for i in range(10):
@@ -70,6 +84,43 @@ def parse_txt_race(input_file):
             adata.append(rctime)
             data[-cnt+idx].extend(adata)
             idx += 1
+
+        # 단승식, 연승식 데이터 가져오기
+        # 순위 마번    G-3Ｆ   S-1F  １코너  ２코너  ３코너  ４코너    G-1F  단승식 연승식
+        idx = 0
+        for _ in range(300):
+            line = input_file.readline()
+            line = unicode(line, 'euc-kr').encode('utf-8')
+            if line[0] == '-':
+                continue
+            if NEXT.search(line) is not None:
+                break
+            if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:5]) is None:
+                continue
+            adata = []
+            rating = re.search(unicode(r'\d+[.]\d\s+\d+[.]\d\s*$', 'utf-8').encode('utf-8'), line).group().split()
+            adata.append(rating[0])
+            adata.append(rating[1])
+            data[-cnt+idx].extend(adata)
+            idx += 1
+
+        # 복승식 rating 가져오기
+        #   1- 2   949.3  2- 9  1629.8  4- 5   282.5  5-15     0.0  8- 9   519.3 11-12    18.9
+        exp = "%d-%2d" % (hr_num[0], hr_num[1])
+        for _ in range(300):
+            line = input_file.readline()
+            line = unicode(line, 'euc-kr').encode('utf-8')
+            if line[0] == '-':
+                continue
+            if NEXT.search(line) is not None:
+                break
+            parse_line = re.search(unicode(r'%s\s+\d+[.]\d' % exp, 'utf-8').encode('utf-8'), line)
+
+            if parse_line is not None:
+                rating = parse_line.group().split('-')[1].split()[1]
+                for i in range(cnt):
+                    data[-cnt+i].extend([rating])
+                break
     return data
 
 
@@ -208,7 +259,7 @@ def get_data(filename):
         data[i].extend(parse_txt_trainer(date, data[i][10]))
     df = pd.DataFrame(data)
     df.columns = ['course', 'humidity', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', 'owner', \
-                  'weight', 'dweight', 'rctime', 'hr_days', 'hr_t1', 'hr_t2', 'hr_y1', 'hr_y2', \
+                  'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'hr_days','hr_t1', 'hr_t2', 'hr_y1', 'hr_y2',
                   'jk_t1', 'jk_t2', 'jk_y1', 'jk_y2', 'tr_t1', 'tr_t2', 'tr_y1', 'tr_y2']
     return df
 
@@ -217,6 +268,7 @@ if __name__ == '__main__':
     filename = '../txt/rcresult/rcresult_1_20160213.txt'
     data = get_data(filename)
     print(data)
+    print(data[['rctime', 'r1', 'r2', 'r3']])
 
 
 
