@@ -14,7 +14,7 @@ def parse_xml_train(date, meet):
     response_body = file_input.read()
     xml_text = BeautifulSoup(response_body, 'html.parser')
     for itemElm in xml_text.findAll('item'):
-        print itemElm
+        #print itemElm
         try:
             data.append([itemElm.hrname.string,
                         itemElm.wghr.string])
