@@ -158,28 +158,41 @@ def simulation3(pred, ans):
             print("복승식 LOSE: %f" % res)
     return res
 
-X_train, Y_train, R_train = get_data(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30))
-#print X_train
-#print Y_train
-#print R_train
 
-estimator = RandomForestRegressor(random_state=0, n_estimators=100)
-estimator.fit(X_train, Y_train)
-score = estimator.score(X_train, Y_train)
-print("Score with the entire dataset = %.2f" % score)
+def training(bd, ed):
+    X_train, Y_train, R_train = get_data(bd, ed)
+    estimator = RandomForestRegressor(random_state=0, n_estimators=100)
+    estimator.fit(X_train, Y_train)
+    return estimator
 
 
-X_test, Y_test, R_test = get_data(datetime.date(2016, 1, 1), datetime.date(2016, 9, 30))
-score = estimator.score(X_test, Y_test)
-print("Score with the entire dataset = %.2f" % score)
-pred = estimator.predict(X_test)
-res1 = simulation1(pred, R_test)
-res2 = simulation2(pred, R_test)
-res3 = simulation3(pred, R_test)
+if __name__ == '__main__':
+    X_train, Y_train, R_train = get_data(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30))
+    #print X_train
+    #print Y_train
+    #print R_train
 
-print("단승식 result: %f" % res1)
-print("연승식 result: %f" % res2)
-print("복승식 result: %f" % res3)
+    estimator = RandomForestRegressor(random_state=0, n_estimators=100)
+    estimator.fit(X_train, Y_train)
+    score = estimator.score(X_train, Y_train)
+    print("Score with the entire dataset = %.2f" % score)
+
+
+    X_test, Y_test, R_test = get_data(datetime.date(2016, 1, 1), datetime.date(2016, 9, 30))
+    score = estimator.score(X_test, Y_test)
+    print("Score with the entire dataset = %.2f" % score)
+    pred = estimator.predict(X_test)
+    res1 = simulation1(pred, R_test)
+    res2 = simulation2(pred, R_test)
+    res3 = simulation3(pred, R_test)
+
+    print("단승식 result: %f" % res1)
+    print("연승식 result: %f" % res2)
+    print("복승식 result: %f" % res3)
+
+    import predict_next as pn
+    meet = 1
+    date = "201610"
 
 
 
