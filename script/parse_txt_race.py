@@ -40,7 +40,7 @@ def parse_txt_race(input_file):
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
-            if line[0] == '-':
+            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
                 continue
             if NEXT.search(line) is not None:
                 break
@@ -59,6 +59,7 @@ def parse_txt_race(input_file):
                 hr_num[1] = tmp
 
             words = WORD.findall(line)
+            assert len(words) == 10
             adata = [course, humidity]
             for i in range(10):
                 adata.append(words[i])
@@ -70,7 +71,7 @@ def parse_txt_race(input_file):
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
-            if line[0] == '-':
+            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
                 continue
             if NEXT.search(line) is not None:
                 break
@@ -91,7 +92,7 @@ def parse_txt_race(input_file):
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
-            if line[0] == '-':
+            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
                 continue
             if NEXT.search(line) is not None:
                 break
@@ -107,10 +108,11 @@ def parse_txt_race(input_file):
         # 복승식 rating 가져오기
         #   1- 2   949.3  2- 9  1629.8  4- 5   282.5  5-15     0.0  8- 9   519.3 11-12    18.9
         exp = "%d-%2d" % (hr_num[0], hr_num[1])
+        get_rate = False
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
-            if line[0] == '-':
+            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
                 continue
             if NEXT.search(line) is not None:
                 break
@@ -120,7 +122,9 @@ def parse_txt_race(input_file):
                 rating = parse_line.group().split('-')[1].split()[1]
                 for i in range(cnt):
                     data[-cnt+i].extend([rating])
+                get_rate = True
                 break
+        assert get_rate
     return data
 
 
@@ -137,7 +141,6 @@ def get_fname(date, job):
         filename = '../txt/%s/%s_1_%s.txt' % (job, job, date_s)
         if os.path.isfile(filename):
             return filename
-        return filename
     return -1
 
 
@@ -157,30 +160,33 @@ def parse_txt_horse(date, name):
             birth = re.search(unicode(r'\d{4}/\d{2}/\d{2}', 'utf-8').encode('utf-8'), line).group()
             #print(datetime.date(int(birth[:4]), int(birth[5:7]), int(birth[8:])))
             data.append((date - datetime.date(int(birth[:4]), int(birth[5:7]), int(birth[8:]))).days)
-            participates = re.search(unicode(r'\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().split()
+            participates = re.search(unicode(r'\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().replace(',', '').split()
             #print(participates)
-            if float(participates[0]) == 0:
+            if int(participates[0]) == 0:
                 data.append(-1)
                 data.append(-1)
             else:
-                data.append(float(participates[1])/float(participates[0]))
-                data.append(float(participates[2])/float(participates[0]))
+                data.append(int(participates[1])*100/int(participates[0]))
+                data.append(int(participates[2])*100/int(participates[0]))
 
-            if float(participates[3]) == 0:
+            if int(participates[3]) == 0:
                 data.append(-1)
                 data.append(-1)
             else:
-                data.append(float(participates[4])/float(participates[3]))
-                data.append(float(participates[5])/float(participates[3]))
+                data.append(int(participates[4])*100/int(participates[3]))
+                data.append(int(participates[5])*100/int(participates[3]))
 
             return data
-    print("something wrong in parse_txt_horse")
+    print("can not find %s in %s" % (name, filename))
     return [-1,-1,-1,-1]
 
 
 # 이름  소속 생일        데뷔일  총경기수, 총1, 총2, 1년, 1년1, 1년2
 # 김동철491974/11/28371995/07/015252 3706  217  242  166   17   19
 def parse_txt_jockey(date, name):
+    if len(str(name)) > 9:
+        print("name is changed %s -> %s" % (name, name[:4]))
+        name = str(name)[:6]
     filename = get_fname(date, "jockey")
     #print(filename)
     f_input = open(filename)
@@ -191,30 +197,33 @@ def parse_txt_jockey(date, name):
             break
         if re.search(unicode(name, 'utf-8').encode('utf-8'), line) is not None:
             data = []
-            participates = re.search(unicode(r'(?<=\d{6})[\s\d]+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().split()
+            participates = re.search(unicode(r'(?<=[\d\s]{6})[\s\d]+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().replace(',', '').split()
             #print(participates)
-            if float(participates[0]) == 0:
+            if int(participates[0]) == 0:
                 data.append(-1)
                 data.append(-1)
             else:
-                data.append(float(participates[1])/float(participates[0]))
-                data.append(float(participates[2])/float(participates[0]))
+                data.append(int(participates[1])*100/int(participates[0]))
+                data.append(int(participates[2])*100/int(participates[0]))
 
-            if float(participates[3]) == 0:
+            if int(participates[3]) == 0:
                 data.append(-1)
                 data.append(-1)
             else:
-                data.append(float(participates[4])/float(participates[3]))
-                data.append(float(participates[5])/float(participates[3]))
+                data.append(int(participates[4])*100/int(participates[3]))
+                data.append(int(participates[5])*100/int(participates[3]))
 
             return data
-    print("something wrong in parse_txt_jockey")
+    print("can not find %s in %s" % (name, filename))
     return [-1,-1,-1,-1]
 
 
 # 이름  소속 생일        데뷔일  총경기수, 총1, 총2, 1년, 1년1, 1년2
 # 곽영효191961/09/24551997/05/283,868  438  394  134   18   13
 def parse_txt_trainer(date, name):
+    if len(str(name)) > 9:
+        print("name is changed %s -> %s" % (name, name[:4]))
+        name = str(name)[:6]
     filename = get_fname(date, "trainer")
     #print(filename)
     f_input = open(filename)
@@ -228,22 +237,22 @@ def parse_txt_trainer(date, name):
             participates = re.search(unicode(r'(?<=/\d\d)[\d,]+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+', 'utf-8').encode('utf-8'),
                                      line).group().replace(',', '').split()
             #print(participates)
-            if float(participates[0]) == 0:
+            if int(participates[0]) == 0:
                 data.append(-1)
                 data.append(-1)
             else:
-                data.append(float(participates[1])/float(participates[0]))
-                data.append(float(participates[2])/float(participates[0]))
+                data.append(int(participates[1])*100/int(participates[0]))
+                data.append(int(participates[2])*100/int(participates[0]))
 
-            if float(participates[3]) == 0:
+            if int(participates[3]) == 0:
                 data.append(-1)
                 data.append(-1)
             else:
-                data.append(float(participates[4])/float(participates[3]))
-                data.append(float(participates[5])/float(participates[3]))
+                data.append(int(participates[4])*100/int(participates[3]))
+                data.append(int(participates[5])*100/int(participates[3]))
 
             return data
-    print("something wrong in parse_txt_trainer")
+    print("can not find %s in %s" % (name, filename))
     return [-1,-1,-1,-1]
 
 
@@ -258,15 +267,17 @@ def get_data(filename):
         data[i].extend(parse_txt_jockey(date, data[i][9]))
         data[i].extend(parse_txt_trainer(date, data[i][10]))
     df = pd.DataFrame(data)
-    df.columns = ['course', 'humidity', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', 'owner', \
-                  'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'hr_days','hr_t1', 'hr_t2', 'hr_y1', 'hr_y2',
-                  'jk_t1', 'jk_t2', 'jk_y1', 'jk_y2', 'tr_t1', 'tr_t2', 'tr_y1', 'tr_y2']
+    df.columns = ['course', 'humidity', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', \
+                  'trainer', 'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'hr_days', 'hr_t1', \
+                  'hr_t2', 'hr_y1', 'hr_y2', 'jk_t1', 'jk_t2', 'jk_y1', 'jk_y2', 'tr_t1', 'tr_t2', 'tr_y1', \
+                  'tr_y2']
     return df
 
 
 if __name__ == '__main__':
-    filename = '../txt/rcresult/rcresult_1_20160213.txt'
+    filename = '../txt/rcresult/rcresult_1_20130217.txt'
     data = get_data(filename)
+    data = data.dropna()
     print(data)
     print(data[['rctime', 'r1', 'r2', 'r3']])
 
