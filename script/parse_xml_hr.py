@@ -6,9 +6,9 @@ import pandas as pd
 import glob
 
 
-def parse_xml_jk(meet):
+def parse_xml_hr(meet):
     data = []
-    filename  = '../xml/getJK_%d.xml' % meet
+    filename  = '../xml/getHR_%d.xml' % meet
     file_input = open(filename)
     print "process in %s" % filename
     response_body = file_input.read()
@@ -19,24 +19,20 @@ def parse_xml_jk(meet):
             data.append([itemElm.birth.string,
                         itemElm.cntt.string,
                         itemElm.cnty.string,
-                        itemElm.jkname.string,
+                        itemElm.hrname.string,
                         itemElm.ord1t.string,
                         itemElm.ord1y.string,
                         itemElm.ord2t.string,
                         itemElm.ord2y.string,
-                        itemElm.part.string,
-                        itemElm.stdate.string,
-                        itemElm.wgother.string,
-                        itemElm.wgpart.string])
+                        itemElm.sex.string])
         except:
             pass
 
     df = pd.DataFrame(data)
-    df.columns = ["birth", "cntT", "cntY", "jkName", "ord1T", "ord1Y", "ord2T", "ord2Y", "part", "stDate", "wgOther", "wgPart"]
+    df.columns = ["birth", "cntT", "cntY", "hkName", "ord1T", "ord1Y", "ord2T", "ord2Y", "gender"]
     return df
 
-
-if __name__ == 'main':
+if __name__ == '__main__':
     meet = 1
-    data = parse_xml_jk(meet)
-    print data
+    data = parse_xml_hr(meet)
+    print(data)
