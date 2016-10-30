@@ -30,7 +30,7 @@ def parse_txt_race(input_file):
                     humidity = 25
                 else:
                     humidity = re.search(unicode(r'\d+(?=%\))', 'utf-8').encode('utf-8'), line).group()
-            if re.search(unicode(r'기수명', 'utf-8').encode('utf-8'), line) is not None:
+            if re.search(unicode(r'기수명|선수명', 'utf-8').encode('utf-8'), line) is not None:
                 break
         if read_done:
             break
@@ -275,7 +275,7 @@ def get_data(filename):
 
 
 if __name__ == '__main__':
-    filename = '../txt/rcresult/rcresult_1_20130217.txt'
+    filename = '../txt/rcresult/rcresult_1_20130317.txt'
     data = get_data(filename)
     data = data.dropna()
     print(data)
