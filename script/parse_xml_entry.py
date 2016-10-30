@@ -31,10 +31,14 @@ def get_humidity():
 
 
 def get_hr_weight(meet, date, rcno, hrname):
+    hrname = hrname.replace('★'.encode('utf-8'), '')
     #url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&meet=1&rcNo=11&rcDate=20161030"
     date = "%s%s%s" % (date[:4], date[5:7], date[8:10])
     url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&meet=%s&rcNo=%s&rcDate=%s" % (meet, rcno, date)
-    response_body = urlopen(url).read()
+    try:
+        response_body = urlopen(url).read()
+    except:
+        print "can not read %s" % url
     line = unicode(response_body, 'euc-kr').encode('utf-8')
 
     exp = '%s</a></td>\s+<td>\d+</td>\s+<td>[-\d]+(?=</td>)' % hrname
@@ -145,42 +149,44 @@ def parse_xml_entry(meet, date):
         jk_win = get_jk_win(data_jk, itemElm.jkname.string)
         tr_win = get_tr_win(data_tr, itemElm.trname.string)
         adata = [itemElm.rcdist.string,
-                     humidity,
-                     itemElm.chulno.string,
-                     itemElm.hrname.string,
-                     itemElm.prdctyname.string,
-                     hr_gender,
-                     itemElm.age.string,
-                     itemElm.wgbudam.string,
-                     itemElm.jkname.string,
+                 humidity,
+                 itemElm.chulno.string,
+                 itemElm.hrname.string,
+                 itemElm.prdctyname.string,
+                 hr_gender,
+                 itemElm.age.string,
+                 itemElm.wgbudam.string,
+                 itemElm.jkname.string,
 
-                     itemElm.trname.string,
-                     itemElm.owname.string,
-                     hr_weight,
-                     hr_dweight,
-                     hr_days,
-                     hr_win[0],
-                     hr_win[1],
-                     hr_win[2],
-                     hr_win[3],
+                 itemElm.trname.string,
+                 itemElm.owname.string,
+                 hr_weight,
+                 hr_dweight,
+                 hr_days,
+                 hr_win[0],
+                 hr_win[1],
+                 hr_win[2],
+                 hr_win[3],
 
-                     jk_win[0],
-                     jk_win[1],
-                     jk_win[2],
-                     jk_win[3],
+                 jk_win[0],
+                 jk_win[1],
+                 jk_win[2],
+                 jk_win[3],
 
-                     tr_win[0],
-                     tr_win[1],
-                     tr_win[2],
-                     tr_win[3]]
-        print(adata)
-        data.extend(adata)
+                 tr_win[0],
+                 tr_win[1],
+                 tr_win[2],
+                 tr_win[3],
+
+                itemElm.rcno.string
+                ]
+        #print(adata)
+        data.append(adata)
 
     df = pd.DataFrame(data)
-    df.columns = ['course', 'humidity', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', \
-                  'trainer', 'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'hr_days', 'hr_t1', \
-                  'hr_t2', 'hr_y1', 'hr_y2', 'jk_t1', 'jk_t2', 'jk_y1', 'jk_y2', 'tr_t1', 'tr_t2', 'tr_y1', \
-                  'tr_y2']
+    df.columns = ['course', 'humidity', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer',\
+                  'owner', 'weight', 'dweight', 'hr_days', 'hr_t1', 'hr_t2', 'hr_y1', 'hr_y2', 'jk_t1', 'jk_t2', \
+                  'jk_y1', 'jk_y2', 'tr_t1', 'tr_t2', 'tr_y1', 'tr_y2', 'rcno']
     return df
 
 
