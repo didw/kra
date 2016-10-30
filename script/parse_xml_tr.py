@@ -30,7 +30,7 @@ def parse_xml_tr(meet):
             pass
 
     df = pd.DataFrame(data)
-    df.columns = ["birth", "cntT", "cntY", "jkName", "ord1T", "ord1Y", "ord2T", "ord2Y", "part", "stDate"]
+    df.columns = ["birth", "cntT", "cntY", "trName", "ord1T", "ord1Y", "ord2T", "ord2Y", "part", "stDate"]
     return df
 
 if __name__ == 'main':

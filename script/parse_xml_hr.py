@@ -29,7 +29,7 @@ def parse_xml_hr(meet):
             pass
 
     df = pd.DataFrame(data)
-    df.columns = ["birth", "cntT", "cntY", "hkName", "ord1T", "ord1Y", "ord2T", "ord2Y", "gender"]
+    df.columns = ["birth", "cntT", "cntY", "hrName", "ord1T", "ord1Y", "ord2T", "ord2Y", "gender"]
     return df
 
 if __name__ == '__main__':
