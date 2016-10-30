@@ -113,10 +113,10 @@ def simulation2(pred, ans):
         if total > 7:
             if top == 0 or top == 1 or top == 2:
                 res += 100 * r2
-                print("WIN: %f" % res)
+                print("연승식 WIN: %f" % res)
             else:
                 res -= 100
-                print("LOSE: %f" % res)
+                print("연승식 LOSE: %f" % res)
         else:
             if top == 0 or top == 1:
                 res += 100 * r2
@@ -145,9 +145,12 @@ def simulation3(pred, ans):
             total += 1
             i += 1
         sim_data = pd.Series(sim_data)
-        top = sim_data.rank()[0]
-        #print("prediction: %d" % top)
-        if (top[0] == 0 or top[0] == 1) and (top[1] == 0 or top[1] == 1):
+        if len(sim_data) < 3:
+            continue
+        top = sim_data.rank()
+        if isinstance(top[0], list):
+            top = top[0]
+        if (top[0] == 1 or top[0] == 2) and (top[1] == 1 or top[1] == 2):
             res += 100 * r3
             print("복승식 WIN: %f" % res)
         else:
