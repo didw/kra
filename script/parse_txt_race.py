@@ -59,7 +59,7 @@ def parse_txt_race(input_file):
                 hr_num[1] = tmp
 
             words = WORD.findall(line)
-            assert len(words) == 10
+            assert len(words) >= 10
             adata = [course, humidity]
             for i in range(10):
                 adata.append(words[i])
@@ -185,7 +185,7 @@ def parse_txt_horse(date, name):
 # 김동철491974/11/28371995/07/015252 3706  217  242  166   17   19
 def parse_txt_jockey(date, name):
     if len(str(name)) > 9:
-        print("name is changed %s -> %s" % (name, name[:4]))
+        #print("name is changed %s -> %s" % (name, name[:6]))
         name = str(name)[:6]
     filename = get_fname(date, "jockey")
     #print(filename)
@@ -222,7 +222,7 @@ def parse_txt_jockey(date, name):
 # 곽영효191961/09/24551997/05/283,868  438  394  134   18   13
 def parse_txt_trainer(date, name):
     if len(str(name)) > 9:
-        print("name is changed %s -> %s" % (name, name[:4]))
+        #print("name is changed %s -> %s" % (name, name[:6]))
         name = str(name)[:6]
     filename = get_fname(date, "trainer")
     #print(filename)
@@ -275,7 +275,7 @@ def get_data(filename):
 
 
 if __name__ == '__main__':
-    filename = '../txt/rcresult/rcresult_1_20130317.txt'
+    filename = '../txt/rcresult/rcresult_1_20140831.txt'
     data = get_data(filename)
     data = data.dropna()
     print(data)
