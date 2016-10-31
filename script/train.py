@@ -159,14 +159,17 @@ def simulation3(pred, ans):
     return res
 
 
-def training(bd, ed):
+def training(bd, ed, filename):
     X_train, Y_train, R_train = get_data(bd, ed)
     estimator = RandomForestRegressor(random_state=0, n_estimators=100)
     estimator.fit(X_train, Y_train)
+    from sklearn.externals import joblib
+    joblib.dump(estimator, filename)
     return estimator
 
 
 if __name__ == '__main__':
+    #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30), '../model/rctime_2011_2015.pkl')
     X_train, Y_train, R_train = get_data(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30))
     #print X_train
     #print Y_train
@@ -193,6 +196,7 @@ if __name__ == '__main__':
     import predict_next as pn
     meet = 1
     date = "201610"
+
 
 
 
