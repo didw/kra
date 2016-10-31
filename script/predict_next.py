@@ -28,8 +28,7 @@ def normalize_data(org_data):
     return data
 
 
-def predict_next(bd, ed, meet, date):
-    estimator = tr.training(bd, ed)
+def predict_next(estimator, meet, date):
     data = xe.parse_xml_entry(meet, date)
     data = normalize_data(data)
     X_data = data.copy()
@@ -59,7 +58,10 @@ def predict_next(bd, ed, meet, date):
 if __name__ == '__main__':
     meet = 1
     date = 201610
-    predict_next(datetime.date(2016, 9, 1), datetime.date(2016, 9, 30), meet, date)
+    from sklearn.externals import joblib
+    #estimator = tr.training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30), '../model/rctime_2011_2015.pkl')
+    estimator = joblib.load('../model/rctime2011_2015.pkl')
+    predict_next(estimator, meet, date)
     predict_next(meet, date)
 
 
