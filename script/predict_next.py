@@ -60,7 +60,7 @@ if __name__ == '__main__':
     date = 201610
     from sklearn.externals import joblib
     #estimator = tr.training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30), '../model/rctime_2011_2015.pkl')
-    estimator = joblib.load('../model/rctime2011_2015.pkl')
+    estimator = joblib.load('../model/rctime_2011_2015.pkl')
     predict_next(estimator, meet, date)
     predict_next(meet, date)
 
