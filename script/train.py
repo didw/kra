@@ -67,8 +67,6 @@ def simulation1(pred, ans):
     i = 0
     res = 0
     assert len(pred) == len(ans)
-    print(pred)
-    print(ans)
     while True:
         if i >= len(pred):
             break
@@ -83,8 +81,10 @@ def simulation1(pred, ans):
         sim_data = pd.Series(sim_data)
         top = sim_data.argmin()
         #print("prediction: %d" % top)
-        if top == 0:
-            res += 100 * r1
+        if total < 5 or r1 < 10:
+            continue
+        elif top == 0:
+            res += 100 * (r1 - 1)
             print("단승식 WIN: %f" % res)
         else:
             res -= 100
@@ -96,8 +96,6 @@ def simulation2(pred, ans):
     i = 0
     res = 0
     assert len(pred) == len(ans)
-    print(pred)
-    print(ans)
     while True:
         if i >= len(pred):
             break
@@ -112,16 +110,18 @@ def simulation2(pred, ans):
         sim_data = pd.Series(sim_data)
         top = sim_data.argmin()
         #print("prediction: %d" % top)
-        if total > 7:
+        if total < 5 or r2 < 3:
+            continue
+        elif total > 7:
             if top in [0, 1, 2]:
-                res += 100 * r2
+                res += 100 * (r2 - 1)
                 print("연승식 WIN: %f" % res)
             else:
                 res -= 100
                 print("연승식 LOSE: %f" % res)
         else:
             if top in [0, 1]:
-                res += 100 * r2
+                res += 100 * (r2 - 1)
                 print("연승식 WIN: %f" % res)
             else:
                 res -= 100
@@ -133,8 +133,6 @@ def simulation3(pred, ans):
     i = 0
     res = 0
     assert len(pred) == len(ans)
-    print(pred)
-    print(ans)
     while True:
         if i >= len(pred):
             break
@@ -147,12 +145,12 @@ def simulation3(pred, ans):
             total += 1
             i += 1
         sim_data = pd.Series(sim_data)
-        if len(sim_data) < 3:
+        if total < 5 or r3 < 30:
             continue
         top = sim_data.rank()
         if (top[0] in [1, 2]) and (top[1] in [1, 2]):
             print("복승식 WIN: %f = %f + %f" % (res + 100 * r3, res, 100*r3))
-            res += 100 * r3
+            res += 100 * (r3 - 1)
         else:
             res -= 100
             print("복승식 LOSE: %f" % res)
@@ -169,9 +167,9 @@ def simulation_all(pred, ans):
         if i >= len(pred):
             break
         sim_data = [pred[i]]
-        r1 = float(ans['r1'][i])
-        r2 = float(ans['r2'][i])
-        r3 = float(ans['r3'][i])
+        r1 = float(ans['r1'][i]) - 1
+        r2 = float(ans['r2'][i]) - 1
+        r3 = float(ans['r3'][i]) - 1
         i += 1
         total = 1
         while i < len(pred) and int(ans['rank'][i]) != 1:
@@ -196,24 +194,34 @@ def simulation_all(pred, ans):
 
 
 def training(bd, ed, filename):
-    datafile = "../data/train_%d_%d.pkl" % (bd.year, ed.year)
-    if os.path.isfile(datafile):
-        X_train, Y_train, R_train = joblib.load(datafile)
-        print("data loaded from %s, len is %d" % (datafile, len(X_train)))
+    if os.path.exists('../data/train_data.pkl'):
+        X_train, Y_train, R_train = joblib.load('../data/train_data.pkl')
     else:
         X_train, Y_train, R_train = get_data(bd, ed)
-        joblib.dump((X_train, Y_train, R_train), datafile)
-
-    estimator = RandomForestRegressor(random_state=0, n_estimators=1000)
+        joblib.dump([X_train, Y_train, R_train], '../data/train_data.pkl')
+    estimator = RandomForestRegressor(random_state=0, n_estimators=100)
     estimator.fit(X_train, Y_train)
-    joblib.dump(estimator, filename)
     return estimator
 
 
 if __name__ == '__main__':
-    estimator = training(datetime.date(2011, 2, 1), datetime.date(2016, 8, 30), '../model/rctime_2011_2015.pkl')
+    #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30), '../model/rctime_2011_2015.pkl')
+    if os.path.exists('../data/train_data.pkl'):
+        X_train, Y_train, R_train = joblib.load('../data/train_data.pkl')
+    else:
+        X_train, Y_train, R_train = get_data(datetime.date(2011, 2, 1), datetime.date(2016, 8, 30))
+        joblib.dump([X_train, Y_train, R_train], '../data/train_data.pkl')
+    #print X_train
+    #print Y_train
+    #print R_train
 
-    X_test, Y_test, R_test = get_data(datetime.date(2016, 9, 1), datetime.date(2016, 9, 30))
+    estimator = RandomForestRegressor(random_state=0, n_estimators=100)
+    estimator.fit(X_train, Y_train)
+    score = estimator.score(X_train, Y_train)
+    print("Score with the entire dataset = %.2f" % score)
+
+
+    X_test, Y_test, R_test = get_data(datetime.date(2016, 10, 1), datetime.date(2016, 10, 31))
     score = estimator.score(X_test, Y_test)
     print("Score with the entire dataset = %.2f" % score)
     pred = estimator.predict(X_test)
@@ -226,6 +234,11 @@ if __name__ == '__main__':
     print("연승식 result: %f" % res2)
     print("복승식 result: %f" % res3)
     print("total result: %f" % res)
+
+    import predict_next as pn
+    meet = 1
+    date = "201610"
+
 
 
 

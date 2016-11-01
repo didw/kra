@@ -124,9 +124,9 @@ def parse_xml_entry(meet, date):
     data_hr = xh.parse_xml_hr(meet)
     data_jk = xj.parse_xml_jk(meet)
     data_tr = xt.parse_xml_tr(meet)
-    data_train = xtr.parse_xml_train(date, meet)
+    date_m = date / 100
     data = []
-    filename = '../xml/entry/get_entry_%s_%s.xml' % (meet, date)
+    filename = '../xml/entry/get_entry_%d_%d.xml' % (meet, date_m)
     file_input = open(filename)
     print "process in %s" % filename
     response_body = file_input.read()
@@ -139,8 +139,8 @@ def parse_xml_entry(meet, date):
           'hr_t2', 'hr_y1', 'hr_y2', 'jk_t1', 'jk_t2', 'jk_y1', 'jk_y2', 'tr_t1', 'tr_t2', 'tr_y1', \
           'tr_y2']
         """
-        rcdate = datetime.date(int(itemElm.rcdate.string[:4]), int(itemElm.rcdate.string[5:7]), int(itemElm.rcdate.string[8:10]))
-        if datetime.date.today() < rcdate:
+        rcdate = int("%s%s%s" % (itemElm.rcdate.string[:4], itemElm.rcdate.string[5:7], itemElm.rcdate.string[8:10]))
+        if date != rcdate:
             continue
         hr_gender, hr_days = get_hr_data(data_hr, itemElm.hrname.string)
         hr_weight, hr_dweight = get_hr_weight(meet, itemElm.rcdate.string, itemElm.rcno.string, itemElm.hrname.string)

@@ -15,14 +15,10 @@ import time
 # http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/jockey/20161023sdb2.txt&meet=1
 # 조교사정보. 목일 업데이트
 # http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/trainer/20161023sdb3.txt&meet=1
-get_data = [
-
-]
 race_url = "http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/rcresult/"
 meet = 1  # 1: seoul, 2: jeju, 3: bukyeong
 date = datetime.date.today() + datetime.timedelta(days=1)
-date = datetime.date(2016, 7, 3)
-while date > datetime.date(2011, 01, 01):
+while date > datetime.date(2016, 10, 01):
     date += datetime.timedelta(days=-1)
     if date.weekday() not in [5, 6]:
         continue
