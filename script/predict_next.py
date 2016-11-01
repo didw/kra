@@ -61,7 +61,6 @@ if __name__ == '__main__':
     import get_api
     #get_api.get_data(meet, date/100)
     estimator = tr.training(datetime.date(2011, 2, 1), datetime.date(2016, 10, 31))
-    estimator = None
     predict_next(estimator, meet, date)
 
 
