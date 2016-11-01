@@ -5,9 +5,10 @@ import get_api_tr as at
 import get_api_train as atrain
 
 
-ae.get_data(1, 201611)
-ah.get_data(1)
-aj.get_data(1)
-at.get_data(1)
-atrain.get_data(1, 201610)
+def get_data(meet, date):
+    ae.get_data(meet, date)
+    ah.get_data(meet)
+    aj.get_data(meet)
+    at.get_data(meet)
+    atrain.get_data(meet, date)
 

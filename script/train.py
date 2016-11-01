@@ -6,6 +6,7 @@ import datetime
 import pandas as pd
 import os.path
 from sklearn.ensemble.forest import RandomForestRegressor
+from sklearn.externals import joblib
 
 def normalize_data(org_data):
     data = org_data.dropna()
@@ -65,8 +66,6 @@ def simulation1(pred, ans):
     i = 0
     res = 0
     assert len(pred) == len(ans)
-    print(pred)
-    print(ans)
     while True:
         if i >= len(pred):
             break
@@ -81,8 +80,10 @@ def simulation1(pred, ans):
         sim_data = pd.Series(sim_data)
         top = sim_data.argmin()
         #print("prediction: %d" % top)
-        if top == 0:
-            res += 100 * r1
+        if total < 5 or r1 < 10:
+            continue
+        elif top == 0:
+            res += 100 * (r1 - 1)
             print("단승식 WIN: %f" % res)
         else:
             res -= 100
@@ -94,8 +95,6 @@ def simulation2(pred, ans):
     i = 0
     res = 0
     assert len(pred) == len(ans)
-    print(pred)
-    print(ans)
     while True:
         if i >= len(pred):
             break
@@ -110,16 +109,18 @@ def simulation2(pred, ans):
         sim_data = pd.Series(sim_data)
         top = sim_data.argmin()
         #print("prediction: %d" % top)
-        if total > 7:
+        if total < 5 or r2 < 3:
+            continue
+        elif total > 7:
             if top == 0 or top == 1 or top == 2:
-                res += 100 * r2
+                res += 100 * (r2 - 1)
                 print("연승식 WIN: %f" % res)
             else:
                 res -= 100
                 print("연승식 LOSE: %f" % res)
         else:
             if top == 0 or top == 1:
-                res += 100 * r2
+                res += 100 * (r2 - 1)
                 print("연승식 WIN: %f" % res)
             else:
                 res -= 100
@@ -131,8 +132,6 @@ def simulation3(pred, ans):
     i = 0
     res = 0
     assert len(pred) == len(ans)
-    print(pred)
-    print(ans)
     while True:
         if i >= len(pred):
             break
@@ -145,13 +144,13 @@ def simulation3(pred, ans):
             total += 1
             i += 1
         sim_data = pd.Series(sim_data)
-        if len(sim_data) < 3:
+        if total < 5 or r3 < 30:
             continue
         top = sim_data.rank()
         if isinstance(top[0], list):
             top = top[0]
         if (top[0] == 1 or top[0] == 2) and (top[1] == 1 or top[1] == 2):
-            res += 100 * r3
+            res += 100 * (r3 - 1)
             print("복승식 WIN: %f" % res)
         else:
             res -= 100
@@ -159,18 +158,24 @@ def simulation3(pred, ans):
     return res
 
 
-def training(bd, ed, filename):
-    X_train, Y_train, R_train = get_data(bd, ed)
+def training(bd, ed):
+    if os.path.exists('../data/train_data.pkl'):
+        X_train, Y_train, R_train = joblib.load('../data/train_data.pkl')
+    else:
+        X_train, Y_train, R_train = get_data(bd, ed)
+        joblib.dump([X_train, Y_train, R_train], '../data/train_data.pkl')
     estimator = RandomForestRegressor(random_state=0, n_estimators=100)
     estimator.fit(X_train, Y_train)
-    from sklearn.externals import joblib
-    joblib.dump(estimator, filename)
     return estimator
 
 
 if __name__ == '__main__':
     #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30), '../model/rctime_2011_2015.pkl')
-    X_train, Y_train, R_train = get_data(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30))
+    if os.path.exists('../data/train_data.pkl'):
+        X_train, Y_train, R_train = joblib.load('../data/train_data.pkl')
+    else:
+        X_train, Y_train, R_train = get_data(datetime.date(2011, 2, 1), datetime.date(2016, 8, 30))
+        joblib.dump([X_train, Y_train, R_train], '../data/train_data.pkl')
     #print X_train
     #print Y_train
     #print R_train
@@ -181,7 +186,7 @@ if __name__ == '__main__':
     print("Score with the entire dataset = %.2f" % score)
 
 
-    X_test, Y_test, R_test = get_data(datetime.date(2016, 1, 1), datetime.date(2016, 9, 30))
+    X_test, Y_test, R_test = get_data(datetime.date(2016, 10, 1), datetime.date(2016, 10, 31))
     score = estimator.score(X_test, Y_test)
     print("Score with the entire dataset = %.2f" % score)
     pred = estimator.predict(X_test)
