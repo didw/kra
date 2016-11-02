@@ -53,6 +53,11 @@ def test_rank():
     print top[2] in [1, 2]
     print top[3] in [1, 2]
 
+def df_concat():
+    a = pd.DataFrame([[1,2,3,4,5], [2,3,4,5,6]])
+    a.columns = ['a', 'b', 'c', 'd', 'e']
+    b = pd.DataFrame([4,3])
+    print(pd.concat([a[['c','a']], b], axis=1))
 
 def test_random():
     total = 10
@@ -60,5 +65,5 @@ def test_random():
 
 
 if __name__ == '__main__':
-    test_rank()
+    df_concat()
 
