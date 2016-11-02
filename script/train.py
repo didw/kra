@@ -193,7 +193,7 @@ def simulation_all(pred, ans):
     return res
 
 
-def training(bd, ed, filename):
+def training(bd, ed):
     if os.path.exists('../data/train_data.pkl'):
         X_train, Y_train, R_train = joblib.load('../data/train_data.pkl')
     else:
