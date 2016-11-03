@@ -34,33 +34,34 @@ def get_data(begin_date, end_date):
     date = train_bd
     data = pd.DataFrame()
     first = True
+    date += datetime.timedelta(days=-1)
     while date < train_ed:
-        date = date + datetime.timedelta(days=1)
+        date += datetime.timedelta(days=1)
         if date.weekday() != 5 and date.weekday() != 6:
             continue
         filename = "../txt/rcresult/rcresult_1_%02d%02d%02d.txt" % (date.year, date.month, date.day)
         if not os.path.isfile(filename):
             continue
-
         if first:
             data = pr.get_data(filename)
             first = False
         else:
             data = data.append(pr.get_data(filename), ignore_index=True)
-    del data['name']
-    del data['jockey']
-    del data['trainer']
-    del data['owner']
+    print(data)
     data = normalize_data(data)
     R_data = data[['rank', 'r1', 'r2', 'r3']]
     Y_data = data['rctime']
-    X_data = data
+    X_data = data.copy()
+    del X_data['name']
+    del X_data['jockey']
+    del X_data['trainer']
+    del X_data['owner']
     del X_data['rctime']
     del X_data['rank']
     del X_data['r3']
     del X_data['r2']
     del X_data['r1']
-    return X_data, Y_data, R_data
+    return X_data, Y_data, R_data, data
 
 # 단승식
 def simulation1(pred, ans):
@@ -81,7 +82,7 @@ def simulation1(pred, ans):
         sim_data = pd.Series(sim_data)
         top = sim_data.argmin()
         #print("prediction: %d" % top)
-        if total < 5 or r1 < 10:
+        if total < 5 or r1 < 1:
             continue
         elif top == 0:
             res += 100 * (r1 - 1)
@@ -95,37 +96,40 @@ def simulation1(pred, ans):
 def simulation2(pred, ans):
     i = 0
     res = 0
+    rcno = 0
     assert len(pred) == len(ans)
     while True:
         if i >= len(pred):
             break
         sim_data = [pred[i]]
-        r2 = float(ans['r2'][i])
+        r2 = [float(ans['r2'][i])]
         i += 1
         total = 1
         while i < len(pred) and int(ans['rank'][i]) != 1:
             sim_data.append(pred[i])
+            r2.append(float(ans['r2'][i]) - 1)
             total += 1
             i += 1
         sim_data = pd.Series(sim_data)
         top = sim_data.argmin()
         #print("prediction: %d" % top)
-        if total < 5 or r2 < 3:
+        rcno += 1
+        if total < 5 or r2[top] < 1:
             continue
         elif total > 7:
             if top in [0, 1, 2]:
-                res += 100 * (r2 - 1)
-                print("연승식 WIN: %f" % res)
+                res += 100 * r2[top]
+                print("연승식(%d) WIN: %f" % (rcno, res))
             else:
                 res -= 100
-                print("연승식 LOSE: %f" % res)
+                print("연승식(%d) LOSE: %f" % (rcno, res))
         else:
             if top in [0, 1]:
-                res += 100 * (r2 - 1)
-                print("연승식 WIN: %f" % res)
+                res += 100 * r2[top]
+                print("연승식(%d) WIN: %f" % (rcno, res))
             else:
                 res -= 100
-                print("연승식 LOSE: %f" % res)
+                print("연승식(%d) LOSE: %f" % (rcno, res))
     return res
 
 # 복승식
@@ -145,7 +149,7 @@ def simulation3(pred, ans):
             total += 1
             i += 1
         sim_data = pd.Series(sim_data)
-        if total < 5 or r3 < 30:
+        if total < 5 or r3 < 1:
             continue
         top = sim_data.rank()
         if (top[0] in [1, 2]) and (top[1] in [1, 2]):
@@ -161,31 +165,30 @@ def simulation_all(pred, ans):
     i = 0
     res = 0
     assert len(pred) == len(ans)
-    print(pred)
-    print(ans)
     while True:
         if i >= len(pred):
             break
         sim_data = [pred[i]]
         r1 = float(ans['r1'][i]) - 1
-        r2 = float(ans['r2'][i]) - 1
+        r2 = [float(ans['r2'][i]) - 1]
         r3 = float(ans['r3'][i]) - 1
         i += 1
         total = 1
         while i < len(pred) and int(ans['rank'][i]) != 1:
             sim_data.append(pred[i])
+            r2.append(float(ans['r2'][i]) - 1)
             total += 1
             i += 1
         sim_data = pd.Series(sim_data)
-        if len(sim_data) < 3:
+        if len(sim_data) < 5:
             continue
         top = sim_data.rank()
 
         res1 = 100*r1 if top[0] == 1 else -100
         if total > 7:
-            res2 = 100*r2 if 1 in [top[0], top[1], top[2]] else -100
+            res2 = 100*r2[int(top[0]-1)] if top[0] in [1, 2, 3] else -100
         else:
-            res2 = 100*r2 if 1 in [top[0], top[1]] else -100
+            res2 = 100*r2[int(top[0]-1)] if top[0] in [1, 2] else -100
         res3 = 100*r3 if top[0] in [1, 2] and top[1] in [1, 2] else -100
         res += (res1 + res2 + res3)
         print("res: %f <= (%f) + (%f) + (%f)" % (res, res1, res2, res3))
@@ -194,11 +197,11 @@ def simulation_all(pred, ans):
 
 
 def training(bd, ed):
-    if os.path.exists('../data/train_data.pkl'):
-        X_train, Y_train, R_train = joblib.load('../data/train_data.pkl')
+    if os.path.exists('../data/train_data_41.pkl'):
+        X_train, Y_train, R_train, _ = joblib.load('../data/train_data_41.pkl')
     else:
-        X_train, Y_train, R_train = get_data(bd, ed)
-        joblib.dump([X_train, Y_train, R_train], '../data/train_data.pkl')
+        X_train, Y_train, R_train, X_data = get_data(bd, ed)
+        joblib.dump([X_train, Y_train, R_train, X_data], '../data/train_data_41.pkl')
     estimator = RandomForestRegressor(random_state=0, n_estimators=100)
     estimator.fit(X_train, Y_train)
     return estimator
@@ -206,11 +209,11 @@ def training(bd, ed):
 
 if __name__ == '__main__':
     #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30), '../model/rctime_2011_2015.pkl')
-    if os.path.exists('../data/train_data.pkl'):
-        X_train, Y_train, R_train = joblib.load('../data/train_data.pkl')
+    if os.path.exists('../data/train_data_41.pkl'):
+        X_train, Y_train, R_train, _ = joblib.load('../data/train_data_41.pkl')
     else:
-        X_train, Y_train, R_train = get_data(datetime.date(2011, 2, 1), datetime.date(2016, 8, 30))
-        joblib.dump([X_train, Y_train, R_train], '../data/train_data.pkl')
+        X_train, Y_train, R_train, X_data = get_data(datetime.date(2011, 2, 1), datetime.date(2016, 8, 30))
+        joblib.dump([X_train, Y_train, R_train, X_data], '../data/train_data_41.pkl')
     #print X_train
     #print Y_train
     #print R_train
@@ -221,10 +224,18 @@ if __name__ == '__main__':
     print("Score with the entire dataset = %.2f" % score)
 
 
-    X_test, Y_test, R_test = get_data(datetime.date(2016, 10, 1), datetime.date(2016, 10, 31))
+    X_test, Y_test, R_test, X_data = get_data(datetime.date(2016, 10, 1), datetime.date(2016, 10, 30))
     score = estimator.score(X_test, Y_test)
     print("Score with the entire dataset = %.2f" % score)
     pred = estimator.predict(X_test)
+    __DEBUG__ = False
+    if __DEBUG__:
+        fdata = open('../log/161030_txt.txt', 'w')
+        for idx, row in X_data.iterrows():
+            for item in X_data.columns:
+                fdata.write("%s\t" % row[item])
+            fdata.write("%f\n" % pred[idx])
+        fdata.close()
     res1 = simulation1(pred, R_test)
     res2 = simulation2(pred, R_test)
     res3 = simulation3(pred, R_test)
