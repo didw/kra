@@ -36,23 +36,38 @@ def predict_next(estimator, meet, date):
     del X_data['jockey']
     del X_data['trainer']
     del X_data['owner']
-    pred = estimator.predict(X_data)
+    del X_data['rcno']
+    pred = pd.DataFrame(estimator.predict(X_data))
+    pred.columns = ['predict']
+    __DEBUG__ = True
+    if __DEBUG__:
+        fdata = open('../log/161031.txt', 'w')
+        for idx, row in data.iterrows():
+            for item in data.columns:
+                fdata.write("%s\t" % row[item])
+            fdata.write("%f\n" % pred['predict'][idx])
+        fdata.close()
+    print(pd.concat([data, pred], axis=1))
+    print(pd.concat([data[['rcno', 'name', 'jockey', 'trainer']], pred], axis=1))
     prev_rc = data['rcno'][0]
+    rctime = []
+    rcdata = []
     for idx, row in data.iterrows():
-        rctime = []
-        rcdata = []
-        if row['rcno'] == prev_rc:
-            rctime.append(pred[idx])
-            rcdata.append([row['rcno'], row['name'], data['idx']])
-        else:
+        if row['rcno'] != prev_rc or idx+1 == len(data):
             rctime = pd.Series(rctime)
             rcdata = pd.DataFrame(rcdata)
             rcrank = rctime.rank()
             for i, v in enumerate(rcrank):
                 if v == 1:
-                    print("rcNo: %s, 1st: %d (%s)" % (rcdata['rcno'][i], rcdata['idx'][i], rcdata['name'][i]))
+                    print("rcNo: %s, 1st: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
                 elif v == 2:
-                    print("rcNo: %s, 2nd: %d (%s)" % (rcdata['rcno'][i], rcdata['idx'][i], rcdata['name'][i]))
+                    print("rcNo: %s, 2nd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
+            rctime = []
+            rcdata = []
+            prev_rc = row['rcno']
+        else:
+            rctime.append(float(pred['predict'][idx]))
+            rcdata.append([row['rcno'], row['name'], row['idx']])
 
 
 if __name__ == '__main__':
@@ -60,7 +75,7 @@ if __name__ == '__main__':
     date = 20161030
     import get_api
     #get_api.get_data(meet, date/100)
-    estimator = tr.training(datetime.date(2011, 2, 1), datetime.date(2016, 10, 31))
+    estimator = tr.training(datetime.date(2011, 2, 1), datetime.date(2016, 10, 25))
     predict_next(estimator, meet, date)
 
 
