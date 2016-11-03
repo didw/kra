@@ -78,42 +78,42 @@ def get_hr_win(tt, t1, t2, yt, y1, y2):
 
 
 def get_jk_win(data, name):
-    res = [-1, -1, -1, -1]
+    res = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
     for idx, line in data.iterrows():
         if line['jkName'] == name:
-            tt = int(line['cntT'])
-            t1 = int(line['ord1T'])
-            t2 = int(line['ord2T'])
-            yt = int(line['cntY'])
-            y1 = int(line['ord1Y'])
-            y2 = int(line['ord2Y'])
+            res[0] = tt = int(line['cntT'])
+            res[1] = t1 = int(line['ord1T'])
+            res[2] = t2 = int(line['ord2T'])
+            res[5] = yt = int(line['cntY'])
+            res[6] = y1 = int(line['ord1Y'])
+            res[7] = y2 = int(line['ord2Y'])
             if int(tt) != 0:
-                res[0] = int(t1) * 100 / int(tt)
-                res[1] = int(t2) * 100 / int(tt)
+                res[3] = int(t1) * 100 / int(tt)
+                res[4] = int(t2) * 100 / int(tt)
             if int(yt) != 0:
-                res[2] = int(y1) * 100 / int(yt)
-                res[3] = int(y2) * 100 / int(yt)
+                res[8] = int(y1) * 100 / int(yt)
+                res[9] = int(y2) * 100 / int(yt)
             return res
     print("can not find jockey %s" % (name,))
     return res
 
 
 def get_tr_win(data, name):
-    res = [-1, -1, -1, -1]
+    res = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
     for idx, line in data.iterrows():
         if line['trName'] == name:
-            tt = int(line['cntT'])
-            t1 = int(line['ord1T'])
-            t2 = int(line['ord2T'])
-            yt = int(line['cntY'])
-            y1 = int(line['ord1Y'])
-            y2 = int(line['ord2Y'])
+            res[0] = tt = int(line['cntT'])
+            res[1] = t1 = int(line['ord1T'])
+            res[2] = t2 = int(line['ord2T'])
+            res[5] = yt = int(line['cntY'])
+            res[6] = y1 = int(line['ord1Y'])
+            res[7] = y2 = int(line['ord2Y'])
             if int(tt) != 0:
-                res[0] = int(t1) * 100 / int(tt)
-                res[1] = int(t2) * 100 / int(tt)
+                res[3] = int(t1) * 100 / int(tt)
+                res[4] = int(t2) * 100 / int(tt)
             if int(yt) != 0:
-                res[2] = int(y1) * 100 / int(yt)
-                res[3] = int(y2) * 100 / int(yt)
+                res[8] = int(y1) * 100 / int(yt)
+                res[9] = int(y2) * 100 / int(yt)
             return res
     print("can not find trainer %s" % (name,))
     return res
@@ -163,8 +163,15 @@ def parse_xml_entry(meet, date):
                  hr_weight,
                  hr_dweight,
                  hr_days,
+
+                 itemElm.cntt.string,
+                 itemElm.ord1t.string,
+                 itemElm.ord2t.string,
                  hr_win[0],
                  hr_win[1],
+                 itemElm.cnty.string,
+                 itemElm.ord1y.string,
+                 itemElm.ord2y.string,
                  hr_win[2],
                  hr_win[3],
 
@@ -172,11 +179,23 @@ def parse_xml_entry(meet, date):
                  jk_win[1],
                  jk_win[2],
                  jk_win[3],
+                 jk_win[4],
+                 jk_win[5],
+                 jk_win[6],
+                 jk_win[7],
+                 jk_win[8],
+                 jk_win[9],
 
                  tr_win[0],
                  tr_win[1],
                  tr_win[2],
                  tr_win[3],
+                 tr_win[4],
+                 tr_win[5],
+                 tr_win[6],
+                 tr_win[7],
+                 tr_win[8],
+                 tr_win[9],
 
                 itemElm.rcno.string
                 ]
@@ -184,9 +203,11 @@ def parse_xml_entry(meet, date):
         data.append(adata)
 
     df = pd.DataFrame(data)
-    df.columns = ['course', 'humidity', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer',\
-                  'owner', 'weight', 'dweight', 'hr_days', 'hr_t1', 'hr_t2', 'hr_y1', 'hr_y2', 'jk_t1', 'jk_t2', \
-                  'jk_y1', 'jk_y2', 'tr_t1', 'tr_t2', 'tr_y1', 'tr_y2', 'rcno']
+    df.columns = ['course', 'humidity', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', 'owner',
+                  'weight', 'dweight', 'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1',
+                  'hr_ny2', 'hr_y1', 'hr_y2', 'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1',
+                  'jk_ny2', 'jk_y1', 'jk_y2', 'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1',
+                  'tr_ny2', 'tr_y1', 'tr_y2', 'rcno']
     return df
 
 
