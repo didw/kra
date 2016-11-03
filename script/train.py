@@ -82,7 +82,7 @@ def simulation1(pred, ans):
         sim_data = pd.Series(sim_data)
         top = sim_data.argmin()
         #print("prediction: %d" % top)
-        if total < 5 or r1 < 1:
+        if total < 1 or r1 < 1:
             continue
         elif top == 0:
             res += 100 * (r1 - 1)
@@ -114,7 +114,7 @@ def simulation2(pred, ans):
         top = sim_data.argmin()
         #print("prediction: %d" % top)
         rcno += 1
-        if total < 5 or r2[top] < 1:
+        if total < 1 or r2[top] < 1:
             continue
         elif total > 7:
             if top in [0, 1, 2]:
@@ -149,7 +149,7 @@ def simulation3(pred, ans):
             total += 1
             i += 1
         sim_data = pd.Series(sim_data)
-        if total < 5 or r3 < 1:
+        if total < 1 or r3 < 1:
             continue
         top = sim_data.rank()
         if (top[0] in [1, 2]) and (top[1] in [1, 2]):
@@ -180,7 +180,7 @@ def simulation_all(pred, ans):
             total += 1
             i += 1
         sim_data = pd.Series(sim_data)
-        if len(sim_data) < 5:
+        if len(sim_data) < 1:
             continue
         top = sim_data.rank()
 
@@ -206,9 +206,25 @@ def training(bd, ed):
     estimator.fit(X_train, Y_train)
     return estimator
 
+def print_log(data, pred, fname):
+    flog = open(fname, 'w')
+    rcno = 1
+    for idx in range(len(data)):
+        if rcno != data['rcno'][idx]:
+            rcno = data['rcno'][idx]
+            flog.write('\n')
+        flog.write("%s\t%s\t%s\t%s\t%s\t" % (data['rcno'][idx], data['course'][idx], data['idx'][idx], data['name'][idx], data['cntry'][idx]))
+        flog.write("%s\t%s\t%s\t%s\t%s\t" % (data['gender'][idx], data['age'][idx], data['budam'][idx], data['jockey'][idx], data['trainer'][idx]))
+        flog.write("%s\t%s\t%s\t%s\t" % (data['weight'][idx], data['dweight'][idx], data['hr_days'][idx], data['humidity'][idx]))
+        flog.write("%s\t%s\t%s\t%s\t%s\t%s\t" % (data['hr_nt'][idx], data['hr_nt1'][idx], data['hr_nt2'][idx], data['hr_ny'][idx], data['hr_ny1'][idx], data['hr_ny2'][idx]))
+        flog.write("%s\t%s\t%s\t%s\t%s\t%s\t" % (data['jk_nt'][idx], data['jk_nt1'][idx], data['jk_nt2'][idx], data['jk_ny'][idx], data['jk_ny1'][idx], data['jk_ny2'][idx]))
+        flog.write("%s\t%s\t%s\t%s\t%s\t%s\t" % (data['tr_nt'][idx], data['tr_nt1'][idx], data['tr_nt2'][idx], data['tr_ny'][idx], data['tr_ny1'][idx], data['tr_ny2'][idx]))
+        flog.write("%f\n" % pred['predict'][idx])
+    flog.close()
+
 
 if __name__ == '__main__':
-    #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30), '../model/rctime_2011_2015.pkl')
+    #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30), '../model/train_data_41.pkl')
     if os.path.exists('../data/train_data_41.pkl'):
         X_train, Y_train, R_train, _ = joblib.load('../data/train_data_41.pkl')
     else:
@@ -230,12 +246,8 @@ if __name__ == '__main__':
     pred = estimator.predict(X_test)
     __DEBUG__ = False
     if __DEBUG__:
-        fdata = open('../log/161030_txt.txt', 'w')
-        for idx, row in X_data.iterrows():
-            for item in X_data.columns:
-                fdata.write("%s\t" % row[item])
-            fdata.write("%f\n" % pred[idx])
-        fdata.close()
+        print_log(X_data, pred, '../log/%s_txt.txt' % "161105")
+
     res1 = simulation1(pred, R_test)
     res2 = simulation2(pred, R_test)
     res3 = simulation3(pred, R_test)
