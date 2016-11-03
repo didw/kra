@@ -165,14 +165,26 @@ def parse_txt_horse(date, name):
             if int(participates[0]) == 0:
                 data.append(-1)
                 data.append(-1)
+                data.append(-1)
+                data.append(-1)
+                data.append(-1)
             else:
+                data.append(int(participates[0]))
+                data.append(int(participates[1]))
+                data.append(int(participates[2]))
                 data.append(int(participates[1])*100/int(participates[0]))
                 data.append(int(participates[2])*100/int(participates[0]))
 
             if int(participates[3]) == 0:
                 data.append(-1)
                 data.append(-1)
+                data.append(-1)
+                data.append(-1)
+                data.append(-1)
             else:
+                data.append(int(participates[3]))
+                data.append(int(participates[4]))
+                data.append(int(participates[5]))
                 data.append(int(participates[4])*100/int(participates[3]))
                 data.append(int(participates[5])*100/int(participates[3]))
 
@@ -202,14 +214,26 @@ def parse_txt_jockey(date, name):
             if int(participates[0]) == 0:
                 data.append(-1)
                 data.append(-1)
+                data.append(-1)
+                data.append(-1)
+                data.append(-1)
             else:
+                data.append(int(participates[0]))
+                data.append(int(participates[1]))
+                data.append(int(participates[2]))
                 data.append(int(participates[1])*100/int(participates[0]))
                 data.append(int(participates[2])*100/int(participates[0]))
 
             if int(participates[3]) == 0:
                 data.append(-1)
                 data.append(-1)
+                data.append(-1)
+                data.append(-1)
+                data.append(-1)
             else:
+                data.append(int(participates[3]))
+                data.append(int(participates[4]))
+                data.append(int(participates[5]))
                 data.append(int(participates[4])*100/int(participates[3]))
                 data.append(int(participates[5])*100/int(participates[3]))
 
@@ -240,14 +264,26 @@ def parse_txt_trainer(date, name):
             if int(participates[0]) == 0:
                 data.append(-1)
                 data.append(-1)
+                data.append(-1)
+                data.append(-1)
+                data.append(-1)
             else:
+                data.append(int(participates[0]))
+                data.append(int(participates[1]))
+                data.append(int(participates[2]))
                 data.append(int(participates[1])*100/int(participates[0]))
                 data.append(int(participates[2])*100/int(participates[0]))
 
             if int(participates[3]) == 0:
                 data.append(-1)
                 data.append(-1)
+                data.append(-1)
+                data.append(-1)
+                data.append(-1)
             else:
+                data.append(int(participates[3]))
+                data.append(int(participates[4]))
+                data.append(int(participates[5]))
                 data.append(int(participates[4])*100/int(participates[3]))
                 data.append(int(participates[5])*100/int(participates[3]))
 
@@ -267,10 +303,11 @@ def get_data(filename):
         data[i].extend(parse_txt_jockey(date, data[i][9]))
         data[i].extend(parse_txt_trainer(date, data[i][10]))
     df = pd.DataFrame(data)
-    df.columns = ['course', 'humidity', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', \
-                  'trainer', 'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'hr_days', 'hr_t1', \
-                  'hr_t2', 'hr_y1', 'hr_y2', 'jk_t1', 'jk_t2', 'jk_y1', 'jk_y2', 'tr_t1', 'tr_t2', 'tr_y1', \
-                  'tr_y2']
+    df.columns = ['course', 'humidity', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer',
+                  'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2',
+                  'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', 'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1',
+                  'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', 'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2',
+                  'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2']
     return df
 
 
