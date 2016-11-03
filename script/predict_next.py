@@ -28,6 +28,29 @@ def normalize_data(org_data):
     return data
 
 
+"""['course', 'humidity', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', 'owner',
+ 'weight', 'dweight', 'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1',
+ 'hr_ny2', 'hr_y1', 'hr_y2', 'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1',
+ 'jk_ny2', 'jk_y1', 'jk_y2', 'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1',
+ 'tr_ny2', 'tr_y1', 'tr_y2', 'rcno']
+ """
+def print_log(data, pred, fname):
+    flog = open(fname, 'w')
+    rcno = 1
+    for idx in range(len(data)):
+        if rcno != data['rcno'][idx]:
+            rcno = data['rcno'][idx]
+            flog.write('\n')
+        flog.write("%s\t%s\t%s\t%s\t%s\t" % (data['rcno'][idx], data['course'][idx], data['idx'][idx], data['name'][idx], data['cntry'][idx]))
+        flog.write("%s\t%s\t%s\t%s\t%s\t" % (data['gender'][idx], data['age'][idx], data['budam'][idx], data['jockey'][idx], data['trainer'][idx]))
+        flog.write("%s\t%s\t%s\t%s\t" % (data['weight'][idx], data['dweight'][idx], data['hr_days'][idx], data['humidity'][idx]))
+        flog.write("%s\t%s\t%s\t%s\t%s\t%s\t" % (data['hr_nt'][idx], data['hr_nt1'][idx], data['hr_nt2'][idx], data['hr_ny'][idx], data['hr_ny1'][idx], data['hr_ny2'][idx]))
+        flog.write("%s\t%s\t%s\t%s\t%s\t%s\t" % (data['jk_nt'][idx], data['jk_nt1'][idx], data['jk_nt2'][idx], data['jk_ny'][idx], data['jk_ny1'][idx], data['jk_ny2'][idx]))
+        flog.write("%s\t%s\t%s\t%s\t%s\t%s\t" % (data['tr_nt'][idx], data['tr_nt1'][idx], data['tr_nt2'][idx], data['tr_ny'][idx], data['tr_ny1'][idx], data['tr_ny2'][idx]))
+        flog.write("%f\n" % pred['predict'][idx])
+    flog.close()
+
+
 def predict_next(estimator, meet, date):
     data = xe.parse_xml_entry(meet, date)
     data = normalize_data(data)
@@ -41,12 +64,7 @@ def predict_next(estimator, meet, date):
     pred.columns = ['predict']
     __DEBUG__ = True
     if __DEBUG__:
-        fdata = open('../log/161031.txt', 'w')
-        for idx, row in data.iterrows():
-            for item in data.columns:
-                fdata.write("%s\t" % row[item])
-            fdata.write("%f\n" % pred['predict'][idx])
-        fdata.close()
+        print_log(data, pred, '../log/%s.txt' % data)
     print(pd.concat([data, pred], axis=1))
     print(pd.concat([data[['rcno', 'name', 'jockey', 'trainer']], pred], axis=1))
     prev_rc = data['rcno'][0]
@@ -72,9 +90,9 @@ def predict_next(estimator, meet, date):
 
 if __name__ == '__main__':
     meet = 1
-    date = 20161030
+    date = 20161105
     import get_api
-    #get_api.get_data(meet, date/100)
+    get_api.get_data(meet, date/100)
     estimator = tr.training(datetime.date(2011, 2, 1), datetime.date(2016, 10, 25))
     predict_next(estimator, meet, date)
 
