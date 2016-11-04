@@ -28,7 +28,7 @@ def normalize_data(org_data):
     data['cntry'][data['cntry'] == '모'] = 8
     return data
 
-def get_data(begin_date, end_date):
+def get_data(begin_date, end_date, del_nt=False):
     train_bd = begin_date
     train_ed = end_date
     date = train_bd
@@ -49,7 +49,7 @@ def get_data(begin_date, end_date):
             data = data.append(pr.get_data(filename), ignore_index=True)
     print(data)
     data = normalize_data(data)
-    R_data = data[['rank', 'r1', 'r2', 'r3']]
+    R_data = data[['rank', 'r1', 'r2', 'r3', 'hr_nt', 'jk_nt', 'tr_nt']]
     Y_data = data['rctime']
     X_data = data.copy()
     del X_data['name']
@@ -61,6 +61,11 @@ def get_data(begin_date, end_date):
     del X_data['r3']
     del X_data['r2']
     del X_data['r1']
+    if del_nt:
+        for idx in range(len(X_data)):
+            if X_data['hr_nt'][idx] == -1 or X_data['jk_nt'][idx] == -1 or X_data['tr_nt'][idx] == -1:
+                print('Delete %dth row (hr: %s, jk: %s, tr: %s' % (idx, X_data['hr_nt'][idx], X_data['jk_nt'][idx], X_data['tr_nt'][idx]))
+                X_data.drop(X_data.index[[idx]])
     return X_data, Y_data, R_data, data
 
 # 단승식
@@ -75,10 +80,15 @@ def simulation1(pred, ans):
         r1 = float(ans['r1'][i])
         i += 1
         total = 1
+        rack_data = False
         while i < len(pred) and int(ans['rank'][i]) != 1:
+            if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
+                rack_data = True
             sim_data.append(pred[i])
             total += 1
             i += 1
+        if rack_data:
+            continue
         sim_data = pd.Series(sim_data)
         top = sim_data.argmin()
         #print("prediction: %d" % top)
@@ -105,11 +115,16 @@ def simulation2(pred, ans):
         r2 = [float(ans['r2'][i]) - 1]
         i += 1
         total = 1
+        rack_data = False
         while i < len(pred) and int(ans['rank'][i]) != 1:
+            if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
+                rack_data = True
             sim_data.append(pred[i])
             r2.append(float(ans['r2'][i]) - 1)
             total += 1
             i += 1
+        if rack_data:
+            continue
         sim_data = pd.Series(sim_data)
         top = sim_data.argmin()
         #print("prediction: %d" % top)
@@ -144,12 +159,17 @@ def simulation3(pred, ans):
         r3 = float(ans['r3'][i])
         i += 1
         total = 1
+        rack_data = False
         while i < len(pred) and int(ans['rank'][i]) != 1:
+            if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
+                rack_data = True
             sim_data.append(pred[i])
             total += 1
             i += 1
+        if rack_data:
+            continue
         sim_data = pd.Series(sim_data)
-        if total < 1 or r3 < 50:
+        if total < 2 or r3 < 50:
             continue
         top = sim_data.rank()
         if (top[0] in [1, 2]) and (top[1] in [1, 2]):
@@ -174,13 +194,18 @@ def simulation_all(pred, ans):
         r3 = float(ans['r3'][i]) - 1
         i += 1
         total = 1
+        rack_data = False
         while i < len(pred) and int(ans['rank'][i]) != 1:
+            if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
+                rack_data = True
             sim_data.append(pred[i])
             r2.append(float(ans['r2'][i]) - 1)
             total += 1
             i += 1
+        if rack_data:
+            continue
         sim_data = pd.Series(sim_data)
-        if len(sim_data) < 1:
+        if len(sim_data) < 2:
             continue
         top = sim_data.rank()
         top1 = sim_data.argmin()
@@ -198,11 +223,11 @@ def simulation_all(pred, ans):
 
 
 def training(bd, ed):
-    if os.path.exists('../data/train_data_41.pkl'):
-        X_train, Y_train, R_train, _ = joblib.load('../data/train_data_41.pkl')
+    if os.path.exists('../data/train_data_1_41.pkl'):
+        X_train, Y_train, R_train, _ = joblib.load('../data/train_data_1_41.pkl')
     else:
         X_train, Y_train, R_train, X_data = get_data(bd, ed)
-        joblib.dump([X_train, Y_train, R_train, X_data], '../data/train_data_41.pkl')
+        joblib.dump([X_train, Y_train, R_train, X_data], '../data/train_data_1_41.pkl')
     estimator = RandomForestRegressor(random_state=0, n_estimators=100)
     estimator.fit(X_train, Y_train)
     return estimator
@@ -227,23 +252,26 @@ def print_log(data, pred, fname):
 
 
 if __name__ == '__main__':
-    #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30), '../model/train_data_41.pkl')
-    if os.path.exists('../data/train_data_41.pkl'):
-        X_train, Y_train, R_train, _ = joblib.load('../data/train_data_41.pkl')
+    #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30))
+    if os.path.exists('../data/train_data_1_41.pkl'):
+        X_train, Y_train, R_train, _ = joblib.load('../data/train_data_1_41.pkl')
     else:
-        X_train, Y_train, R_train, X_data = get_data(datetime.date(2011, 2, 1), datetime.date(2016, 8, 30))
-        joblib.dump([X_train, Y_train, R_train, X_data], '../data/train_data_41.pkl')
+        X_train, Y_train, R_train, X_data = get_data(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30), del_nt=True)
+        joblib.dump([X_train, Y_train, R_train, X_data], '../data/train_data_1_41.pkl')
     #print X_train
     #print Y_train
     #print R_train
 
     estimator = RandomForestRegressor(random_state=0, n_estimators=100)
     estimator.fit(X_train, Y_train)
+    print("important factor")
+    print(X_train.columns)
+    print(estimator.feature_importances_)
     score = estimator.score(X_train, Y_train)
     print("Score with the entire dataset = %.2f" % score)
 
 
-    X_test, Y_test, R_test, X_data = get_data(datetime.date(2016, 10, 1), datetime.date(2016, 10, 30))
+    X_test, Y_test, R_test, X_data = get_data(datetime.date(2016, 1, 1), datetime.date(2016, 10, 30), del_nt=False)
     score = estimator.score(X_test, Y_test)
     print("Score with the entire dataset = %.2f" % score)
     pred = estimator.predict(X_test)
