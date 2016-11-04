@@ -47,10 +47,10 @@ def get_data(begin_date, end_date, del_nt=False):
             first = False
         else:
             data = data.append(pr.get_data(filename), ignore_index=True)
-        print(data['cnt'])
-        print(data['rcno'])
     print(data)
     data = normalize_data(data)
+    print(data['cnt'])
+    print(data['rcno'])
     R_data = data[['rank', 'r1', 'r2', 'r3', 'hr_nt', 'jk_nt', 'tr_nt', 'cnt', 'rcno']]
     Y_data = data['rctime']
     X_data = data.copy()
@@ -68,10 +68,12 @@ def get_data(begin_date, end_date, del_nt=False):
             if X_data['hr_nt'][idx] == -1 or X_data['jk_nt'][idx] == -1 or X_data['tr_nt'][idx] == -1:
                 print('Delete %dth row (hr: %s, jk: %s, tr: %s)' % (idx, X_data['hr_nt'][idx], X_data['jk_nt'][idx], X_data['tr_nt'][idx]))
                 X_data.drop(X_data.index[[idx]])
+    print(R_data)
     return X_data, Y_data, R_data, data
 
 # 단승식
 def simulation1(pred, ans):
+    print(ans)
     i = 0
     res = 0
     assert len(pred) == len(ans)
@@ -80,7 +82,7 @@ def simulation1(pred, ans):
             break
         sim_data = [pred[i]]
         r1 = float(ans['r1'][i])
-        rcno = ans['rcno'][i]
+        rcno = int(ans['rcno'][i])
         i += 1
         total = 1
         rack_data = False
@@ -89,7 +91,7 @@ def simulation1(pred, ans):
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
                 rack_data = True
             sim_data.append(pred[i])
-            total_player = ans['cnt'][i]
+            total_player = int(ans['cnt'][i])
             total += 1
             i += 1
         if rack_data:
@@ -111,6 +113,7 @@ def simulation1(pred, ans):
 
 # 연승식
 def simulation2(pred, ans):
+    print(ans)
     i = 0
     res = 0
     rcno = 0
@@ -121,7 +124,7 @@ def simulation2(pred, ans):
             break
         sim_data = [pred[i]]
         r2 = [float(ans['r2'][i]) - 1]
-        rc_no = ans['rcno'][i]
+        rc_no = int(ans['rcno'][i])
         i += 1
         total = 1
         rack_data = False
@@ -130,7 +133,7 @@ def simulation2(pred, ans):
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
                 rack_data = True
             sim_data.append(pred[i])
-            total_player = ans['cnt'][i]
+            total_player = int(ans['cnt'][i])
             r2.append(float(ans['r2'][i]) - 1)
             total += 1
             i += 1
@@ -161,6 +164,7 @@ def simulation2(pred, ans):
 
 # 복승식
 def simulation3(pred, ans):
+    print(ans)
     i = 0
     res = 0
     assert len(pred) == len(ans)
@@ -169,7 +173,7 @@ def simulation3(pred, ans):
             break
         sim_data = [pred[i]]
         r3 = float(ans['r3'][i])
-        rcno = ans['rcno'][i]
+        rcno = int(ans['rcno'][i])
         i += 1
         total = 1
         rack_data = False
@@ -178,7 +182,7 @@ def simulation3(pred, ans):
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
                 rack_data = True
             sim_data.append(pred[i])
-            total_player = ans['cnt'][i]
+            total_player = int(ans['cnt'][i])
             total += 1
             i += 1
         if rack_data:
@@ -199,6 +203,7 @@ def simulation3(pred, ans):
 
 
 def simulation_all(pred, ans):
+    print(ans)
     i = 0
     res = 0
     assert len(pred) == len(ans)
@@ -209,7 +214,7 @@ def simulation_all(pred, ans):
         r1 = float(ans['r1'][i]) - 1
         r2 = [float(ans['r2'][i]) - 1]
         r3 = float(ans['r3'][i]) - 1
-        rcno = ans['rcno'][i]
+        rcno = int(ans['rcno'][i])
         i += 1
         total = 1
         rack_data = False
@@ -219,12 +224,13 @@ def simulation_all(pred, ans):
                 rack_data = True
             sim_data.append(pred[i])
             r2.append(float(ans['r2'][i]) - 1)
+            total_player = int(ans['cnt'][i])
             total += 1
             i += 1
         if rack_data:
             continue
         sim_data = pd.Series(sim_data)
-        if len(sim_data) < 2:
+        if total < total_player:
             continue
         top = sim_data.rank()
         top1 = sim_data.argmin()
@@ -290,7 +296,7 @@ if __name__ == '__main__':
     print("Score with the entire dataset = %.2f" % score)
 
 
-    X_test, Y_test, R_test, X_data = get_data(datetime.date(2016, 1, 1), datetime.date(2016, 10, 30), del_nt=False)
+    X_test, Y_test, R_test, X_data = get_data(datetime.date(2016, 10, 1), datetime.date(2016, 10, 30), del_nt=False)
     score = estimator.score(X_test, Y_test)
     print("Score with the entire dataset = %.2f" % score)
     pred = estimator.predict(X_test)
