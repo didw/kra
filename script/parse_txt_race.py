@@ -46,6 +46,8 @@ def parse_txt_race(input_file):
                 break
             if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:5]) is None:
                 continue
+            if int(re.search(unicode(r'[^\s]*\d+', 'utf-8').encode('utf-8'), line[:5]).group()) > 90:
+                continue
             # 1위와 2위 번호 가져오기
             if hr_num[0] == 0:
                 hr_num[0] = re.search(unicode(r'\s*\d\s+\d+', 'utf-8').encode('utf-8'), line[:10]).group().split()[1]
@@ -71,15 +73,21 @@ def parse_txt_race(input_file):
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
-            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
-                continue
+            #print("%s" % line)
             if re.search(unicode(r'단승식', 'utf-8').encode('utf-8'), line) is not None:
                 break
+            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
+                continue
             if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:5]) is None:
                 continue
+            if idx == cnt:
+                continue
             adata = []
-            adata.append(re.search(unicode(r'\d{3}(?=[-+\s\d])', 'utf-8').encode('utf-8'), line).group())
-            dweight = re.search(unicode(r'(?<=\d{3})[-+=d]+', 'utf-8').encode('utf-8'), line)
+            weight = re.search(unicode(r'\d{3}(?=[-+\s\d]*)', 'utf-8').encode('utf-8'), line)
+            if weight is None:
+                continue
+            adata.append(weight.group())
+            dweight = re.search(unicode(r'(?<=\d{3})[-+\d]+', 'utf-8').encode('utf-8'), line)
             if dweight is not None:
                 adata.append(dweight.group())
             else:
@@ -102,8 +110,14 @@ def parse_txt_race(input_file):
                 break
             if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:5]) is None:
                 continue
+            if idx == cnt:
+                continue
             adata = []
-            rating = re.search(unicode(r'\d+[.]\d\s+\d+[.]\d\s*$', 'utf-8').encode('utf-8'), line).group().split()
+            rating_exp = re.search(unicode(r'\d+[.]\d\s+\d+[.]\d\s*$', 'utf-8').encode('utf-8'), line)
+            if rating_exp == None:
+                rating = [0, 0]
+            else:
+                rating = rating_exp.group().split()
             adata.append(rating[0])
             adata.append(rating[1])
             data[-cnt+idx].extend(adata)
@@ -117,10 +131,12 @@ def parse_txt_race(input_file):
         # 복승식 rating 가져오기
         #   1- 2   949.3  2- 9  1629.8  4- 5   282.5  5-15     0.0  8- 9   519.3 11-12    18.9
         exp = "%d-%2d" % (hr_num[0], hr_num[1])
+        #print("%s" % exp)
         get_rate = False
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
+            #print("%s" % line)
             if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
                 continue
             if re.search(unicode(r'펄롱타임', 'utf-8').encode('utf-8'), line) is not None:
@@ -157,7 +173,7 @@ def get_fname(date, job):
 # 킹메신저          한    수2014/03/08 2국6 18박대흥죽마조합            시에로골드          난초                    1    0    0    1    0    0    3000000                     0
 def parse_txt_horse(date, name):
     filename = get_fname(date, "horse")
-    print(filename)
+    #print(filename)
     f_input = open(filename)
     while True:
         line = f_input.readline()
@@ -209,7 +225,7 @@ def parse_txt_jockey(date, name):
         #print("name is changed %s -> %s" % (name, name[:6]))
         name = str(name)[:6]
     filename = get_fname(date, "jockey")
-    print(filename)
+    #print(filename)
     f_input = open(filename)
     while True:
         line = f_input.readline()
@@ -258,7 +274,7 @@ def parse_txt_trainer(date, name):
         #print("name is changed %s -> %s" % (name, name[:6]))
         name = str(name)[:6]
     filename = get_fname(date, "trainer")
-    print(filename)
+    #print(filename)
     f_input = open(filename)
     while True:
         line = f_input.readline()
@@ -321,7 +337,7 @@ def get_data(filename):
 
 
 if __name__ == '__main__':
-    filename = '../txt/2/rcresult/rcresult_2_20161029.txt'
+    filename = '../txt/2/rcresult/rcresult_2_20110402.txt'
     data = get_data(filename)
     data = data.dropna()
     print(data)
