@@ -17,12 +17,15 @@ def parse_txt_race(input_file):
         humidity = 0
         read_done = False
         hr_num = [0, 0]
+        rcno = -1
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
             if len(line) == 0:
                 read_done = True
                 break
+            if re.search(unicode(r'제목', 'utf-8').encode('utf-8'), line) is not None:
+                rcno = re.search(unicode(r'\d+(?=경주)', 'utf-8').encode('utf-8'), line).group()
             if re.search(unicode(r'경주명', 'utf-8').encode('utf-8'), line) is not None:
                 course = re.search(unicode(r'\d+(?=M)', 'utf-8').encode('utf-8'), line).group()
             if re.search(unicode(r'경주조건', 'utf-8').encode('utf-8'), line) is not None:
@@ -120,8 +123,11 @@ def parse_txt_race(input_file):
 
             if parse_line is not None:
                 rating = parse_line.group().split('-')[1].split()[1]
+                print("cnt: %s, rcno: %s, len: %d" % (cnt, rcno, len(data[-1])))
                 for i in range(cnt):
                     data[-cnt+i].extend([rating])
+                    data[-cnt+i].extend([cnt])
+                    data[-cnt+i].extend([rcno])
                 get_rate = True
                 break
         assert get_rate
@@ -304,7 +310,7 @@ def get_data(filename):
         data[i].extend(parse_txt_trainer(date, data[i][10]))
     df = pd.DataFrame(data)
     df.columns = ['course', 'humidity', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer',
-                  'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2',
+                  'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2',
                   'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', 'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1',
                   'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', 'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2',
                   'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2']
@@ -317,6 +323,8 @@ if __name__ == '__main__':
     data = data.dropna()
     print(data)
     print(data[['rctime', 'r1', 'r2', 'r3']])
+    print(data['cnt'])
+    print(data['rcno'])
 
 
 
