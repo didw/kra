@@ -6,8 +6,6 @@ from urllib2 import Request, urlopen
 def get_data(meet):
     race_url = "http://data.kra.co.kr/publicdata/service/hr/getHR"
     service_key = "MZBYd4tuPPcTF%2Flqt01Rco4IPTC3r5SZDRbDnoW5P7XG3aCIMMGepC0D%2FnKo1Yu5OVyDYjcAk9l3qg34t6XGzA%3D%3D"
-    # meet = 1: seoul, 2: jeju, 3: bukyeong
-
     url = "%s?meet=%d&ServiceKey=%s" % (race_url, meet, service_key)
     request = Request(url)
     request.get_method = lambda: 'GET'
