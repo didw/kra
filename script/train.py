@@ -17,15 +17,16 @@ def normalize_data(org_data):
     data['gender'][data['gender'] == '거'] = 2
     data['cntry'][data['cntry'] == '한'] = 0
     data['cntry'][data['cntry'] == '한(포)'] = 1
-    data['cntry'][data['cntry'] == '미'] = 2
-    data['cntry'][data['cntry'] == '뉴'] = 3
-    data['cntry'][data['cntry'] == '호'] = 3
-    data['cntry'][data['cntry'] == '일'] = 4
-    data['cntry'][data['cntry'] == '캐'] = 5
-    data['cntry'][data['cntry'] == '브'] = 6
-    data['cntry'][data['cntry'] == '남'] = 6
-    data['cntry'][data['cntry'] == '아일'] = 7
-    data['cntry'][data['cntry'] == '모'] = 8
+    data['cntry'][data['cntry'] == '제'] = 2
+    data['cntry'][data['cntry'] == '일'] = 3
+    data['cntry'][data['cntry'] == '미'] = 4
+    data['cntry'][data['cntry'] == '뉴'] = 5
+    data['cntry'][data['cntry'] == '호'] = 6
+    data['cntry'][data['cntry'] == '캐'] = 7
+    data['cntry'][data['cntry'] == '브'] = 8
+    data['cntry'][data['cntry'] == '남'] = 9
+    data['cntry'][data['cntry'] == '아일'] = 10
+    data['cntry'][data['cntry'] == '모'] = 11
     return data
 
 def get_data(begin_date, end_date):
@@ -37,9 +38,9 @@ def get_data(begin_date, end_date):
     date += datetime.timedelta(days=-1)
     while date < train_ed:
         date += datetime.timedelta(days=1)
-        if date.weekday() != 5 and date.weekday() != 6:
+        if date.weekday() != 4 and date.weekday() != 5:
             continue
-        filename = "../txt/rcresult/rcresult_1_%02d%02d%02d.txt" % (date.year, date.month, date.day)
+        filename = "../txt/2/rcresult/rcresult_2_%02d%02d%02d.txt" % (date.year, date.month, date.day)
         if not os.path.isfile(filename):
             continue
         if first:
@@ -102,7 +103,7 @@ def simulation2(pred, ans):
         if i >= len(pred):
             break
         sim_data = [pred[i]]
-        r2 = [float(ans['r2'][i])]
+        r2 = [float(ans['r2'][i]) - 1]
         i += 1
         total = 1
         while i < len(pred) and int(ans['rank'][i]) != 1:
@@ -114,7 +115,7 @@ def simulation2(pred, ans):
         top = sim_data.argmin()
         #print("prediction: %d" % top)
         rcno += 1
-        if total < 1 or r2[top] < 1:
+        if total < 1 or r2[top] < 0:
             continue
         elif total > 7:
             if top in [0, 1, 2]:
@@ -197,11 +198,11 @@ def simulation_all(pred, ans):
 
 
 def training(bd, ed):
-    if os.path.exists('../data/train_data_41.pkl'):
-        X_train, Y_train, R_train, _ = joblib.load('../data/train_data_41.pkl')
+    if os.path.exists('../data/train_data_2_41.pkl'):
+        X_train, Y_train, R_train, _ = joblib.load('../data/train_data_2_41.pkl')
     else:
         X_train, Y_train, R_train, X_data = get_data(bd, ed)
-        joblib.dump([X_train, Y_train, R_train, X_data], '../data/train_data_41.pkl')
+        joblib.dump([X_train, Y_train, R_train, X_data], '../data/train_data_2_41.pkl')
     estimator = RandomForestRegressor(random_state=0, n_estimators=100)
     estimator.fit(X_train, Y_train)
     return estimator
@@ -226,21 +227,16 @@ def print_log(data, pred, fname):
 
 
 if __name__ == '__main__':
-    #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30), '../model/train_data_41.pkl')
-    if os.path.exists('../data/train_data_41.pkl'):
-        X_train, Y_train, R_train, _ = joblib.load('../data/train_data_41.pkl')
+    if os.path.exists('../data/train_data_2_41.pkl'):
+        X_train, Y_train, R_train, _ = joblib.load('../data/train_data_2_41.pkl')
     else:
-        X_train, Y_train, R_train, X_data = get_data(datetime.date(2011, 2, 1), datetime.date(2016, 8, 30))
-        joblib.dump([X_train, Y_train, R_train, X_data], '../data/train_data_41.pkl')
-    #print X_train
-    #print Y_train
-    #print R_train
+        X_train, Y_train, R_train, X_data = get_data(datetime.date(2011, 2, 1), datetime.date(2016, 9, 30))
+        joblib.dump([X_train, Y_train, R_train, X_data], '../data/train_data_2_41.pkl')
 
     estimator = RandomForestRegressor(random_state=0, n_estimators=100)
     estimator.fit(X_train, Y_train)
     score = estimator.score(X_train, Y_train)
     print("Score with the entire dataset = %.2f" % score)
-
 
     X_test, Y_test, R_test, X_data = get_data(datetime.date(2016, 10, 1), datetime.date(2016, 10, 30))
     score = estimator.score(X_test, Y_test)
@@ -248,7 +244,7 @@ if __name__ == '__main__':
     pred = estimator.predict(X_test)
     __DEBUG__ = False
     if __DEBUG__:
-        print_log(X_data, pred, '../log/%s_txt.txt' % "161105")
+        print_log(X_data, pred, '../log/%s_2_txt.txt' % "161104")
 
     res1 = simulation1(pred, R_test)
     res2 = simulation2(pred, R_test)
@@ -259,11 +255,5 @@ if __name__ == '__main__':
     print("연승식 result: %f" % res2)
     print("복승식 result: %f" % res3)
     print("total result: %f" % res)
-
-    import predict_next as pn
-    meet = 1
-    date = "201610"
-
-
 
 
