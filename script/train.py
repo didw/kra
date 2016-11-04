@@ -209,6 +209,8 @@ def training(bd, ed):
 def print_log(data, pred, fname):
     flog = open(fname, 'w')
     rcno = 1
+    flog.write("rcno\tcourse\tidx\tname\tcntry\tgender\tage\tbudam\tjockey\ttrainer\tweight\tdweight\thr_days\thumidity\thr_nt\thr_nt1\thr_nt2\thr_ny\thr_ny1\thr_ny2\t")
+    flog.write("jk_nt\tjk_nt1\tjk_nt2\tjk_ny\tjk_ny1\tjk_ny2\ttr_nt\ttr_nt1\ttr_nt2\ttr_ny\ttr_ny1\ttr_ny2\tpredict\n")
     for idx in range(len(data)):
         if rcno != data['rcno'][idx]:
             rcno = data['rcno'][idx]
