@@ -190,7 +190,7 @@ def parse_txt_horse(date, name):
 
             return data
     print("can not find %s in %s" % (name, filename))
-    return [-1,-1,-1,-1]
+    return [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 
 
 # 이름  소속 생일        데뷔일  총경기수, 총1, 총2, 1년, 1년1, 1년2
@@ -239,7 +239,7 @@ def parse_txt_jockey(date, name):
 
             return data
     print("can not find %s in %s" % (name, filename))
-    return [-1,-1,-1,-1]
+    return [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 
 
 # 이름  소속 생일        데뷔일  총경기수, 총1, 총2, 1년, 1년1, 1년2
@@ -289,7 +289,7 @@ def parse_txt_trainer(date, name):
 
             return data
     print("can not find %s in %s" % (name, filename))
-    return [-1,-1,-1,-1]
+    return [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 
 
 def get_data(filename):
