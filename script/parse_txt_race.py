@@ -23,9 +23,9 @@ def parse_txt_race(input_file):
             if len(line) == 0:
                 read_done = True
                 break
-            if re.search(unicode(r'경주명', 'utf-8').encode('utf-8'), line) is not None:
+            if re.search(unicode(r'\(제주\)', 'utf-8').encode('utf-8'), line) is not None:
                 course = re.search(unicode(r'\d+(?=M)', 'utf-8').encode('utf-8'), line).group()
-            if re.search(unicode(r'경주조건', 'utf-8').encode('utf-8'), line) is not None:
+            if re.search(unicode(r'날씨', 'utf-8').encode('utf-8'), line) is not None:
                 if re.search(unicode(r'불량', 'utf-8').encode('utf-8'), line) is not None:
                     humidity = 25
                 else:
@@ -42,7 +42,7 @@ def parse_txt_race(input_file):
             line = unicode(line, 'euc-kr').encode('utf-8')
             if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
                 continue
-            if NEXT.search(line) is not None:
+            if re.search(unicode(r'마체중', 'utf-8').encode('utf-8'), line) is not None:
                 break
             if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:5]) is None:
                 continue
@@ -73,14 +73,18 @@ def parse_txt_race(input_file):
             line = unicode(line, 'euc-kr').encode('utf-8')
             if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
                 continue
-            if NEXT.search(line) is not None:
+            if re.search(unicode(r'단승식', 'utf-8').encode('utf-8'), line) is not None:
                 break
             if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:5]) is None:
                 continue
             adata = []
-            adata.append(re.search(unicode(r'\d+(?=\()', 'utf-8').encode('utf-8'), line).group())
-            adata.append(re.search(unicode(r'[-\d]+(?=\))', 'utf-8').encode('utf-8'), line).group())
-            rctime = re.search(unicode(r'\d+:\d+\.\d', 'utf-8').encode('utf-8'), line).group()
+            adata.append(re.search(unicode(r'\d{3}(?=[-+\s\d])', 'utf-8').encode('utf-8'), line).group())
+            dweight = re.search(unicode(r'(?<=\d{3})[-+=d]+', 'utf-8').encode('utf-8'), line)
+            if dweight is not None:
+                adata.append(dweight.group())
+            else:
+                adata.append(0)
+            rctime = re.search(unicode(r'\d+:\d{2}\.\d', 'utf-8').encode('utf-8'), line).group()
             rctime = int(rctime[0])*600 + int(rctime[2:4])*10 + int(rctime[5])
             adata.append(rctime)
             data[-cnt+idx].extend(adata)
@@ -94,7 +98,7 @@ def parse_txt_race(input_file):
             line = unicode(line, 'euc-kr').encode('utf-8')
             if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
                 continue
-            if NEXT.search(line) is not None:
+            if re.search(unicode(r'배당률', 'utf-8').encode('utf-8'), line) is not None:
                 break
             if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:5]) is None:
                 continue
@@ -105,6 +109,11 @@ def parse_txt_race(input_file):
             data[-cnt+idx].extend(adata)
             idx += 1
 
+        while True:
+            line = input_file.readline()
+            line = unicode(line, 'euc-kr').encode('utf-8')
+            if re.search(unicode(r'복승식', 'utf-8').encode('utf-8'), line) is not None:
+                break
         # 복승식 rating 가져오기
         #   1- 2   949.3  2- 9  1629.8  4- 5   282.5  5-15     0.0  8- 9   519.3 11-12    18.9
         exp = "%d-%2d" % (hr_num[0], hr_num[1])
@@ -114,9 +123,9 @@ def parse_txt_race(input_file):
             line = unicode(line, 'euc-kr').encode('utf-8')
             if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
                 continue
-            if NEXT.search(line) is not None:
+            if re.search(unicode(r'펄롱타임', 'utf-8').encode('utf-8'), line) is not None:
                 break
-            parse_line = re.search(unicode(r'%s\s+\d+[.]\d' % exp, 'utf-8').encode('utf-8'), line)
+            parse_line = re.search(unicode(r'%s:\s+\d+[.]\d' % exp, 'utf-8').encode('utf-8'), line)
 
             if parse_line is not None:
                 rating = parse_line.group().split('-')[1].split()[1]
@@ -130,15 +139,15 @@ def parse_txt_race(input_file):
 
 
 def get_fname(date, job):
-    while True:
-        if date.weekday() == 5:
-            date = date + datetime.timedelta(days=-2)
-        elif date.weekday() == 6:
-            date = date + datetime.timedelta(days=-3)
-        elif date.weekday() == 3:
+    for _ in range(10):
+        if date.weekday() == 2:
             date = date + datetime.timedelta(days=-4)
+        elif date.weekday() == 5:
+            date = date + datetime.timedelta(days=-3)
+        elif date.weekday() == 4:
+            date = date + datetime.timedelta(days=-2)
         date_s = int("%d%02d%02d" % (date.year, date.month, date.day))
-        filename = '../txt/%s/%s_1_%s.txt' % (job, job, date_s)
+        filename = '../txt/2/%s/%s_2_%s.txt' % (job, job, date_s)
         if os.path.isfile(filename):
             return filename
     return -1
@@ -148,7 +157,7 @@ def get_fname(date, job):
 # 킹메신저          한    수2014/03/08 2국6 18박대흥죽마조합            시에로골드          난초                    1    0    0    1    0    0    3000000                     0
 def parse_txt_horse(date, name):
     filename = get_fname(date, "horse")
-    #print(filename)
+    print(filename)
     f_input = open(filename)
     while True:
         line = f_input.readline()
@@ -200,7 +209,7 @@ def parse_txt_jockey(date, name):
         #print("name is changed %s -> %s" % (name, name[:6]))
         name = str(name)[:6]
     filename = get_fname(date, "jockey")
-    #print(filename)
+    print(filename)
     f_input = open(filename)
     while True:
         line = f_input.readline()
@@ -209,7 +218,7 @@ def parse_txt_jockey(date, name):
             break
         if re.search(unicode(name, 'utf-8').encode('utf-8'), line) is not None:
             data = []
-            participates = re.search(unicode(r'(?<=[\d\s]{6})[\s\d]+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().replace(',', '').split()
+            participates = re.search(unicode(r'(?<=[\d\s,]{6})[\s\d]+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().replace(',', '').split()
             #print(participates)
             if int(participates[0]) == 0:
                 data.append(-1)
@@ -249,7 +258,7 @@ def parse_txt_trainer(date, name):
         #print("name is changed %s -> %s" % (name, name[:6]))
         name = str(name)[:6]
     filename = get_fname(date, "trainer")
-    #print(filename)
+    print(filename)
     f_input = open(filename)
     while True:
         line = f_input.readline()
@@ -312,7 +321,7 @@ def get_data(filename):
 
 
 if __name__ == '__main__':
-    filename = '../txt/rcresult/rcresult_1_20140831.txt'
+    filename = '../txt/2/rcresult/rcresult_2_20161029.txt'
     data = get_data(filename)
     data = data.dropna()
     print(data)
