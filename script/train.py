@@ -47,9 +47,11 @@ def get_data(begin_date, end_date, del_nt=False):
             first = False
         else:
             data = data.append(pr.get_data(filename), ignore_index=True)
+        print(data['cnt'])
+        print(data['rcno'])
     print(data)
     data = normalize_data(data)
-    R_data = data[['rank', 'r1', 'r2', 'r3', 'hr_nt', 'jk_nt', 'tr_nt']]
+    R_data = data[['rank', 'r1', 'r2', 'r3', 'hr_nt', 'jk_nt', 'tr_nt', 'cnt', 'rcno']]
     Y_data = data['rctime']
     X_data = data.copy()
     del X_data['name']
@@ -64,7 +66,7 @@ def get_data(begin_date, end_date, del_nt=False):
     if del_nt:
         for idx in range(len(X_data)):
             if X_data['hr_nt'][idx] == -1 or X_data['jk_nt'][idx] == -1 or X_data['tr_nt'][idx] == -1:
-                print('Delete %dth row (hr: %s, jk: %s, tr: %s' % (idx, X_data['hr_nt'][idx], X_data['jk_nt'][idx], X_data['tr_nt'][idx]))
+                print('Delete %dth row (hr: %s, jk: %s, tr: %s)' % (idx, X_data['hr_nt'][idx], X_data['jk_nt'][idx], X_data['tr_nt'][idx]))
                 X_data.drop(X_data.index[[idx]])
     return X_data, Y_data, R_data, data
 
@@ -78,13 +80,16 @@ def simulation1(pred, ans):
             break
         sim_data = [pred[i]]
         r1 = float(ans['r1'][i])
+        rcno = ans['rcno'][i]
         i += 1
         total = 1
         rack_data = False
-        while i < len(pred) and int(ans['rank'][i]) != 1:
+        total_player = 0
+        while i < len(pred) and int(ans['rcno'][i]) == rcno:
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
                 rack_data = True
             sim_data.append(pred[i])
+            total_player = ans['cnt'][i]
             total += 1
             i += 1
         if rack_data:
@@ -92,7 +97,9 @@ def simulation1(pred, ans):
         sim_data = pd.Series(sim_data)
         top = sim_data.argmin()
         #print("prediction: %d" % top)
-        if total < 1 or r1 < 5:
+        print("total: %d" % total)
+        print("total_player: %d" % total_player)
+        if total < total_player or r1 < 0:
             continue
         elif top == 0:
             res += 100 * (r1 - 1)
@@ -109,17 +116,21 @@ def simulation2(pred, ans):
     rcno = 0
     assert len(pred) == len(ans)
     while True:
+        rcno += 1
         if i >= len(pred):
             break
         sim_data = [pred[i]]
         r2 = [float(ans['r2'][i]) - 1]
+        rc_no = ans['rcno'][i]
         i += 1
         total = 1
         rack_data = False
-        while i < len(pred) and int(ans['rank'][i]) != 1:
+        total_player = 0
+        while i < len(pred) and int(ans['rcno'][i]) == rc_no:
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
                 rack_data = True
             sim_data.append(pred[i])
+            total_player = ans['cnt'][i]
             r2.append(float(ans['r2'][i]) - 1)
             total += 1
             i += 1
@@ -128,8 +139,9 @@ def simulation2(pred, ans):
         sim_data = pd.Series(sim_data)
         top = sim_data.argmin()
         #print("prediction: %d" % top)
-        rcno += 1
-        if total < 1 or r2[top] < 2:
+        print("total: %d" % total)
+        print("total_player: %d" % total_player)
+        if total < total_player or r2[top] < 0:
             continue
         elif total > 7:
             if top in [0, 1, 2]:
@@ -157,19 +169,24 @@ def simulation3(pred, ans):
             break
         sim_data = [pred[i]]
         r3 = float(ans['r3'][i])
+        rcno = ans['rcno'][i]
         i += 1
         total = 1
         rack_data = False
-        while i < len(pred) and int(ans['rank'][i]) != 1:
+        total_player = 0
+        while i < len(pred) and int(ans['rcno'][i]) == rcno:
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
                 rack_data = True
             sim_data.append(pred[i])
+            total_player = ans['cnt'][i]
             total += 1
             i += 1
         if rack_data:
             continue
         sim_data = pd.Series(sim_data)
-        if total < 2 or r3 < 50:
+        print("total: %d" % total)
+        print("total_player: %d" % total_player)
+        if total < total_player or r3 < 0:
             continue
         top = sim_data.rank()
         if (top[0] in [1, 2]) and (top[1] in [1, 2]):
@@ -192,10 +209,12 @@ def simulation_all(pred, ans):
         r1 = float(ans['r1'][i]) - 1
         r2 = [float(ans['r2'][i]) - 1]
         r3 = float(ans['r3'][i]) - 1
+        rcno = ans['rcno'][i]
         i += 1
         total = 1
         rack_data = False
-        while i < len(pred) and int(ans['rank'][i]) != 1:
+        total_player = 0
+        while i < len(pred) and int(ans['rcno'][i]) == rcno:
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
                 rack_data = True
             sim_data.append(pred[i])
