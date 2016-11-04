@@ -46,8 +46,10 @@ def test():
         print(rows['a'])
 
 def test_rank():
-    data = pd.Series([1,4,3,2])
+    data = pd.Series([1,4,2,3])
     top = data.rank()
+    print(data)
+    print(top)
     print top[0] in [1, 2]
     print top[1] in [1, 2]
     print top[2] in [1, 2]
@@ -65,5 +67,5 @@ def test_random():
 
 
 if __name__ == '__main__':
-    df_concat()
+    test_rank()
 
