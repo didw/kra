@@ -63,6 +63,8 @@ def get_data(begin_date, end_date, del_nt=False):
     del X_data['r3']
     del X_data['r2']
     del X_data['r1']
+    del X_data['cnt']
+    del X_data['rcno']
     if del_nt:
         for idx in range(len(X_data)):
             if X_data['hr_nt'][idx] == -1 or X_data['jk_nt'][idx] == -1 or X_data['tr_nt'][idx] == -1:
