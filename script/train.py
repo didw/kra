@@ -82,7 +82,7 @@ def simulation1(pred, ans):
         sim_data = pd.Series(sim_data)
         top = sim_data.argmin()
         #print("prediction: %d" % top)
-        if total < 1 or r1 < 0:
+        if total < 1 or r1 < 5:
             continue
         elif top == 0:
             res += 100 * (r1 - 1)
@@ -114,7 +114,7 @@ def simulation2(pred, ans):
         top = sim_data.argmin()
         #print("prediction: %d" % top)
         rcno += 1
-        if total < 1 or r2[top] < 0:
+        if total < 1 or r2[top] < 2:
             continue
         elif total > 7:
             if top in [0, 1, 2]:
@@ -149,7 +149,7 @@ def simulation3(pred, ans):
             total += 1
             i += 1
         sim_data = pd.Series(sim_data)
-        if total < 1 or r3 < 0:
+        if total < 1 or r3 < 50:
             continue
         top = sim_data.rank()
         if (top[0] in [1, 2]) and (top[1] in [1, 2]):
