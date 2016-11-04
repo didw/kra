@@ -73,7 +73,7 @@ def simulation1(pred, ans):
         if i >= len(pred):
             break
         sim_data = [pred[i]]
-        r1 = float(ans['r1'][i])
+        r1 = float(ans['r1'][i]) - 1
         i += 1
         total = 1
         while i < len(pred) and int(ans['rank'][i]) != 1:
@@ -83,10 +83,10 @@ def simulation1(pred, ans):
         sim_data = pd.Series(sim_data)
         top = sim_data.argmin()
         #print("prediction: %d" % top)
-        if total < 1 or r1 < 1:
+        if total < 1 or r1 < 0:
             continue
         elif top == 0:
-            res += 100 * (r1 - 1)
+            res += 100 * r1
             print("단승식 WIN: %f" % res)
         else:
             res -= 100
@@ -104,8 +104,8 @@ def simulation2(pred, ans):
             break
         sim_data = [pred[i]]
         r2 = [float(ans['r2'][i]) - 1]
-        i += 1
         total = 1
+        i += 1
         while i < len(pred) and int(ans['rank'][i]) != 1:
             sim_data.append(pred[i])
             r2.append(float(ans['r2'][i]) - 1)
@@ -142,7 +142,7 @@ def simulation3(pred, ans):
         if i >= len(pred):
             break
         sim_data = [pred[i]]
-        r3 = float(ans['r3'][i])
+        r3 = float(ans['r3'][i]) - 1
         i += 1
         total = 1
         while i < len(pred) and int(ans['rank'][i]) != 1:
@@ -155,7 +155,7 @@ def simulation3(pred, ans):
         top = sim_data.rank()
         if (top[0] in [1, 2]) and (top[1] in [1, 2]):
             print("복승식 WIN: %f = %f + %f" % (res + 100 * r3, res, 100*r3))
-            res += 100 * (r3 - 1)
+            res += 100 * r3
         else:
             res -= 100
             print("복승식 LOSE: %f" % res)
@@ -184,12 +184,13 @@ def simulation_all(pred, ans):
         if len(sim_data) < 1:
             continue
         top = sim_data.rank()
+        top1 = sim_data.argmin()
 
         res1 = 100*r1 if top[0] == 1 else -100
         if total > 7:
-            res2 = 100*r2[int(top[0]-1)] if top[0] in [1, 2, 3] else -100
+            res2 = 100*r2[top1] if top1 in [0, 1, 2] else -100
         else:
-            res2 = 100*r2[int(top[0]-1)] if top[0] in [1, 2] else -100
+            res2 = 100*r2[top1] if top1 in [0, 1] else -100
         res3 = 100*r3 if top[0] in [1, 2] and top[1] in [1, 2] else -100
         res += (res1 + res2 + res3)
         print("res: %f <= (%f) + (%f) + (%f)" % (res, res1, res2, res3))
