@@ -123,7 +123,6 @@ def parse_txt_race(input_file):
 
             if parse_line is not None:
                 rating = parse_line.group().split('-')[1].split()[1]
-                print("cnt: %s, rcno: %s, len: %d" % (cnt, rcno, len(data[-1])))
                 for i in range(cnt):
                     data[-cnt+i].extend([rating])
                     data[-cnt+i].extend([cnt])
