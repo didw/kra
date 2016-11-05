@@ -64,6 +64,29 @@ def test_random():
     print(random.randint(1, total))
 
 
+def get_distance_record(hrname, date):
+    url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=1&rcNo=5&rcDate=%d" % date
+    response_body = urlopen(url).read()
+    line = unicode(response_body, 'euc-kr').encode('utf-8')
+    print("%s" % line)
+    #exp = '%s[\w\s]+<td>\d+[.]\d+</td>\s+<td>\d+[.]\d+</td>\s+<td>\d+[:]\d+[.]\d+\w</td>\s+<td>\d+[:]\d+[.]\d+\w</td>\s+<td>\d+[:]\d+[.]\d+\w</td>' % hrname
+    exp = '%s.+\s+.+\s+<td>\d+[.]\d+</td>\s+<td>\d+[.]\d+</td>\s+<td>\d+[:]\d+[.]\d+.+</td>\s+<td>\d+[:]\d+[.]\d+.+</td>\s+<td>\d+[:]\d+[.]\d+.+</td>' % hrname
+    p = re.compile(unicode(r'%s' % exp, 'utf-8').encode('utf-8'), re.MULTILINE)
+    pl = p.search(line)
+    res = 10
+    if pl is not None:
+        pls = pl.group().split()
+        res[0] = re.compile(unicode(r'\d+(?=\()', 'utf-8').encode('utf-8'), pls[2]).group()
+        res[1] = re.compile(unicode(r'\d+[.]\d+', 'utf-8').encode('utf-8'), pls[3]).group()
+        res[2] = re.compile(unicode(r'\d+[.]\d+', 'utf-8').encode('utf-8'), pls[4]).group()
+        res[3] = re.compile(unicode(r'\d+[:]\d+[.]\d+', 'utf-8').encode('utf-8'), pls[5]).group()
+        res[4] = re.compile(unicode(r'\d+[:]\d+[.]\d+', 'utf-8').encode('utf-8'), pls[6]).group()
+        res[5] = re.compile(unicode(r'\d+[:]\d+[.]\d+', 'utf-8').encode('utf-8'), pls[7]).group()
+    else:
+        print("None")
+    return res
+
+
 if __name__ == '__main__':
-    df_concat()
+    print(get_distance_record("야호챔피언", 20161105))
 
