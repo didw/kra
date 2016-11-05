@@ -39,7 +39,7 @@ def get_data(begin_date, end_date, del_nt=False):
         date += datetime.timedelta(days=1)
         if date.weekday() != 5 and date.weekday() != 6:
             continue
-        filename = "../txt/rcresult/rcresult_1_%02d%02d%02d.txt" % (date.year, date.month, date.day)
+        filename = "../txt/1/rcresult/rcresult_1_%02d%02d%02d.txt" % (date.year, date.month, date.day)
         if not os.path.isfile(filename):
             continue
         if first:
@@ -100,10 +100,7 @@ def simulation1(pred, ans):
             continue
         sim_data = pd.Series(sim_data)
         top = sim_data.argmin()
-        #print("prediction: %d" % top)
-        if total < total_player or r1 < 5:
-            continue
-        elif top == 0:
+        if top == 0:
             res += 100 * (r1 - 1)
             print("단승식 WIN: %f" % res)
         else:
@@ -141,10 +138,7 @@ def simulation2(pred, ans):
             continue
         sim_data = pd.Series(sim_data)
         top = sim_data.argmin()
-        #print("prediction: %d" % top)
-        if total < total_player or r2[top] < 2:
-            continue
-        elif total > 7:
+        if total_player > 7:
             if top in [0, 1, 2]:
                 res += 100 * r2[top]
                 print("연승식(%d) WIN: %f" % (rcno, res))
@@ -186,9 +180,9 @@ def simulation3(pred, ans):
         if rack_data:
             continue
         sim_data = pd.Series(sim_data)
-        if total < total_player or r3 < 10:
-            continue
         top = sim_data.rank()
+        if total < 2:
+            continue
         if (top[0] in [1, 2]) and (top[1] in [1, 2]):
             print("복승식 WIN: %f = %f + %f" % (res + 100 * r3, res, 100*r3))
             res += 100 * (r3 - 1)
@@ -224,7 +218,7 @@ def simulation_all(pred, ans):
         if rack_data:
             continue
         sim_data = pd.Series(sim_data)
-        if total < total_player:
+        if total < 2:
             continue
         top = sim_data.rank()
         top1 = sim_data.argmin()
@@ -275,7 +269,7 @@ if __name__ == '__main__':
     if os.path.exists('../data/train_data_1_41.pkl'):
         X_train, Y_train = joblib.load('../data/train_data_1_41.pkl')
     else:
-        X_train, Y_train, _, _ = get_data(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30), True)
+        X_train, Y_train, _, _ = get_data(datetime.date(2007, 2, 1), datetime.date(2015, 12, 31), False)
         joblib.dump([X_train, Y_train], '../data/train_data_1_41.pkl')
     #print X_train
     #print Y_train
@@ -290,7 +284,7 @@ if __name__ == '__main__':
     print("Score with the entire training dataset = %.2f" % score)
 
 
-    X_test, Y_test, R_test, X_data = get_data(datetime.date(2016, 1, 1), datetime.date(2016, 10, 30), del_nt=False)
+    X_test, Y_test, R_test, X_data = get_data(datetime.date(2016, 1, 1), datetime.date(2015, 10, 31), False)
     score = estimator.score(X_test, Y_test)
     print("Score with the entire test dataset = %.2f" % score)
     pred = estimator.predict(X_test)
