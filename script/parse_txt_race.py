@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import datetime
 import os.path
+from urllib2 import urlopen
 
 
 NEXT = re.compile(unicode(r'마 체 중|단승식|복승식|매출액', 'utf-8').encode('utf-8'))
@@ -18,6 +19,8 @@ def parse_txt_race(input_file):
         read_done = False
         hr_num = [0, 0]
         rcno = -1
+        course = ''
+        kind = ''
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
@@ -26,8 +29,10 @@ def parse_txt_race(input_file):
                 break
             if re.search(unicode(r'제목', 'utf-8').encode('utf-8'), line) is not None:
                 rcno = re.search(unicode(r'\d+(?=경주)', 'utf-8').encode('utf-8'), line).group()
+                month = re.search(unicode(r'\d+(?=월)', 'utf-8').encode('utf-8'), line).group()
             if re.search(unicode(r'경주명', 'utf-8').encode('utf-8'), line) is not None:
                 course = re.search(unicode(r'\d+(?=M)', 'utf-8').encode('utf-8'), line).group()
+                kind = re.search(unicode(r'M.+\d', 'utf-8').encode('utf-8'), line).group()[-1]
             if re.search(unicode(r'경주조건', 'utf-8').encode('utf-8'), line) is not None:
                 if re.search(unicode(r'불량', 'utf-8').encode('utf-8'), line) is not None:
                     humidity = 25
@@ -63,7 +68,7 @@ def parse_txt_race(input_file):
 
             words = WORD.findall(line)
             assert len(words) >= 10
-            adata = [course, humidity]
+            adata = [course, humidity, kind]
             for i in range(10):
                 adata.append(words[i])
             data.append(adata)
@@ -127,6 +132,7 @@ def parse_txt_race(input_file):
                     data[-cnt+i].extend([rating])
                     data[-cnt+i].extend([cnt])
                     data[-cnt+i].extend([rcno])
+                    data[-cnt+i].extend([month])
                 get_rate = True
                 break
         assert get_rate
@@ -143,15 +149,40 @@ def get_fname(date, job):
         elif date.weekday() == 3:
             date = date + datetime.timedelta(days=-4)
         date_s = int("%d%02d%02d" % (date.year, date.month, date.day))
-        filename = '../txt/%s/%s_1_%s.txt' % (job, job, date_s)
+        filename = '../txt/1/%s/%s_1_%s.txt' % (job, job, date_s)
         if os.path.isfile(filename):
             return filename
     return -1
 
 
+def get_distance_record(hrname, rcno, date):
+    #print("name: %s, rcno: %d, date: %d" % (hrname, rcno, date))
+    url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=1&rcNo=%d&rcDate=%d" % (rcno, date)
+    response_body = urlopen(url).read()
+    line = unicode(response_body, 'euc-kr').encode('utf-8')
+    exp = '%s.+\s+.+\s+<td>\d+[.]\d+</td>\s+<td>\d+[.]\d+</td>\s+<td>\d+[:]\d+[.]\d+.+</td>\s+<td>\d+[:]\d+[.]\d+.+</td>\s+<td>\d+[:]\d+[.]\d+.+</td>' % hrname
+    p = re.compile(unicode(r'%s' % exp, 'utf-8').encode('utf-8'), re.MULTILINE)
+    pl = p.search(line)
+    res = [-1, -1, -1, -1, -1, -1]
+    if pl is not None:
+        pls = pl.group().split()
+        res[0] = re.search(unicode(r'\d+(?=\()', 'utf-8').encode('utf-8'), pls[2]).group()
+        res[1] = re.search(unicode(r'\d+[.]\d+', 'utf-8').encode('utf-8'), pls[3]).group()
+        res[2] = re.search(unicode(r'\d+[.]\d+', 'utf-8').encode('utf-8'), pls[4]).group()
+        t = re.search(unicode(r'\d+[:]\d+[.]\d+', 'utf-8').encode('utf-8'), pls[5]).group()
+        res[3] = int(t.split(':')[0])*600 + int(t.split(':')[1].split('.')[0])*10 + int(t.split('.')[1])
+        t = re.search(unicode(r'\d+[:]\d+[.]\d+', 'utf-8').encode('utf-8'), pls[6]).group()
+        res[4] = int(t.split(':')[0])*600 + int(t.split(':')[1].split('.')[0])*10 + int(t.split('.')[1])
+        t = re.search(unicode(r'\d+[:]\d+[.]\d+', 'utf-8').encode('utf-8'), pls[7]).group()
+        res[5] = int(t.split(':')[0])*600 + int(t.split(':')[1].split('.')[0])*10 + int(t.split('.')[1])
+    else:
+        print("can not find %s in %s" % (hrname, url))
+    return res
+
+
 # 이름             산지  성별   birth  -    조교사  마주명             -                    -                     총경기, 총1, 총2, 1년경기, 1년1, 1년2,총상금
 # 킹메신저          한    수2014/03/08 2국6 18박대흥죽마조합            시에로골드          난초                    1    0    0    1    0    0    3000000                     0
-def parse_txt_horse(date, name):
+def parse_txt_horse(date, rcno, name):
     filename = get_fname(date, "horse")
     #print(filename)
     f_input = open(filename)
@@ -166,6 +197,7 @@ def parse_txt_horse(date, name):
             #print(datetime.date(int(birth[:4]), int(birth[5:7]), int(birth[8:])))
             data.append((date - datetime.date(int(birth[:4]), int(birth[5:7]), int(birth[8:]))).days)
             participates = re.search(unicode(r'\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().replace(',', '').split()
+            dist_rec = get_distance_record(name, rcno, int("%d%02d%02d" % (date.year, date.month, date.day)))
             #print(participates)
             if int(participates[0]) == 0:
                 data.extend([0, 0, 0, 0, 0])
@@ -185,9 +217,11 @@ def parse_txt_horse(date, name):
                 data.append(int(participates[4])*100/int(participates[3]))
                 data.append(int(participates[5])*100/int(participates[3]))
 
+            data.extend(dist_rec)
+            assert len(data) == 17
             return data
     print("can not find %s in %s" % (name, filename))
-    return [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+    return [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 
 
 # 이름  소속 생일        데뷔일  총경기수, 총1, 총2, 1년, 1년1, 1년2
@@ -197,7 +231,7 @@ def parse_txt_jockey(date, name):
         #print("name is changed %s -> %s" % (name, name[:6]))
         name = str(name)[:6]
     filename = get_fname(date, "jockey")
-    #print(filename)
+    print("find %s at %s" % (name, filename))
     f_input = open(filename)
     while True:
         line = f_input.readline()
@@ -206,7 +240,7 @@ def parse_txt_jockey(date, name):
             break
         if re.search(unicode(name, 'utf-8').encode('utf-8'), line) is not None:
             data = []
-            participates = re.search(unicode(r'(?<=[\d\s]{6})[\s\d]+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().replace(',', '').split()
+            participates = re.search(unicode(r'(?<=[\d\s]{6})[\s\d,]+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().replace(',', '').split()
             #print(participates)
             if int(participates[0]) == 0:
                 data.extend([0, 0, 0, 0, 0])
@@ -280,23 +314,27 @@ def get_data(filename):
     data = parse_txt_race(open(filename))
     for i in range(len(data)):
         #print("race file: %s" % filename)
-        data[i].extend(parse_txt_horse(date, data[i][4]))
-        data[i].extend(parse_txt_jockey(date, data[i][9]))
-        data[i].extend(parse_txt_trainer(date, data[i][10]))
+        #print("%s %s %s" % (data[i][5], data[i][10], data[i][11]))
+        data[i].extend(parse_txt_horse(date, int(data[i][20]), data[i][5]))
+        data[i].extend(parse_txt_jockey(date, data[i][10]))
+        data[i].extend(parse_txt_trainer(date, data[i][11]))
     df = pd.DataFrame(data)
-    df.columns = ['course', 'humidity', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer',
-                  'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2',
-                  'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', 'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1',
-                  'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', 'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2',
-                  'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2']
+    df.columns = ['course', 'humidity', 'kind', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 12
+                  'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'month', # 10
+                  'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
+                  'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
+                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
+                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2'] # 10
     return df
 
 
 if __name__ == '__main__':
-    filename = '../txt/rcresult/rcresult_1_20140831.txt'
+    filename = '../txt/1/rcresult/rcresult_1_20040201.txt'
     data = get_data(filename)
-    data = data.dropna()
     print(data)
+    data.to_csv(filename.replace('.txt', '.csv'))
+
+    data = data.dropna()
     print(data[['rctime', 'r1', 'r2', 'r3']])
     print(data['cnt'])
     print(data['rcno'])
