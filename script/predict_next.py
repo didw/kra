@@ -66,13 +66,15 @@ def predict_next(estimator, meet, date):
     pred.columns = ['predict']
     __DEBUG__ = True
     if __DEBUG__:
-        print_log(data, pred, '../log/%s.txt' % data)
+        print_log(data, pred, '../log/%s.txt' % date)
     print(pd.concat([data, pred], axis=1))
     print(pd.concat([data[['rcno', 'name', 'jockey', 'trainer']], pred], axis=1))
     prev_rc = data['rcno'][0]
     rctime = []
     rcdata = []
     for idx, row in data.iterrows():
+        if int(data['hr_nt'][idx]) == 0 or int(data['jk_nt'][idx]) == 0 or int(data['tr_nt'][idx]) == 0:
+            print("data is not enough. be careful")
         if row['rcno'] != prev_rc or idx+1 == len(data):
             rctime = pd.Series(rctime)
             rcdata = pd.DataFrame(rcdata)
@@ -82,6 +84,8 @@ def predict_next(estimator, meet, date):
                     print("rcNo: %s, 1st: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
                 elif v == 2:
                     print("rcNo: %s, 2nd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
+                elif v == 3:
+                    print("rcNo: %s, 3rd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
             rctime = []
             rcdata = []
             prev_rc = row['rcno']
@@ -93,9 +97,9 @@ def predict_next(estimator, meet, date):
 if __name__ == '__main__':
     meet = 1
     date = 20161105
-    import get_api
+    #import get_api
     #get_api.get_data(meet, date/100)
-    estimator = tr.training(datetime.date(2011, 2, 1), datetime.date(2016, 10, 25))
+    estimator = tr.training(datetime.date(2011, 2, 1), datetime.date(2016, 10, 31))
     predict_next(estimator, meet, date)
 
 
