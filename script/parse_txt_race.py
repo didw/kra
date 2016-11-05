@@ -168,11 +168,7 @@ def parse_txt_horse(date, name):
             participates = re.search(unicode(r'\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().replace(',', '').split()
             #print(participates)
             if int(participates[0]) == 0:
-                data.append(-1)
-                data.append(-1)
-                data.append(-1)
-                data.append(-1)
-                data.append(-1)
+                data.extend([0, 0, 0, 0, 0])
             else:
                 data.append(int(participates[0]))
                 data.append(int(participates[1]))
@@ -181,11 +177,7 @@ def parse_txt_horse(date, name):
                 data.append(int(participates[2])*100/int(participates[0]))
 
             if int(participates[3]) == 0:
-                data.append(-1)
-                data.append(-1)
-                data.append(-1)
-                data.append(-1)
-                data.append(-1)
+                data.extend([0, 0, 0, 0, 0])
             else:
                 data.append(int(participates[3]))
                 data.append(int(participates[4]))
@@ -217,11 +209,7 @@ def parse_txt_jockey(date, name):
             participates = re.search(unicode(r'(?<=[\d\s]{6})[\s\d]+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().replace(',', '').split()
             #print(participates)
             if int(participates[0]) == 0:
-                data.append(-1)
-                data.append(-1)
-                data.append(-1)
-                data.append(-1)
-                data.append(-1)
+                data.extend([0, 0, 0, 0, 0])
             else:
                 data.append(int(participates[0]))
                 data.append(int(participates[1]))
@@ -230,11 +218,7 @@ def parse_txt_jockey(date, name):
                 data.append(int(participates[2])*100/int(participates[0]))
 
             if int(participates[3]) == 0:
-                data.append(-1)
-                data.append(-1)
-                data.append(-1)
-                data.append(-1)
-                data.append(-1)
+                data.extend([0, 0, 0, 0, 0])
             else:
                 data.append(int(participates[3]))
                 data.append(int(participates[4]))
@@ -267,11 +251,7 @@ def parse_txt_trainer(date, name):
                                      line).group().replace(',', '').split()
             #print(participates)
             if int(participates[0]) == 0:
-                data.append(-1)
-                data.append(-1)
-                data.append(-1)
-                data.append(-1)
-                data.append(-1)
+                data.extend([0, 0, 0, 0, 0])
             else:
                 data.append(int(participates[0]))
                 data.append(int(participates[1]))
@@ -280,11 +260,7 @@ def parse_txt_trainer(date, name):
                 data.append(int(participates[2])*100/int(participates[0]))
 
             if int(participates[3]) == 0:
-                data.append(-1)
-                data.append(-1)
-                data.append(-1)
-                data.append(-1)
-                data.append(-1)
+                data.extend([0, 0, 0, 0, 0])
             else:
                 data.append(int(participates[3]))
                 data.append(int(participates[4]))
@@ -324,6 +300,5 @@ if __name__ == '__main__':
     print(data[['rctime', 'r1', 'r2', 'r3']])
     print(data['cnt'])
     print(data['rcno'])
-
 
 
