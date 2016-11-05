@@ -101,9 +101,7 @@ def simulation1(pred, ans):
         sim_data = pd.Series(sim_data)
         top = sim_data.argmin()
         #print("prediction: %d" % top)
-        print("total: %d" % total)
-        print("total_player: %d" % total_player)
-        if total < total_player or r1 < 0:
+        if total < total_player or r1 < 5:
             continue
         elif top == 0:
             res += 100 * (r1 - 1)
@@ -144,9 +142,7 @@ def simulation2(pred, ans):
         sim_data = pd.Series(sim_data)
         top = sim_data.argmin()
         #print("prediction: %d" % top)
-        print("total: %d" % total)
-        print("total_player: %d" % total_player)
-        if total < total_player or r2[top] < 0:
+        if total < total_player or r2[top] < 2:
             continue
         elif total > 7:
             if top in [0, 1, 2]:
@@ -190,9 +186,7 @@ def simulation3(pred, ans):
         if rack_data:
             continue
         sim_data = pd.Series(sim_data)
-        print("total: %d" % total)
-        print("total_player: %d" % total_player)
-        if total < total_player or r3 < 0:
+        if total < total_player or r3 < 10:
             continue
         top = sim_data.rank()
         if (top[0] in [1, 2]) and (top[1] in [1, 2]):
@@ -222,8 +216,6 @@ def simulation_all(pred, ans):
         rack_data = False
         total_player = 0
         while i < len(pred) and int(ans['rcno'][i]) == rcno:
-            if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
-                rack_data = True
             sim_data.append(pred[i])
             r2.append(float(ans['r2'][i]) - 1)
             total_player = int(ans['cnt'][i])
@@ -281,10 +273,10 @@ def print_log(data, pred, fname):
 if __name__ == '__main__':
     #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30))
     if os.path.exists('../data/train_data_1_41.pkl'):
-        X_train, Y_train, R_train, _ = joblib.load('../data/train_data_1_41.pkl')
+        X_train, Y_train = joblib.load('../data/train_data_1_41.pkl')
     else:
-        X_train, Y_train, R_train, X_data = get_data(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30), del_nt=True)
-        joblib.dump([X_train, Y_train, R_train, X_data], '../data/train_data_1_41.pkl')
+        X_train, Y_train, _, _ = get_data(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30), True)
+        joblib.dump([X_train, Y_train], '../data/train_data_1_41.pkl')
     #print X_train
     #print Y_train
     #print R_train
@@ -295,12 +287,12 @@ if __name__ == '__main__':
     print(X_train.columns)
     print(estimator.feature_importances_)
     score = estimator.score(X_train, Y_train)
-    print("Score with the entire dataset = %.2f" % score)
+    print("Score with the entire training dataset = %.2f" % score)
 
 
-    X_test, Y_test, R_test, X_data = get_data(datetime.date(2016, 10, 1), datetime.date(2016, 10, 30), del_nt=False)
+    X_test, Y_test, R_test, X_data = get_data(datetime.date(2016, 1, 1), datetime.date(2016, 10, 30), del_nt=False)
     score = estimator.score(X_test, Y_test)
-    print("Score with the entire dataset = %.2f" % score)
+    print("Score with the entire test dataset = %.2f" % score)
     pred = estimator.predict(X_test)
     __DEBUG__ = False
     if __DEBUG__:
