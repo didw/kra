@@ -11,7 +11,7 @@ import random
 
 def normalize_data(org_data):
     data = org_data.dropna()
-    data = data.reset_index()
+    #data = data.reset_index()
     data['gender'][data['gender'] == '암'] = 1
     data['gender'][data['gender'] == '수'] = 1
     data['gender'][data['gender'] == '거'] = 2
@@ -19,13 +19,19 @@ def normalize_data(org_data):
     data['cntry'][data['cntry'] == '한(포)'] = 1
     data['cntry'][data['cntry'] == '미'] = 2
     data['cntry'][data['cntry'] == '뉴'] = 3
-    data['cntry'][data['cntry'] == '호'] = 3
-    data['cntry'][data['cntry'] == '일'] = 4
-    data['cntry'][data['cntry'] == '캐'] = 5
-    data['cntry'][data['cntry'] == '브'] = 6
-    data['cntry'][data['cntry'] == '남'] = 6
-    data['cntry'][data['cntry'] == '아일'] = 7
-    data['cntry'][data['cntry'] == '모'] = 8
+    data['cntry'][data['cntry'] == '호'] = 4
+    data['cntry'][data['cntry'] == '일'] = 5
+    data['cntry'][data['cntry'] == '캐'] = 6
+    data['cntry'][data['cntry'] == '브'] = 7
+    data['cntry'][data['cntry'] == '헨'] = 8
+    data['cntry'][data['cntry'] == '남'] = 9
+    data['cntry'][data['cntry'] == '아일'] = 10
+    data['cntry'][data['cntry'] == '모'] = 11
+    data['cntry'][data['cntry'] == '영'] = 12
+    data['cntry'][data['cntry'] == '인'] = 13
+    data['cntry'][data['cntry'] == '아'] = 14
+    data['cntry'][data['cntry'] == '중'] = 15
+    data['cntry'][data['cntry'] == '프'] = 16
     return data
 
 def get_data(begin_date, end_date, del_nt=False):
@@ -63,8 +69,6 @@ def get_data(begin_date, end_date, del_nt=False):
     del X_data['r3']
     del X_data['r2']
     del X_data['r1']
-    del X_data['cnt']
-    del X_data['rcno']
     if del_nt:
         for idx in range(len(X_data)):
             if X_data['hr_nt'][idx] == -1 or X_data['jk_nt'][idx] == -1 or X_data['tr_nt'][idx] == -1:
@@ -269,7 +273,7 @@ if __name__ == '__main__':
     if os.path.exists('../data/train_data_1_41.pkl'):
         X_train, Y_train = joblib.load('../data/train_data_1_41.pkl')
     else:
-        X_train, Y_train, _, _ = get_data(datetime.date(2007, 2, 1), datetime.date(2015, 12, 31), False)
+        X_train, Y_train, _, _ = get_data(datetime.date(2007, 1, 1), datetime.date(2015, 12, 31), False)
         joblib.dump([X_train, Y_train], '../data/train_data_1_41.pkl')
     #print X_train
     #print Y_train
@@ -284,7 +288,10 @@ if __name__ == '__main__':
     print("Score with the entire training dataset = %.2f" % score)
 
 
-    X_test, Y_test, R_test, X_data = get_data(datetime.date(2016, 1, 1), datetime.date(2015, 10, 31), False)
+    X_test, Y_test, R_test, X_data = get_data(datetime.date(2016, 1, 1), datetime.date(2016, 10, 31), False)
+    DEBUG = True
+    if DEBUG:
+        X_test.to_csv('../log/2016.csv')
     score = estimator.score(X_test, Y_test)
     print("Score with the entire test dataset = %.2f" % score)
     pred = estimator.predict(X_test)
