@@ -302,12 +302,12 @@ def print_log(data, pred, fname):
 
 
 if __name__ == '__main__':
-    dbname = '../data/train_data_1_52_v3.2.pkl'
+    dbname = '../data/train_201101_20161028.pkl'
     train_bd = datetime.date(2011, 1, 1)
-    train_ed = datetime.date(2016, 3, 31)
-    test_bd = datetime.date(2016, 4, 1)
-    test_ed = datetime.date(2016, 6, 30)
-    remove_outlier = True
+    train_ed = datetime.date(2016, 10, 28)
+    test_bd = datetime.date(2016, 10, 29)
+    test_ed = datetime.date(2016, 10, 30)
+    remove_outlier = False
 
     #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30))
     if os.path.exists(dbname):
