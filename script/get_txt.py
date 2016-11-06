@@ -64,7 +64,7 @@ def download_dist_rec(bd, ed, meet):
             date += datetime.timedelta(days=1)
             if date.weekday() not in line[1]:
                 continue
-            for rcno in range(15, 20):
+            for rcno in range(1, 20):
                 date_s = int("%d%02d%02d" % (date.year, date.month, date.day))
                 request = "%s&meet=%d&rcNo=%d&rcDate=%d" % (race_url, meet, rcno, date_s)
                 try:
@@ -82,5 +82,5 @@ def download_dist_rec(bd, ed, meet):
 
 
 if __name__ == '__main__':
-    #download_dist_rec(datetime.date(2014, 7, 27), datetime.date(2014, 7, 27), 1)
+    download_dist_rec(datetime.date(2016, 10, 1), datetime.date.today(), 1)
     download_txt(datetime.date(2016, 10, 1), datetime.date.today(), 1)
