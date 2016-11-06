@@ -4,6 +4,8 @@ import re
 import pandas as pd
 from urllib2 import Request, urlopen
 import random
+import datetime
+import os
 
 
 def get_humidity():
@@ -64,7 +66,7 @@ def test_random():
     print(random.randint(1, total))
 
 
-def get_distance_record(hrname, rcno, date):
+def get_distance_record_url(hrname, rcno, date):
     print("name: %s, rcno: %d, date: %d" % (hrname, rcno, date))
     url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=1&rcNo=%d&rcDate=%d" % (rcno, date)
     response_body = urlopen(url).read()
@@ -89,6 +91,60 @@ def get_distance_record(hrname, rcno, date):
         print("can not find %s in %s" % (hrname, url))
     return res
 
+
+def get_fname_dist(date, rcno):
+    while True:
+        date_s = int("%d%02d%02d" % (date.year, date.month, date.day))
+        filename = '../txt/1/dist_rec/dist_rec_1_%s_%d.txt' % (date_s, rcno)
+        if os.path.isfile(filename):
+            return filename
+        if date.weekday() == 5:
+            date = date + datetime.timedelta(days=-6)
+        elif date.weekday() == 6:
+            date = date + datetime.timedelta(days=-1)
+    return -1
+
+def get_distance_record(hrname, rcno, date):
+    filename = get_fname_dist(date, rcno)
+    f_input = open(filename)
+    res = []
+    found = False
+    for line in f_input:
+        if not line:
+            break
+        line = unicode(line, 'euc-kr').encode('utf-8')
+        if re.search(unicode(r'%s' % hrname, 'utf-8').encode('utf-8'), line) is not None:
+            found = True
+            break
+        if not found:
+            continue
+
+    for line in f_input:
+        line = unicode(line, 'euc-kr').encode('utf-8')
+        if not line or len(res) == 6:
+            break
+        dnt = re.search(unicode(r'(?<=>)\d+(?=\()', 'utf-8').encode('utf-8'), line)
+        if dnt is not None:
+            if dnt.group() == '0':
+                return [-1, -1, -1, -1, -1, -1]
+            res.append(dnt.group())
+            continue
+        dn = re.search(unicode(r'(?<=<td>)\d+[.]\d+(?=</td>)', 'utf-8').encode('utf-8'), line)
+        if dn is not None:
+            res.append(dn.group())
+            continue
+        dr = re.search(unicode(r'(?<=<td>)\d+[:]\d+[.]\d+', 'utf-8').encode('utf-8'), line)
+        if dr is not None:
+            t = dr.group()
+            res.append(int(t.split(':')[0])*600 + int(t.split(':')[1].split('.')[0])*10 + int(t.split('.')[1]))
+            continue
+    if len(res) == 6:
+        return res
+    else:
+        print("can not find %s in %s" % (hrname, filename))
+        return [-1, -1, -1, -1, -1, -1]
+
+
 def get_grade():
     str = "(서울) 제82일 1300M 국6    별정A       경주명 : 일반 "
     kind = re.search(unicode(r'M.+\d', 'utf-8').encode('utf-8'), str)
@@ -99,5 +155,5 @@ def get_grade():
 
 
 if __name__ == '__main__':
-    print(get_distance_record('캡틴로드', 3, 20140831))
+    print(get_distance_record('하이택시', 1, datetime.date(2007, 11, 3)))
 
