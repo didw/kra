@@ -370,7 +370,7 @@ if __name__ == '__main__':
     filename = '../txt/1/rcresult/rcresult_1_20150208.txt'
     data = get_data(filename)
     print(data)
-    data.to_csv(filename.replace('.txt', '.csv'))
+    data.to_csv(filename.replace('.txt', '.csv'), index=False)
 
     data = data.dropna()
     print(data[['rctime', 'r1', 'r2', 'r3']])
