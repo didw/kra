@@ -71,9 +71,8 @@ def get_distance_record_url(hrname, rcno, date):
     url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=1&rcNo=%d&rcDate=%d" % (rcno, date)
     response_body = urlopen(url).read()
     line = unicode(response_body, 'euc-kr').encode('utf-8')
-    print(line)
     exp = '%s.+\s+.+\s+<td>\d+[.]\d+</td>\s+<td>\d+[.]\d+</td>\s+<td>\d+[:]\d+[.]\d+.+</td>\s+<td>\d+[:]\d+[.]\d+.+</td>\s+<td>\d+[:]\d+[.]\d+.+</td>' % hrname
-    p = re.compile(unicode(r'%s' % exp, 'utf-8').encode('utf-8'), re.MULTILINE)
+    p = re.compile(r'%s' % exp, re.MULTILINE)
     pl = p.search(line)
     res = [-1, -1, -1, -1, -1, -1]
     if pl is not None:
@@ -154,6 +153,45 @@ def get_grade():
         print(kind.group()[-1])
 
 
+def get_game_info(date, rcno):
+    if date.weekday() == 5:
+        file_date = date + datetime.timedelta(days=-2)
+    if date.weekday() == 6:
+        file_date = date + datetime.timedelta(days=-3)
+    fname = '../txt/1/chulma/chulma_1_%d%02d%02d.txt' % (file_date.year, file_date.month, file_date.day)
+    print(fname)
+    finput = open(fname)
+    date_s = "%d[.]%02d[.]%02d" % (date.year % 100, date.month, date.day)
+    exp = "%s.*%d" % (date_s, rcno)
+    print("%s" % exp)
+    found = False
+    for _ in range(3000):
+        line = finput.readline()
+        if not line:
+            break
+        line = unicode(line, 'euc-kr').encode('utf-8')
+        if re.search(unicode(r'%s' % exp, 'utf-8').encode('utf-8'), line) is not None:
+            found = True
+            break
+    if not found:
+        return [-1, -1]
+    for _ in range(5):
+        line = finput.readline()
+        if not line:
+            break
+        line = unicode(line, 'euc-kr').encode('utf-8')
+        print("%s" % line)
+        num = re.search(unicode(r'(?<=출전:)[\s\d]+(?=두)', 'utf-8').encode('utf-8'), line)
+        kind = re.search(unicode(r'\d+(?=등급)', 'utf-8').encode('utf-8'), line)
+        if num is not None:
+            return [num.group(), kind.group()[-1]]
+    return [-1, -1]
+
+
+def load_save_csv():
+    df = pd.read_csv('../log/2016.csv')
+    df.to_csv('../log/2016_2.csv', index=False)
+
 if __name__ == '__main__':
-    print(get_distance_record('하이택시', 1, datetime.date(2007, 11, 3)))
+    print(get_game_info(datetime.date(2016, 11, 6), 2))
 
