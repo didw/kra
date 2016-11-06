@@ -11,7 +11,7 @@ import random
 
 def normalize_data(org_data):
     data = org_data.dropna()
-    #data = data.reset_index()
+    data = data.reset_index()
     data['gender'][data['gender'] == '암'] = 1
     data['gender'][data['gender'] == '수'] = 1
     data['gender'][data['gender'] == '거'] = 2
@@ -53,11 +53,12 @@ def get_data(begin_date, end_date, del_nt=False):
             first = False
         else:
             data = data.append(pr.get_data(filename), ignore_index=True)
+        data.to_csv('../log/test_csv.csv', index=False)
     print(data)
     data = normalize_data(data)
     print(data['cnt'])
     print(data['rcno'])
-    R_data = data[['rank', 'r1', 'r2', 'r3', 'hr_nt', 'jk_nt', 'tr_nt', 'cnt', 'rcno']]
+    R_data = data[['rank', 'r1', 'r2', 'r3', 'hr_nt', 'hr_dt', 'jk_nt', 'tr_nt', 'cnt', 'rcno']]
     Y_data = data['rctime']
     X_data = data.copy()
     del X_data['name']
@@ -69,25 +70,30 @@ def get_data(begin_date, end_date, del_nt=False):
     del X_data['r3']
     del X_data['r2']
     del X_data['r1']
-    if del_nt:
-        for idx in range(len(X_data)):
-            if X_data['hr_nt'][idx] == -1 or X_data['jk_nt'][idx] == -1 or X_data['tr_nt'][idx] == -1:
-                print('Delete %dth row (hr: %s, jk: %s, tr: %s)' % (idx, X_data['hr_nt'][idx], X_data['jk_nt'][idx], X_data['tr_nt'][idx]))
-                X_data.drop(X_data.index[[idx]])
     print(R_data)
     return X_data, Y_data, R_data, data
+
+def delete_lack_data(X_data, Y_data):
+    remove_index = []
+    for idx in range(len(X_data)):
+        if X_data['hr_nt'][idx] == -1 or X_data['jk_nt'][idx] == -1 or X_data['tr_nt'][idx] == -1:
+            remove_index.append(idx)
+            #print('Delete %dth row (hr: %s, jk: %s, tr: %s, dt: %s)' % (idx, X_data['hr_nt'][idx], X_data['jk_nt'][idx], X_data['tr_nt'][idx], X_data['hr_dt'][idx]))
+    print(len(remove_index))
+    return X_data.drop(X_data.index[remove_index]), Y_data.drop(Y_data.index[remove_index])
+
 
 # 단승식
 def simulation1(pred, ans):
     print(ans)
     i = 0
-    res = 0
+    res1, res2 = 0, 0
     assert len(pred) == len(ans)
     while True:
         if i >= len(pred):
             break
         sim_data = [pred[i]]
-        r1 = float(ans['r1'][i])
+        r1 = float(ans['r1'][i]) - 1
         rcno = int(ans['rcno'][i])
         i += 1
         total = 1
@@ -100,23 +106,28 @@ def simulation1(pred, ans):
             total_player = int(ans['cnt'][i])
             total += 1
             i += 1
-        if rack_data:
-            continue
+        # if rack_data or total < total_player:
+        #     continue
         sim_data = pd.Series(sim_data)
-        top = sim_data.argmin()
-        if top == 0:
-            res += 100 * (r1 - 1)
-            print("단승식 WIN: %f" % res)
+        top1 = sim_data.argmin()
+        top = sim_data.rank()
+        if top[0] == 2:
+            res2 += 100 * r1
         else:
-            res -= 100
-            print("단승식 LOSE: %f" % res)
-    return res
+            res2 -= 100
+        if top1 == 1:
+            res1 += 100 * r1
+        else:
+            res1 -= 100
+        print("단승식: %f, %f" % (res1, res2))
+    return [res1, res2]
 
 # 연승식
 def simulation2(pred, ans):
     print(ans)
     i = 0
-    res = 0
+    res1 = 0
+    res2 = 0
     rcno = 0
     assert len(pred) == len(ans)
     while True:
@@ -138,37 +149,52 @@ def simulation2(pred, ans):
             r2.append(float(ans['r2'][i]) - 1)
             total += 1
             i += 1
-        if rack_data:
-            continue
+        # if rack_data or total < total_player:
+        #     continue
         sim_data = pd.Series(sim_data)
-        top = sim_data.argmin()
+        top1 = sim_data.argmin()
+        top = sim_data.rank()
         if total_player > 7:
-            if top in [0, 1, 2]:
-                res += 100 * r2[top]
-                print("연승식(%d) WIN: %f" % (rcno, res))
+            if top1 in [0, 1, 2]:
+                res1 += 100 * r2[top1]
             else:
-                res -= 100
-                print("연승식(%d) LOSE: %f" % (rcno, res))
+                res1 -= 100
         else:
-            if top in [0, 1]:
-                res += 100 * r2[top]
-                print("연승식(%d) WIN: %f" % (rcno, res))
+            if top1 in [0, 1]:
+                res1 += 100 * r2[top1]
             else:
-                res -= 100
-                print("연승식(%d) LOSE: %f" % (rcno, res))
-    return res
+                res1 -= 100
+
+        if total_player > 7:
+            if top[0] == 2:
+                res2 += 100 * r2[int(top[0]-1)]
+            elif top[1] == 2:
+                res2 += 100 * r2[int(top[1]-1)]
+            elif top[2] == 2:
+                res2 += 100 * r2[int(top[2]-1)]
+            else:
+                res2 -= 100
+        else:
+            if top[0] == 2:
+                res2 += 100 * r2[int(top[0]-1)]
+            elif top[1] == 2:
+                res2 += 100 * r2[int(top[1]-1)]
+            else:
+                res2 -= 100
+        print("연승식: %f, %f" % (res1, res2))
+    return [res1, res2]
 
 # 복승식
 def simulation3(pred, ans):
     print(ans)
     i = 0
-    res = 0
+    res1, res2 = 0, 0
     assert len(pred) == len(ans)
     while True:
         if i >= len(pred):
             break
         sim_data = [pred[i]]
-        r3 = float(ans['r3'][i])
+        r3 = float(ans['r3'][i]) - 1
         rcno = int(ans['rcno'][i])
         i += 1
         total = 1
@@ -181,19 +207,25 @@ def simulation3(pred, ans):
             total_player = int(ans['cnt'][i])
             total += 1
             i += 1
-        if rack_data:
-            continue
+        # if rack_data or total < total_player:
+        #     continue
         sim_data = pd.Series(sim_data)
         top = sim_data.rank()
         if total < 2:
             continue
         if (top[0] in [1, 2]) and (top[1] in [1, 2]):
-            print("복승식 WIN: %f = %f + %f" % (res + 100 * r3, res, 100*r3))
-            res += 100 * (r3 - 1)
+            res1 += 100 * r3
         else:
-            res -= 100
-            print("복승식 LOSE: %f" % res)
-    return res
+            res1 -= 100
+
+        if total < 2:
+            continue
+        if (top[0] in [2, 3]) and (top[1] in [2, 3]):
+            res2 += 100 * r3
+        else:
+            res2 -= 100
+        print("복승식: %f, %f" % (res1, res2))
+    return [res1, res2]
 
 
 def simulation_all(pred, ans):
@@ -219,8 +251,8 @@ def simulation_all(pred, ans):
             total_player = int(ans['cnt'][i])
             total += 1
             i += 1
-        if rack_data:
-            continue
+        # if rack_data:
+        #     continue
         sim_data = pd.Series(sim_data)
         if total < 2:
             continue
@@ -240,11 +272,12 @@ def simulation_all(pred, ans):
 
 
 def training(bd, ed):
-    if os.path.exists('../data/train_data_1_41.pkl'):
-        X_train, Y_train, R_train, _ = joblib.load('../data/train_data_1_41.pkl')
+    if os.path.exists('../data/train_201101_201610.pkl'):
+        X_train, Y_train = joblib.load('../data/train_201101_201610.pkl')
     else:
         X_train, Y_train, R_train, X_data = get_data(bd, ed)
-        joblib.dump([X_train, Y_train, R_train, X_data], '../data/train_data_1_41.pkl')
+        joblib.dump([X_train, Y_train], '../data/train_201101_201610.pkl')
+    #X_train, Y_train = delete_lack_data(X_train, Y_train)
     estimator = RandomForestRegressor(random_state=0, n_estimators=100)
     estimator.fit(X_train, Y_train)
     return estimator
@@ -269,16 +302,24 @@ def print_log(data, pred, fname):
 
 
 if __name__ == '__main__':
-    #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30))
-    if os.path.exists('../data/train_data_1_41.pkl'):
-        X_train, Y_train = joblib.load('../data/train_data_1_41.pkl')
-    else:
-        X_train, Y_train, _, _ = get_data(datetime.date(2007, 1, 1), datetime.date(2015, 12, 31), False)
-        joblib.dump([X_train, Y_train], '../data/train_data_1_41.pkl')
-    #print X_train
-    #print Y_train
-    #print R_train
+    dbname = '../data/train_data_1_52_v3.2.pkl'
+    train_bd = datetime.date(2011, 1, 1)
+    train_ed = datetime.date(2016, 3, 31)
+    test_bd = datetime.date(2016, 4, 1)
+    test_ed = datetime.date(2016, 6, 30)
+    remove_outlier = True
 
+    #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30))
+    if os.path.exists(dbname):
+        X_train, Y_train = joblib.load(dbname)
+    else:
+        X_train, Y_train, _, _ = get_data(train_bd, train_ed)
+        joblib.dump([X_train, Y_train], dbname)
+
+    if remove_outlier:
+        print(len(X_train))
+        X_train, Y_train = delete_lack_data(X_train, Y_train)
+        print(len(X_train))
     estimator = RandomForestRegressor(random_state=0, n_estimators=100)
     estimator.fit(X_train, Y_train)
     print("important factor")
@@ -287,26 +328,24 @@ if __name__ == '__main__':
     score = estimator.score(X_train, Y_train)
     print("Score with the entire training dataset = %.2f" % score)
 
-
-    X_test, Y_test, R_test, X_data = get_data(datetime.date(2016, 1, 1), datetime.date(2016, 10, 31), False)
-    DEBUG = True
+    X_test, Y_test, R_test, X_data = get_data(test_bd, test_ed, False)
+    DEBUG = False
     if DEBUG:
-        X_test.to_csv('../log/2016.csv')
+        X_test.to_csv('../log/2016_7_9.csv', index=False)
     score = estimator.score(X_test, Y_test)
     print("Score with the entire test dataset = %.2f" % score)
     pred = estimator.predict(X_test)
-    __DEBUG__ = False
-    if __DEBUG__:
-        print_log(X_data, pred, '../log/%s_txt.txt' % "161105")
 
     res1 = simulation1(pred, R_test)
     res2 = simulation2(pred, R_test)
     res3 = simulation3(pred, R_test)
     res = simulation_all(pred, R_test)
 
-    print("단승식 result: %f" % res1)
-    print("연승식 result: %f" % res2)
-    print("복승식 result: %f" % res3)
+    print("db name: %s" % dbname)
+    print("remove_outlier: %s" % remove_outlier)
+    print("train data: %s - %s" % (str(train_bd), str(train_ed)))
+    print("test data: %s - %s" % (str(test_bd), str(test_ed)))
+    print("단승식 result: %f, %f" % (res1[0], res1[1]))
+    print("연승식 result: %f, %f" % (res2[0], res2[1]))
+    print("복승식 result: %f, %f" % (res3[0], res3[1]))
     print("total result: %f" % res)
-
-
