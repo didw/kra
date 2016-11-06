@@ -182,6 +182,8 @@ def get_distance_record(hrname, rcno, date):
     f_input = open(filename)
     res = []
     found = False
+    if DEBUG:
+        print("find %s in %s" % (hrname, filename))
     for line in f_input:
         if not line:
             break
@@ -367,7 +369,7 @@ def get_data(filename):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/1/rcresult/rcresult_1_20150208.txt'
+    filename = '../txt/1/rcresult/rcresult_1_20161106.txt'
     data = get_data(filename)
     print(data)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)
