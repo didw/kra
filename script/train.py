@@ -12,29 +12,29 @@ import random
 def normalize_data(org_data):
     data = org_data.dropna()
     data = data.reset_index()
-    data['gender'][data['gender'] == '암'] = 1
-    data['gender'][data['gender'] == '수'] = 1
-    data['gender'][data['gender'] == '거'] = 2
-    data['cntry'][data['cntry'] == '한'] = 0
-    data['cntry'][data['cntry'] == '한(포)'] = 1
-    data['cntry'][data['cntry'] == '미'] = 2
-    data['cntry'][data['cntry'] == '뉴'] = 3
-    data['cntry'][data['cntry'] == '호'] = 4
-    data['cntry'][data['cntry'] == '일'] = 5
-    data['cntry'][data['cntry'] == '캐'] = 6
-    data['cntry'][data['cntry'] == '브'] = 7
-    data['cntry'][data['cntry'] == '헨'] = 8
-    data['cntry'][data['cntry'] == '남'] = 9
-    data['cntry'][data['cntry'] == '아일'] = 10
-    data['cntry'][data['cntry'] == '모'] = 11
-    data['cntry'][data['cntry'] == '영'] = 12
-    data['cntry'][data['cntry'] == '인'] = 13
-    data['cntry'][data['cntry'] == '아'] = 14
-    data['cntry'][data['cntry'] == '중'] = 15
-    data['cntry'][data['cntry'] == '프'] = 16
+    data.loc[data['gender'] == '암', 'gender'] = 0
+    data.loc[data['gender'] == '수', 'gender'] = 1
+    data.loc[data['gender'] == '거', 'gender'] = 2
+    data.loc[data['cntry'] == '한', 'cntry'] = 0
+    data.loc[data['cntry'] == '한(포)', 'cntry'] = 1
+    data.loc[data['cntry'] == '일', 'cntry'] = 2
+    data.loc[data['cntry'] == '중', 'cntry'] = 3
+    data.loc[data['cntry'] == '미', 'cntry'] = 4
+    data.loc[data['cntry'] == '캐', 'cntry'] = 5
+    data.loc[data['cntry'] == '뉴', 'cntry'] = 6
+    data.loc[data['cntry'] == '호', 'cntry'] = 7
+    data.loc[data['cntry'] == '브', 'cntry'] = 8
+    data.loc[data['cntry'] == '헨', 'cntry'] = 9
+    data.loc[data['cntry'] == '남', 'cntry'] = 10
+    data.loc[data['cntry'] == '아일', 'cntry'] = 11
+    data.loc[data['cntry'] == '모', 'cntry'] = 12
+    data.loc[data['cntry'] == '영', 'cntry'] = 13
+    data.loc[data['cntry'] == '인', 'cntry'] = 14
+    data.loc[data['cntry'] == '아', 'cntry'] = 15
+    data.loc[data['cntry'] == '프', 'cntry'] = 16
     return data
 
-def get_data(begin_date, end_date, del_nt=False):
+def get_data(begin_date, end_date):
     train_bd = begin_date
     train_ed = end_date
     date = train_bd
@@ -53,7 +53,6 @@ def get_data(begin_date, end_date, del_nt=False):
             first = False
         else:
             data = data.append(pr.get_data(filename), ignore_index=True)
-        data.to_csv('../log/test_csv.csv', index=False)
     print(data)
     data = normalize_data(data)
     print(data['cnt'])
@@ -71,6 +70,35 @@ def get_data(begin_date, end_date, del_nt=False):
     del X_data['r2']
     del X_data['r1']
     print(R_data)
+    return X_data, Y_data, R_data, data
+
+
+def get_data_from_csv(begin_date, end_date, fname_csv):
+    df = pd.read_csv(fname_csv)
+    remove_index = []
+    for idx in range(len(df)):
+        #print(df['date'][idx])
+        date = int(df['date'][idx])
+        if date < begin_date or date > end_date:
+            remove_index.append(idx)
+            #print('Delete %dth row (hr: %s, jk: %s, tr: %s, dt: %s)' % (idx, X_data['hr_nt'][idx], X_data['jk_nt'][idx], X_data['tr_nt'][idx], X_data['hr_dt'][idx]))
+    data = df.drop(df.index[remove_index])
+    data = normalize_data(data)
+
+    R_data = data[['rank', 'r1', 'r2', 'r3', 'hr_nt', 'hr_dt', 'jk_nt', 'tr_nt', 'cnt', 'rcno']]
+    Y_data = data['rctime']
+    X_data = data.copy()
+
+    del X_data['name']
+    del X_data['jockey']
+    del X_data['trainer']
+    del X_data['owner']
+    del X_data['rctime']
+    del X_data['rank']
+    del X_data['r3']
+    del X_data['r2']
+    del X_data['r1']
+    #print(R_data)
     return X_data, Y_data, R_data, data
 
 def delete_lack_data(X_data, Y_data):
@@ -301,12 +329,79 @@ def print_log(data, pred, fname):
     flog.close()
 
 
+def simulation_weekly(begin_date, end_date, fname_result):
+    f_result = open(fname_result, 'w')
+    today = begin_date
+    while today <= end_date + datetime.timedelta(days=-7):
+        while today.weekday() != 3:
+            today = today + datetime.timedelta(days=1)
+
+        today = today + datetime.timedelta(days=1)
+        train_bd = datetime.date(2011, 1, 1)
+        train_ed = today
+        test_bd = today + datetime.timedelta(days=1)
+        test_ed = today + datetime.timedelta(days=2)
+        test_bd_s = "%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day)
+        test_ed_s = "%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day)
+        if not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_bd_s) and not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_ed_s):
+            continue
+        remove_outlier = False
+        train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
+        train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
+
+        test_bd = today + datetime.timedelta(days=1)
+        test_ed = today + datetime.timedelta(days=2)
+        test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
+        test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
+
+
+
+        print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2007_2016.csv')
+        print("%d data is fully loaded" % len(X_train))
+
+        if remove_outlier:
+            X_train, Y_train = delete_lack_data(X_train, Y_train)
+        print("Start train model")
+        estimator = RandomForestRegressor(random_state=0, n_estimators=100)
+        estimator.fit(X_train, Y_train)
+        print("Finish train model")
+        print("important factor")
+        print(X_train.columns)
+        print(estimator.feature_importances_)
+        score = estimator.score(X_train, Y_train)
+        print("Score with the entire training dataset = %.2f" % score)
+
+        print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
+        X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/2007_2016.csv')
+        print("data is fully loaded")
+        DEBUG = False
+        if DEBUG:
+            X_test.to_csv('../log/2016_7_9.csv', index=False)
+        score = estimator.score(X_test, Y_test)
+        print("Score with the entire test dataset = %.2f" % score)
+        pred = estimator.predict(X_test)
+
+        res1 = simulation1(pred, R_test)
+
+        print("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
+        print("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+        print("단승식 result: %f\n\n" % (res1[0]))
+        f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
+        f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+        f_result.write("단승식 result: %f\n\n" % (res1[0]))
+
+    f_result.close()
+
+
 if __name__ == '__main__':
-    dbname = '../data/train_201101_20161028.pkl'
+    dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 1, 1)
-    train_ed = datetime.date(2016, 10, 28)
-    test_bd = datetime.date(2016, 10, 29)
-    test_ed = datetime.date(2016, 10, 30)
+    train_ed = datetime.date(2016, 9, 9)
+    test_bd = datetime.date(2016, 1, 10)
+    test_ed = datetime.date(2016, 9, 11)
+
+    simulation_weekly(test_bd, test_ed, '../data/weekly_result.txt')
     remove_outlier = False
 
     #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30))
@@ -328,7 +423,7 @@ if __name__ == '__main__':
     score = estimator.score(X_train, Y_train)
     print("Score with the entire training dataset = %.2f" % score)
 
-    X_test, Y_test, R_test, X_data = get_data(test_bd, test_ed, False)
+    X_test, Y_test, R_test, X_data = get_data(test_bd, test_ed)
     DEBUG = False
     if DEBUG:
         X_test.to_csv('../log/2016_7_9.csv', index=False)
@@ -349,3 +444,4 @@ if __name__ == '__main__':
     print("연승식 result: %f, %f" % (res2[0], res2[1]))
     print("복승식 result: %f, %f" % (res3[0], res3[1]))
     print("total result: %f" % res)
+
