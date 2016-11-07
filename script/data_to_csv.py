@@ -29,6 +29,7 @@ def get_data(begin_date, end_date, fname_csv):
     data.to_csv(fname_csv, index=False)
     return data
 
+
 if __name__ == '__main__':
     begin_date = datetime.date(2007, 1, 1)
     end_date = datetime.date.today()
