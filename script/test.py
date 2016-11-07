@@ -187,11 +187,17 @@ def get_game_info(date, rcno):
             return [num.group(), kind.group()[-1]]
     return [-1, -1]
 
+def pandas_compare():
+    df = pd.DataFrame([['가',2,3,4,5], ['나',3,4,5,6], ['다',4,5,6,7]], columns=['A', 'B', 'C', 'D', 'E'])
+    df.loc[df['A'] == '가', 'A'] = 4
+    print(df)
+
+
 
 def load_save_csv():
     df = pd.read_csv('../log/2016.csv')
     df.to_csv('../log/2016_2.csv', index=False)
 
 if __name__ == '__main__':
-    print(get_game_info(datetime.date(2016, 11, 6), 2))
+    pandas_compare()
 
