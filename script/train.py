@@ -113,7 +113,7 @@ def delete_lack_data(X_data, Y_data):
 
 # 단승식
 def simulation1(pred, ans):
-    print(ans)
+    #print(ans)
     i = 0
     res1, res2 = 0, 0
     assert len(pred) == len(ans)
@@ -147,7 +147,7 @@ def simulation1(pred, ans):
             res1 += 100 * r1
         else:
             res1 -= 100
-        print("단승식: %f, %f" % (res1, res2))
+        #print("단승식: %f, %f" % (res1, res2))
     return [res1, res2]
 
 # 연승식
@@ -329,16 +329,16 @@ def print_log(data, pred, fname):
     flog.close()
 
 
-def simulation_weekly(begin_date, end_date, fname_result):
-    f_result = open(fname_result, 'w')
+def simulation_weekly(begin_date, end_date, fname_result, delta_day=0):
     today = begin_date
-    while today <= end_date + datetime.timedelta(days=-7):
+    while today <= end_date:
         while today.weekday() != 3:
             today = today + datetime.timedelta(days=1)
 
         today = today + datetime.timedelta(days=1)
-        train_bd = datetime.date(2011, 1, 1)
-        train_ed = today
+        train_bd = today + datetime.timedelta(days=-365*1)
+        #train_bd = datetime.date(2011, 1, 1)
+        train_ed = today + datetime.timedelta(days=-delta_day)
         test_bd = today + datetime.timedelta(days=1)
         test_ed = today + datetime.timedelta(days=2)
         test_bd_s = "%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day)
@@ -348,13 +348,6 @@ def simulation_weekly(begin_date, end_date, fname_result):
         remove_outlier = False
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-
-        test_bd = today + datetime.timedelta(days=1)
-        test_ed = today + datetime.timedelta(days=2)
-        test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
-        test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
-
-
 
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
         X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2007_2016.csv')
@@ -367,10 +360,13 @@ def simulation_weekly(begin_date, end_date, fname_result):
         estimator.fit(X_train, Y_train)
         print("Finish train model")
         print("important factor")
-        print(X_train.columns)
-        print(estimator.feature_importances_)
+        #print(X_train.columns)
+        #print(estimator.feature_importances_)
         score = estimator.score(X_train, Y_train)
         print("Score with the entire training dataset = %.2f" % score)
+
+        test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
+        test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
 
         print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
         X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/2007_2016.csv')
@@ -387,23 +383,24 @@ def simulation_weekly(begin_date, end_date, fname_result):
         print("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
         print("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
         print("단승식 result: %f\n\n" % (res1[0]))
+        f_result = open(fname_result, 'a')
         f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
         f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
         f_result.write("단승식 result: %f\n\n" % (res1[0]))
-
-    f_result.close()
+        f_result.close()
 
 
 if __name__ == '__main__':
     dbname = '../data/train_201101_20160909.pkl'
+    outfile = '../data/weekly_result_v5.txt'
     train_bd = datetime.date(2011, 1, 1)
     train_ed = datetime.date(2016, 9, 9)
-    test_bd = datetime.date(2016, 1, 10)
-    test_ed = datetime.date(2016, 9, 11)
+    test_bd = datetime.date(2015, 12, 30)
+    test_ed = datetime.date(2016, 11, 8)
 
-    simulation_weekly(test_bd, test_ed, '../data/weekly_result.txt')
+    simulation_weekly(test_bd, test_ed, outfile, 0)
     remove_outlier = False
-
+"""
     #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30))
     if os.path.exists(dbname):
         X_train, Y_train = joblib.load(dbname)
@@ -445,3 +442,4 @@ if __name__ == '__main__':
     print("복승식 result: %f, %f" % (res3[0], res3[1]))
     print("total result: %f" % res)
 
+"""
