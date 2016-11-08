@@ -195,9 +195,9 @@ def get_fname_dist(date, rcno):
         filename = '../txt/2/dist_rec/dist_rec_2_%s_%d.txt' % (date_s, rcno)
         if os.path.isfile(filename):
             return filename
-        if date.weekday() == 5:
+        if date.weekday() == 4:
             date = date + datetime.timedelta(days=-6)
-        elif date.weekday() == 6:
+        elif date.weekday() == 5:
             date = date + datetime.timedelta(days=-1)
     return -1
 
@@ -207,8 +207,6 @@ def get_distance_record(hrname, rcno, date):
     f_input = open(filename)
     res = []
     found = False
-    if DEBUG:
-        print("find %s in %s" % (hrname, filename))
     for line in f_input:
         if not line:
             break
@@ -249,13 +247,12 @@ def get_distance_record(hrname, rcno, date):
 # 킹메신저          한    수2014/03/08 2국6 18박대흥죽마조합            시에로골드          난초                    1    0    0    1    0    0    3000000                     0
 def parse_txt_horse(date, rcno, name):
     filename = get_fname(date, "horse")
-    #print(filename)
     f_input = open(filename)
     while True:
         line = f_input.readline()
-        line = unicode(line, 'euc-kr').encode('utf-8')
-        if len(line) == 0:
+        if not line:
             break
+        line = unicode(line, 'euc-kr').encode('utf-8')
         if re.search(unicode(name, 'utf-8').encode('utf-8'), line) is not None:
             data = []
             birth = re.search(unicode(r'\d{4}/\d{2}/\d{2}', 'utf-8').encode('utf-8'), line).group()
@@ -296,7 +293,7 @@ def parse_txt_jockey(date, name):
         #print("name is changed %s -> %s" % (name, name[:6]))
         name = str(name)[:6]
     filename = get_fname(date, "jockey")
-    #print(filename)
+    if DEBUG: print(filename)
     f_input = open(filename)
     while True:
         line = f_input.readline()
@@ -337,7 +334,7 @@ def parse_txt_trainer(date, name):
         #print("name is changed %s -> %s" % (name, name[:6]))
         name = str(name)[:6]
     filename = get_fname(date, "trainer")
-    #print(filename)
+    if DEBUG: print(filename)
     f_input = open(filename)
     while True:
         line = f_input.readline()
@@ -417,7 +414,7 @@ def get_data_w_date(filename):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/2/rcresult/rcresult_2_20150124.txt'
+    filename = '../txt/2/rcresult/rcresult_2_20150612.txt'
     data = get_data(filename)
     print(data)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)
