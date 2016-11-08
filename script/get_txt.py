@@ -85,6 +85,6 @@ def download_dist_rec(bd, ed, meet):
 
 if __name__ == '__main__':
     for i in range(2, 4):
-        download_dist_rec(datetime.date(2016, 10, 1), datetime.date.today(), i)
-        download_txt(datetime.date(2003, 1, 1), datetime.date.today(), i)
+        download_dist_rec(datetime.date(2015, 1, 1), datetime.date.today(), i)
+        download_txt(datetime.date(2015, 1, 1), datetime.date.today(), i)
 
