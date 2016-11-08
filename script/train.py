@@ -391,14 +391,14 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0):
 
 if __name__ == '__main__':
     outfile = '../data/weekly_result.txt'
-    train_bd = datetime.date(2011, 1, 1)
-    train_ed = datetime.date(2016, 9, 9)
-    test_bd = datetime.date(2015, 12, 30)
-    test_ed = datetime.date(2016, 11, 8)
+    dbname = '../data/train_2_test.txt'
+    train_bd = datetime.date(2015, 1, 10)
+    train_ed = datetime.date(2015, 12, 30)
+    test_bd = datetime.date(2016, 1, 1)
+    test_ed = datetime.date(2016, 2, 1)
 
-    simulation_weekly(test_bd, test_ed, outfile, 0)
+    #simulation_weekly(test_bd, test_ed, outfile, 0)
     remove_outlier = False
-"""
     #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30))
     if os.path.exists(dbname):
         X_train, Y_train = joblib.load(dbname)
@@ -421,7 +421,7 @@ if __name__ == '__main__':
     X_test, Y_test, R_test, X_data = get_data(test_bd, test_ed)
     DEBUG = False
     if DEBUG:
-        X_test.to_csv('../log/2016_7_9.csv', index=False)
+        X_test.to_csv('../data/meet_2_%s.csv' % (str(test_bd)), index=False)
     score = estimator.score(X_test, Y_test)
     print("Score with the entire test dataset = %.2f" % score)
     pred = estimator.predict(X_test)
@@ -439,5 +439,3 @@ if __name__ == '__main__':
     print("연승식 result: %f, %f" % (res2[0], res2[1]))
     print("복승식 result: %f, %f" % (res3[0], res3[1]))
     print("total result: %f" % res)
-
-"""
