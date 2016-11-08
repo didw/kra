@@ -305,7 +305,7 @@ def parse_txt_jockey(date, name):
             break
         if re.search(unicode(name, 'utf-8').encode('utf-8'), line) is not None:
             data = []
-            participates = re.search(unicode(r'(?<=[\d\s,]{6})[\s\d]+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().replace(',', '').split()
+            participates = re.search(unicode(r'(?<=/\d{2})[ ,\d]+[\s\d]+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().replace(',', '').split()
             #print(participates)
             if int(participates[0]) == 0:
                 data.extend([0, 0, 0, 0, 0])
@@ -417,7 +417,7 @@ def get_data_w_date(filename):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/2/rcresult/rcresult_2_20110402.txt'
+    filename = '../txt/2/rcresult/rcresult_2_20150124.txt'
     data = get_data(filename)
     print(data)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)
