@@ -144,6 +144,8 @@ def parse_txt_race(input_file):
         while True:
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
+            if re.search(unicode(r'매출액', 'utf-8').encode('utf-8'), line) is not None:
+                price = int(re.search(unicode(r'(?<=단식:)[ ,\d]+', 'utf-8').encode('utf-8'), line).group().replace(',', ''))
             if re.search(unicode(r'복승식', 'utf-8').encode('utf-8'), line) is not None:
                 break
         # 복승식 rating 가져오기
@@ -168,26 +170,22 @@ def parse_txt_race(input_file):
                     data[-cnt+i].extend([cnt])
                     data[-cnt+i].extend([rcno])
                     data[-cnt+i].extend([month])
+                    data[-cnt+i].extend([price])
                 get_rate = True
                 break
         assert get_rate
     return data
 
 
-
 def get_fname(date, job):
-    for _ in range(10):
-        if date.weekday() == 2:
-            date = date + datetime.timedelta(days=-4)
-        elif date.weekday() == 5:
-            date = date + datetime.timedelta(days=-3)
-        elif date.weekday() == 4:
-            date = date + datetime.timedelta(days=-2)
+    while True:
+        date = date + datetime.timedelta(days=-1)
         date_s = int("%d%02d%02d" % (date.year, date.month, date.day))
         filename = '../txt/2/%s/%s_2_%s.txt' % (job, job, date_s)
         if os.path.isfile(filename):
             return filename
     return -1
+
 
 def get_fname_dist(date, rcno):
     while True:
@@ -195,10 +193,7 @@ def get_fname_dist(date, rcno):
         filename = '../txt/2/dist_rec/dist_rec_2_%s_%d.txt' % (date_s, rcno)
         if os.path.isfile(filename):
             return filename
-        if date.weekday() == 4:
-            date = date + datetime.timedelta(days=-6)
-        elif date.weekday() == 5:
-            date = date + datetime.timedelta(days=-1)
+        date = date + datetime.timedelta(days=-1)
     return -1
 
 
@@ -218,8 +213,10 @@ def get_distance_record(hrname, rcno, date):
             continue
 
     for line in f_input:
+        if not line:
+            break
         line = unicode(line, 'euc-kr').encode('utf-8')
-        if not line or len(res) == 6:
+        if len(res) == 6:
             break
         dnt = re.search(unicode(r'(?<=>)\d+(?=\()', 'utf-8').encode('utf-8'), line)
         if dnt is not None:

@@ -86,7 +86,7 @@ def get_data_from_csv(begin_date, end_date, fname_csv):
     data = df.drop(df.index[remove_index])
     data = normalize_data(data)
 
-    R_data = data[['rank', 'r1', 'r2', 'r3', 'hr_nt', 'hr_dt', 'jk_nt', 'tr_nt', 'cnt', 'rcno']]
+    R_data = data[['rank', 'r1', 'r2', 'r3', 'hr_nt', 'hr_dt', 'jk_nt', 'tr_nt', 'cnt', 'rcno', 'price']]
     Y_data = data['rctime']
     X_data = data.copy()
 
@@ -99,6 +99,7 @@ def get_data_from_csv(begin_date, end_date, fname_csv):
     del X_data['r3']
     del X_data['r2']
     del X_data['r1']
+    del X_data['price']
     #print(R_data)
     return X_data, Y_data, R_data, data
 
@@ -329,14 +330,14 @@ def print_log(data, pred, fname):
     flog.close()
 
 
-def simulation_weekly(begin_date, end_date, fname_result, delta_day=0):
+def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_year=0):
     today = begin_date
     while today <= end_date:
         while today.weekday() != 3:
             today = today + datetime.timedelta(days=1)
 
         today = today + datetime.timedelta(days=1)
-        train_bd = today + datetime.timedelta(days=-365*1)
+        train_bd = today + datetime.timedelta(days=-365*delta_year)
         #train_bd = datetime.date(2011, 1, 1)
         train_ed = today + datetime.timedelta(days=-delta_day)
         test_bd = today + datetime.timedelta(days=1)
@@ -396,11 +397,12 @@ if __name__ == '__main__':
     train_bd = datetime.date(2015, 1, 10)
     train_ed = datetime.date(2015, 12, 30)
     test_bd = datetime.date(2016, 1, 1)
-    test_ed = datetime.date(2016, 2, 1)
+    test_ed = datetime.date(2016, 11, 10)
 
-    #simulation_weekly(test_bd, test_ed, outfile, 0)
+    simulation_weekly(test_bd, test_ed, outfile, 0, 2)
     remove_outlier = False
     #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30))
+    """
     if os.path.exists(dbname):
         X_train, Y_train = joblib.load(dbname)
     else:
@@ -440,3 +442,4 @@ if __name__ == '__main__':
     print("연승식 result: %f, %f" % (res2[0], res2[1]))
     print("복승식 result: %f, %f" % (res3[0], res3[1]))
     print("total result: %f" % res)
+"""
