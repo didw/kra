@@ -122,7 +122,7 @@ def simulation1(pred, ans):
         if i >= len(pred):
             break
         sim_data = [pred[i]]
-        r1 = float(ans['r1'][i]) - 1
+        r1 = float(ans['r1'][i])
         rcno = int(ans['rcno'][i])
         i += 1
         total = 1
@@ -133,8 +133,11 @@ def simulation1(pred, ans):
                 rack_data = True
             sim_data.append(pred[i])
             total_player = int(ans['cnt'][i])
+            price = int(ans['total'][i])
             total += 1
             i += 1
+        a = price*0.8 / r1
+        r1 = (price+100000)*0.8 / (a+100000) - 1.0
         # if rack_data or total < total_player:
         #     continue
         sim_data = pd.Series(sim_data)
