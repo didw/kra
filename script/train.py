@@ -16,22 +16,23 @@ def normalize_data(org_data):
     data.loc[data['gender'] == '수', 'gender'] = 1
     data.loc[data['gender'] == '거', 'gender'] = 2
     data.loc[data['cntry'] == '한', 'cntry'] = 0
-    data.loc[data['cntry'] == '한(포)', 'cntry'] = 1
-    data.loc[data['cntry'] == '일', 'cntry'] = 2
-    data.loc[data['cntry'] == '중', 'cntry'] = 3
-    data.loc[data['cntry'] == '미', 'cntry'] = 4
-    data.loc[data['cntry'] == '캐', 'cntry'] = 5
-    data.loc[data['cntry'] == '뉴', 'cntry'] = 6
-    data.loc[data['cntry'] == '호', 'cntry'] = 7
-    data.loc[data['cntry'] == '브', 'cntry'] = 8
-    data.loc[data['cntry'] == '헨', 'cntry'] = 9
-    data.loc[data['cntry'] == '남', 'cntry'] = 10
-    data.loc[data['cntry'] == '아일', 'cntry'] = 11
-    data.loc[data['cntry'] == '모', 'cntry'] = 12
-    data.loc[data['cntry'] == '영', 'cntry'] = 13
-    data.loc[data['cntry'] == '인', 'cntry'] = 14
-    data.loc[data['cntry'] == '아', 'cntry'] = 15
-    data.loc[data['cntry'] == '프', 'cntry'] = 16
+    data.loc[data['cntry'] == '제', 'cntry'] = 1
+    data.loc[data['cntry'] == '한(포)', 'cntry'] = 2
+    data.loc[data['cntry'] == '일', 'cntry'] = 3
+    data.loc[data['cntry'] == '중', 'cntry'] = 4
+    data.loc[data['cntry'] == '미', 'cntry'] = 5
+    data.loc[data['cntry'] == '캐', 'cntry'] = 6
+    data.loc[data['cntry'] == '뉴', 'cntry'] = 7
+    data.loc[data['cntry'] == '호', 'cntry'] = 8
+    data.loc[data['cntry'] == '브', 'cntry'] = 9
+    data.loc[data['cntry'] == '헨', 'cntry'] = 10
+    data.loc[data['cntry'] == '남', 'cntry'] = 11
+    data.loc[data['cntry'] == '아일', 'cntry'] = 12
+    data.loc[data['cntry'] == '모', 'cntry'] = 13
+    data.loc[data['cntry'] == '영', 'cntry'] = 14
+    data.loc[data['cntry'] == '인', 'cntry'] = 15
+    data.loc[data['cntry'] == '아', 'cntry'] = 16
+    data.loc[data['cntry'] == '프', 'cntry'] = 17
     return data
 
 def get_data(begin_date, end_date):
