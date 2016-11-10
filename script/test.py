@@ -68,7 +68,7 @@ def test_random():
 
 def get_distance_record_url(hrname, rcno, date):
     print("name: %s, rcno: %d, date: %d" % (hrname, rcno, date))
-    url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=1&rcNo=%d&rcDate=%d" % (rcno, date)
+    url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=2&rcNo=%d&rcDate=%d" % (rcno, date)
     response_body = urlopen(url).read()
     line = unicode(response_body, 'euc-kr').encode('utf-8')
     exp = '%s.+\s+.+\s+<td>\d+[.]\d+</td>\s+<td>\d+[.]\d+</td>\s+<td>\d+[:]\d+[.]\d+.+</td>\s+<td>\d+[:]\d+[.]\d+.+</td>\s+<td>\d+[:]\d+[.]\d+.+</td>' % hrname
@@ -158,7 +158,7 @@ def get_game_info(date, rcno):
         file_date = date + datetime.timedelta(days=-2)
     if date.weekday() == 6:
         file_date = date + datetime.timedelta(days=-3)
-    fname = '../txt/1/chulma/chulma_1_%d%02d%02d.txt' % (file_date.year, file_date.month, file_date.day)
+    fname = '../txt/2/chulma/chulma_2_%d%02d%02d.txt' % (file_date.year, file_date.month, file_date.day)
     print(fname)
     finput = open(fname)
     date_s = "%d[.]%02d[.]%02d" % (date.year % 100, date.month, date.day)
