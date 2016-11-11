@@ -122,7 +122,7 @@ def simulation1(pred, ans):
         if i >= len(pred):
             break
         sim_data = [pred[i]]
-        r1 = float(ans['r1'][i]) - 1
+        r1 = float(ans['r1'][i])
         rcno = int(ans['rcno'][i])
         i += 1
         total = 1
@@ -135,6 +135,9 @@ def simulation1(pred, ans):
             total_player = int(ans['cnt'][i])
             total += 1
             i += 1
+        price = 20000000
+        a = price*0.8 / r1
+        r1 = (price+100000)*0.8 / (a+100000) - 1.0
         # if rack_data or total < total_player:
         #     continue
         sim_data = pd.Series(sim_data)
@@ -330,14 +333,14 @@ def print_log(data, pred, fname):
     flog.close()
 
 
-def simulation_weekly(begin_date, end_date, fname_result, delta_day=0):
+def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_year=0):
     today = begin_date
     while today <= end_date:
         while today.weekday() != 3:
             today = today + datetime.timedelta(days=1)
 
         today = today + datetime.timedelta(days=1)
-        train_bd = today + datetime.timedelta(days=-365*1)
+        train_bd = today + datetime.timedelta(days=-365*delta_year)
         #train_bd = datetime.date(2011, 1, 1)
         train_ed = today + datetime.timedelta(days=-delta_day)
         test_bd = today + datetime.timedelta(days=1)
@@ -393,13 +396,13 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0):
 
 if __name__ == '__main__':
     dbname = '../data/train_201101_20160909.pkl'
-    outfile = '../data/weekly_result_v5.txt'
+    outfile = '../data/weekly_result_1_1.txt'
     train_bd = datetime.date(2011, 1, 1)
     train_ed = datetime.date(2016, 9, 9)
     test_bd = datetime.date(2015, 12, 30)
     test_ed = datetime.date(2016, 11, 8)
 
-    simulation_weekly(test_bd, test_ed, outfile, 0)
+    simulation_weekly(test_bd, test_ed, outfile, 0, 1)
     remove_outlier = False
 """
     #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30))
