@@ -32,9 +32,9 @@ def download_txt(bd, ed, meet):
 
     for line in data[meet-1]:
         race_url = line[0]
-        date = bd + datetime.timedelta(days=-1)
-        while date < ed:
-            date += datetime.timedelta(days=1)
+        date = ed + datetime.timedelta(days=1)
+        while date > bd:
+            date += datetime.timedelta(days=-1)
             if date.weekday() not in line[3]:
                 continue
             date_s = int("%d%02d%02d" % (date.year, date.month, date.day))
@@ -42,7 +42,7 @@ def download_txt(bd, ed, meet):
             try:
                 fname = "../txt/%d/%s/%s_%d_%d.txt" % (meet, line[1], line[1], meet, date_s)
                 if os.path.exists(fname):
-                    continue
+                    break
                 response_body = urlopen(request).read()
                 fout = open(fname, 'w')
                 fout.write(response_body)
@@ -61,9 +61,9 @@ def download_dist_rec(bd, ed, meet):
     ]
     for line in data[meet-1]:
         race_url = line[0]
-        date = bd + datetime.timedelta(days=-1)
-        while date < ed:
-            date += datetime.timedelta(days=1)
+        date = ed + datetime.timedelta(days=1)
+        while date > bd:
+            date += datetime.timedelta(days=-1)
             if date.weekday() not in line[1]:
                 continue
             for rcno in range(1, 20):
@@ -72,7 +72,7 @@ def download_dist_rec(bd, ed, meet):
                 try:
                     fname = "../txt/%d/dist_rec/dist_rec_%d_%d_%d.txt" % (meet, meet, date_s, rcno)
                     if os.path.exists(fname):
-                        continue
+                        break
                     response_body = urlopen(request).read()
                     fout = open(fname, 'w')
                     fout.write(response_body)
@@ -84,7 +84,7 @@ def download_dist_rec(bd, ed, meet):
 
 
 if __name__ == '__main__':
-    for i in range(2, 4):
+    for i in range(1, 4):
         download_dist_rec(datetime.date(2015, 1, 1), datetime.date.today(), i)
         download_txt(datetime.date(2015, 1, 1), datetime.date.today(), i)
 
