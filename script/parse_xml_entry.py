@@ -171,7 +171,7 @@ def get_game_info(date, rcno):
         if not line:
             break
         line = unicode(line, 'euc-kr').encode('utf-8')
-        print("%s" % line)
+        #print("%s" % line)
         num = re.search(unicode(r'(?<=출전:)[\s\d]+(?=두)', 'utf-8').encode('utf-8'), line)
         kind = re.search(unicode(r'\d+(?=등급)', 'utf-8').encode('utf-8'), line)
         if num is not None:
@@ -285,6 +285,6 @@ def parse_xml_entry(meet, date):
 
 if __name__ == '__main__':
     meet = 1
-    date = 20161106
+    date = 20161112
     data = parse_xml_entry(meet, date)
     print data
