@@ -11,11 +11,12 @@ import parse_xml_tr as xt
 import parse_xml_train as xtr
 import datetime
 import sys
+import os
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
 
-
+DEBUG = False
 
 def get_humidity():
     url = "http://race.kra.co.kr/chulmainfo/trackView.do?Act=02&Sub=10&meet=1"
@@ -79,8 +80,10 @@ def get_hr_win(tt, t1, t2, yt, y1, y2):
 
 def get_jk_win(data, name):
     res = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+    print("name: %s " % name)
     for idx, line in data.iterrows():
         if line['jkName'] == name:
+            print("%s" % line)
             res[0] = tt = int(line['cntT'])
             res[1] = t1 = int(line['ord1T'])
             res[2] = t2 = int(line['ord2T'])
@@ -121,7 +124,7 @@ def get_tr_win(data, name):
 
 def get_distance_record_url(hrname, rcno, date):
     #print("name: %s, rcno: %d, date: %d" % (hrname, rcno, date))
-    url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=2&rcNo=%d&rcDate=%d" % (rcno, date)
+    url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=2&rcNo=%d&rcDate=%d" % (rcno, int("%d%d%d" % (date.year, date.month, date.day)))
     response_body = urlopen(url).read()
     line = unicode(response_body, 'euc-kr').encode('utf-8')
     #print("%s" % line)
@@ -150,7 +153,7 @@ def get_game_info(date, rcno):
     if date.weekday() == 5:
         file_date = date + datetime.timedelta(days=-3)
     fname = '../txt/2/chulma/chulma_2_%d%02d%02d.txt' % (file_date.year, file_date.month, file_date.day)
-    #print(fname)
+    print("culma filename: %s" % fname)
     finput = open(fname)
     date_s = "%d[.]%02d[.]%02d" % (date.year % 100, date.month, date.day)
     exp = "%s.*%d" % (date_s, rcno)
@@ -171,7 +174,7 @@ def get_game_info(date, rcno):
         if not line:
             break
         line = unicode(line, 'euc-kr').encode('utf-8')
-        print("%s" % line)
+        #print("%s" % line)
         num = re.search(unicode(r'(?<=출전:)[\s\d]+(?=두)', 'utf-8').encode('utf-8'), line)
         kind = re.search(unicode(r'\d+(?=등급)', 'utf-8').encode('utf-8'), line)
         if num is not None:
@@ -181,6 +184,144 @@ def get_game_info(date, rcno):
                 kind = kind.group()[-1]
             return [num.group(), kind]
     return [-1, -1]
+
+
+
+def get_fname(date, job):
+    while True:
+        date = date + datetime.timedelta(days=-1)
+        date_s = int("%d%02d%02d" % (date.year, date.month, date.day))
+        filename = '../txt/2/%s/%s_2_%s.txt' % (job, job, date_s)
+        if os.path.isfile(filename):
+            return filename
+    return -1
+
+
+# 이름             산지  성별   birth  -    조교사  마주명             -                    -                     총경기, 총1, 총2, 1년경기, 1년1, 1년2,총상금
+# 킹메신저          한    수2014/03/08 2국6 18박대흥죽마조합            시에로골드          난초                    1    0    0    1    0    0    3000000                     0
+def parse_txt_horse(date, rcno, name):
+    filename = get_fname(date, "horse")
+    f_input = open(filename)
+    while True:
+        line = f_input.readline()
+        if not line:
+            break
+        line = unicode(line, 'euc-kr').encode('utf-8')
+        if re.search(name.encode('utf-8'), line) is not None:
+            data = []
+            birth = re.search(unicode(r'\d{4}/\d{2}/\d{2}', 'utf-8').encode('utf-8'), line).group()
+            #print(datetime.date(int(birth[:4]), int(birth[5:7]), int(birth[8:])))
+            data.append((date - datetime.date(int(birth[:4]), int(birth[5:7]), int(birth[8:]))).days)
+            participates = re.search(unicode(r'\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().replace(',', '').split()
+            dist_rec = get_distance_record_url(name, rcno, date)
+            #print(participates)
+            if int(participates[0]) == 0:
+                data.extend([0, 0, 0, 0, 0])
+            else:
+                data.append(int(participates[0]))
+                data.append(int(participates[1]))
+                data.append(int(participates[2]))
+                data.append(int(participates[1])*100/int(participates[0]))
+                data.append(int(participates[2])*100/int(participates[0]))
+
+            if int(participates[3]) == 0:
+                data.extend([0, 0, 0, 0, 0])
+            else:
+                data.append(int(participates[3]))
+                data.append(int(participates[4]))
+                data.append(int(participates[5]))
+                data.append(int(participates[4])*100/int(participates[3]))
+                data.append(int(participates[5])*100/int(participates[3]))
+
+            data.extend(dist_rec)
+            assert len(data) == 17
+            return data
+    print("can not find %s in %s" % (name, filename))
+    return [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+
+
+
+# 이름  소속 생일        데뷔일  총경기수, 총1, 총2, 1년, 1년1, 1년2
+# 김동철491974/11/28371995/07/015252 3706  217  242  166   17   19
+def parse_txt_jockey(date, name):
+    if len(str(name)) > 9:
+        #print("name is changed %s -> %s" % (name, name[:6]))
+        name = str(name)[:6]
+    filename = get_fname(date, "jockey")
+    if DEBUG: print(filename)
+    f_input = open(filename)
+    while True:
+        line = f_input.readline()
+        line = unicode(line, 'euc-kr').encode('utf-8')
+        if len(line) == 0:
+            break
+        if re.search(name.encode('utf-8'), line) is not None:
+            data = []
+            participates = re.search(unicode(r'(?<=/\d{2})[ ,\d]+[\s\d]+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().replace(',', '').split()
+            #print(participates)
+            if int(participates[0]) == 0:
+                data.extend([0, 0, 0, 0, 0])
+            else:
+                data.append(int(participates[0]))
+                data.append(int(participates[1]))
+                data.append(int(participates[2]))
+                data.append(int(participates[1])*100/int(participates[0]))
+                data.append(int(participates[2])*100/int(participates[0]))
+
+            if int(participates[3]) == 0:
+                data.extend([0, 0, 0, 0, 0])
+            else:
+                data.append(int(participates[3]))
+                data.append(int(participates[4]))
+                data.append(int(participates[5]))
+                data.append(int(participates[4])*100/int(participates[3]))
+                data.append(int(participates[5])*100/int(participates[3]))
+
+            return data
+    print("can not find %s in %s" % (name, filename))
+    return [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+
+
+# 이름  소속 생일        데뷔일  총경기수, 총1, 총2, 1년, 1년1, 1년2
+# 곽영효191961/09/24551997/05/283,868  438  394  134   18   13
+def parse_txt_trainer(date, name):
+    if len(str(name)) > 9:
+        #print("name is changed %s -> %s" % (name, name[:6]))
+        name = str(name)[:6]
+    filename = get_fname(date, "trainer")
+    if DEBUG: print(filename)
+    f_input = open(filename)
+    while True:
+        line = f_input.readline()
+        line = unicode(line, 'euc-kr').encode('utf-8')
+        if len(line) == 0:
+            break
+        if re.search(name.encode('utf-8'), line) is not None:
+            data = []
+            participates = re.search(unicode(r'(?<=/\d\d)[\d,]+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+', 'utf-8').encode('utf-8'),
+                                     line).group().replace(',', '').split()
+            #print(participates)
+            if int(participates[0]) == 0:
+                data.extend([0, 0, 0, 0, 0])
+            else:
+                data.append(int(participates[0]))
+                data.append(int(participates[1]))
+                data.append(int(participates[2]))
+                data.append(int(participates[1])*100/int(participates[0]))
+                data.append(int(participates[2])*100/int(participates[0]))
+
+            if int(participates[3]) == 0:
+                data.extend([0, 0, 0, 0, 0])
+            else:
+                data.append(int(participates[3]))
+                data.append(int(participates[4]))
+                data.append(int(participates[5]))
+                data.append(int(participates[4])*100/int(participates[3]))
+                data.append(int(participates[5])*100/int(participates[3]))
+
+            return data
+    print("can not find %s in %s" % (name, filename))
+    return [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 
 
 
@@ -204,12 +345,15 @@ def parse_xml_entry(meet, date):
             continue
         hr_gender, hr_days = get_hr_data(data_hr, itemElm.hrname.string)
         hr_weight, hr_dweight = get_hr_weight(meet, itemElm.rcdate.string, itemElm.rcno.string, itemElm.hrname.string)
-        hr_dist_rec = get_distance_record_url(itemElm.hrname.string, int(itemElm.rcno.string), date)
+        #hr_dist_rec = get_distance_record_url(itemElm.hrname.string, int(itemElm.rcno.string), date)
         cnt, kind = get_game_info(datetime.date(date/10000, date/100%100, date%100), int(itemElm.rcno.string))
-        hr_win = get_hr_win(itemElm.cntt.string, itemElm.ord1t.string, itemElm.ord2t.string, itemElm.cnty.string,
-                           itemElm.ord1y.string, itemElm.ord2y.string)
-        jk_win = get_jk_win(data_jk, itemElm.jkname.string)
-        tr_win = get_tr_win(data_tr, itemElm.trname.string)
+        #hr_win = get_hr_win(itemElm.cntt.string, itemElm.ord1t.string, itemElm.ord2t.string, itemElm.cnty.string,
+        #                   itemElm.ord1y.string, itemElm.ord2y.string)
+        #jk_win = get_jk_win(data_jk, itemElm.jkname.string)
+        #tr_win = get_tr_win(data_tr, itemElm.trname.string)
+        hr_info = parse_txt_horse(datetime.date(date/10000, date/100%100, date%100), int(itemElm.rcno.string), itemElm.hrname.string)
+        jk_win = parse_txt_jockey(datetime.date(date/10000, date/100%100, date%100), itemElm.jkname.string)
+        tr_win = parse_txt_trainer(datetime.date(date/10000, date/100%100, date%100), itemElm.trname.string)
         adata = [itemElm.rcdist.string,
                  humidity,
                  kind,
@@ -228,25 +372,25 @@ def parse_xml_entry(meet, date):
                  cnt,
                  itemElm.rcno.string,
                  date/100%100,
-                 hr_days,
+                 hr_info[0], #hr_days,
 
-                 itemElm.cntt.string,
-                 itemElm.ord1t.string,
-                 itemElm.ord2t.string,
-                 hr_win[0],
-                 hr_win[1],
-                 itemElm.cnty.string,
-                 itemElm.ord1y.string,
-                 itemElm.ord2y.string,
-                 hr_win[2],
-                 hr_win[3],
+                 hr_info[1],  #itemElm.cntt.string,
+                 hr_info[2],  #itemElm.ord1t.string,
+                 hr_info[3],  #itemElm.ord2t.string,
+                 hr_info[4],  #hr_win[0],
+                 hr_info[5],  #hr_win[1],
+                 hr_info[6],  #itemElm.cnty.string,
+                 hr_info[7],  #itemElm.ord1y.string,
+                 hr_info[8],  #itemElm.ord2y.string,
+                 hr_info[9],  #hr_win[2],
+                 hr_info[10],  #hr_win[3],
 
-                 hr_dist_rec[0],
-                 hr_dist_rec[1],
-                 hr_dist_rec[2],
-                 hr_dist_rec[3],
-                 hr_dist_rec[4],
-                 hr_dist_rec[5],
+                 hr_info[11],  #hr_dist_rec[0],
+                 hr_info[12],  #hr_dist_rec[1],
+                 hr_info[13],  #hr_dist_rec[2],
+                 hr_info[14],  #hr_dist_rec[3],
+                 hr_info[15],  #hr_dist_rec[4],
+                 hr_info[16],  #hr_dist_rec[5],
 
                  jk_win[0],
                  jk_win[1],
@@ -284,7 +428,8 @@ def parse_xml_entry(meet, date):
 
 
 if __name__ == '__main__':
-    meet = 1
-    date = 20161106
+    DEBUG = True
+    meet = 2
+    date = 20161112
     data = parse_xml_entry(meet, date)
     print data

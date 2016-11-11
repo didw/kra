@@ -280,7 +280,7 @@ def parse_txt_horse(date, rcno, name):
             assert len(data) == 17
             return data
     print("can not find %s in %s" % (name, filename))
-    return [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+    return [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1] # len: 17
 
 
 # 이름  소속 생일        데뷔일  총경기수, 총1, 총2, 1년, 1년1, 1년2
