@@ -100,6 +100,7 @@ def get_data_from_csv(begin_date, end_date, fname_csv):
     del X_data['r2']
     del X_data['r1']
     del X_data['price']
+    del X_data['date']
     #print(R_data)
     return X_data, Y_data, R_data, data
 
@@ -133,7 +134,7 @@ def simulation1(pred, ans):
                 rack_data = True
             sim_data.append(pred[i])
             total_player = int(ans['cnt'][i])
-            price = int(ans['total'][i])
+            price = int(ans['price'][i])
             total += 1
             i += 1
         a = price*0.8 / r1
@@ -303,12 +304,14 @@ def simulation_all(pred, ans):
     return res
 
 
-def training(bd, ed):
-    if os.path.exists('../data/train_201101_201610.pkl'):
-        X_train, Y_train = joblib.load('../data/train_201101_201610.pkl')
-    else:
-        X_train, Y_train, R_train, X_data = get_data(bd, ed)
-        joblib.dump([X_train, Y_train], '../data/train_201101_201610.pkl')
+def training(train_bd, train_ed):
+    train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
+    train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
+
+    print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
+    X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_2007_2016.csv')
+    print("%d data is fully loaded" % len(X_train))
+
     #X_train, Y_train = delete_lack_data(X_train, Y_train)
     estimator = RandomForestRegressor(random_state=0, n_estimators=100)
     estimator.fit(X_train, Y_train)
@@ -402,7 +405,7 @@ if __name__ == '__main__':
     test_bd = datetime.date(2016, 1, 1)
     test_ed = datetime.date(2016, 11, 10)
 
-    simulation_weekly(test_bd, test_ed, outfile, 0, 2)
+    simulation_weekly(test_bd, test_ed, outfile, 0, 5)
     remove_outlier = False
     #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30))
     """

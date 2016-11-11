@@ -174,13 +174,14 @@ def get_game_info(date, rcno):
         if not line:
             break
         line = unicode(line, 'euc-kr').encode('utf-8')
-        #print("%s" % line)
+        if DEBUG: print("%s" % line)
         num = re.search(unicode(r'(?<=출전:)[\s\d]+(?=두)', 'utf-8').encode('utf-8'), line)
-        kind = re.search(unicode(r'\d+(?=등급)', 'utf-8').encode('utf-8'), line)
+        kind = re.search(unicode(r'(?<=두).+?\d', 'utf-8').encode('utf-8'), line)
         if num is not None:
             if kind is None:
                 kind = 0
             else:
+                if DEBUG: print("%s" % kind.group())
                 kind = kind.group()[-1]
             return [num.group(), kind]
     return [-1, -1]
