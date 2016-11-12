@@ -156,12 +156,65 @@ def parse_txt_race(input_file):
                 price = int(re.search(unicode(r'(?<=단식:)[ ,\d]+', 'utf-8').encode('utf-8'), line).group().replace(',', ''))
                 break
 
+        bokyeon = [-1, -1, -1]
+        boksik = ''
+        ssang = ''
+        sambok = ''
+        for _ in range(300):
+            line = input_file.readline()
+            line = unicode(line, 'euc-kr').encode('utf-8')
+            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
+                continue
+            res = re.search(r'(?<= 복:).+(?=4F)', line)
+            if res is not None:
+                res = res.group().split()
+                if len(res) == 2:
+                    boksik.append("%s%s" % (res[0], res[1]))
+                elif len(res) == 1:
+                    boksik = res
+                else:
+                    print("not expected.. %s" % line)
+            res = re.search(r'(?<= 쌍:).+', line)
+            if res is not None:
+                res = res.group().split()
+                if len(res) == 2:
+                    ssang.append("%s%s" % (res[0], res[1]))
+                elif len(res) == 1:
+                    ssang = res
+                else:
+                    print("not expected.. %s" % line)
+            res = re.search(r'(?<=복연:).+', line)
+            if res is not None:
+                res = res.group().split()
+                if len(res) == 6:
+                    bokyeon.append("%s%s" % (res[0], res[1]))
+                    bokyeon.append("%s%s" % (res[2], res[3]))
+                    bokyeon.append("%s%s" % (res[4], res[5]))
+                elif len(res) == 3:
+                    bokyeon = res
+                else:
+                    print("not expected.. %s" % line)
+            res = re.search(r'(?<=삼복:).+', line)
+            if res is not None:
+                res = res.group().split()
+                if len(res) == 2:
+                    sambok.append("%s%s" % (res[0], res[1]))
+                elif len(res) == 1:
+                    sambok = res
+                else:
+                    print("not expected.. %s" % line)
+                break
+
         for i in range(cnt):
             data[-cnt + i].extend([rating])
             data[-cnt + i].extend([cnt])
             data[-cnt + i].extend([rcno])
             data[-cnt + i].extend([month])
             data[-cnt + i].extend([price])
+            data[-cnt + i].extend(bokyeon)
+            data[-cnt + i].extend(boksik)
+            data[-cnt + i].extend(ssang)
+            data[-cnt + i].extend(sambok)
         # 쌍, 복연, 삼복, 삼쌍 배당률 가져오기
 
         assert get_rate
@@ -400,7 +453,7 @@ def get_data_w_date(filename):
         data[i].extend([date_i])
     df = pd.DataFrame(data)
     df.columns = ['course', 'humidity', 'kind', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 12
-                  'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'month', 'price', # 10
+                  'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'month', 'price', 'bokyeon', 'boksik', 'ssang', 'sambok', # 15
                   'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
                   'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
                   'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10

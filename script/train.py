@@ -99,6 +99,11 @@ def get_data_from_csv(begin_date, end_date, fname_csv):
     del X_data['r2']
     del X_data['r1']
     del X_data['date']
+    del X_data['price']
+    del X_data['bokyeon']
+    del X_data['boksik']
+    del X_data['ssang']
+    del X_data['sambok']
     #print(R_data)
     return X_data, Y_data, R_data, data
 
