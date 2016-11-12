@@ -184,7 +184,7 @@ def get_game_info(date, rcno):
 
 
 
-def parse_xml_entry(meet, date):
+def parse_xml_entry(meet, date, number):
     # get other data
     data_hr = xh.parse_xml_hr(meet)
     data_jk = xj.parse_xml_jk(meet)
@@ -200,7 +200,10 @@ def parse_xml_entry(meet, date):
     for itemElm in xml_text.findAll('item'):
         #print itemElm
         rcdate = int("%s%s%s" % (itemElm.rcdate.string[:4], itemElm.rcdate.string[5:7], itemElm.rcdate.string[8:10]))
+        rcno = int("%s" % (itemElm.rcno.string))
         if date != rcdate:
+            continue
+        if number != rcno:
             continue
         hr_gender, hr_days = get_hr_data(data_hr, itemElm.hrname.string)
         hr_weight, hr_dweight = get_hr_weight(meet, itemElm.rcdate.string, itemElm.rcno.string, itemElm.hrname.string)
@@ -285,6 +288,7 @@ def parse_xml_entry(meet, date):
 
 if __name__ == '__main__':
     meet = 1
+    rcno = 8
     date = 20161112
-    data = parse_xml_entry(meet, date)
+    data = parse_xml_entry(meet, date, rcno)
     print data
