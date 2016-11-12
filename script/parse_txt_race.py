@@ -21,6 +21,7 @@ def parse_txt_race(input_file):
         rcno = -1
         course = ''
         kind = ''
+        month = 0
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
@@ -127,24 +128,42 @@ def parse_txt_race(input_file):
         #   1- 2   949.3  2- 9  1629.8  4- 5   282.5  5-15     0.0  8- 9   519.3 11-12    18.9
         exp = "%d-%2d" % (hr_num[0], hr_num[1])
         get_rate = False
+        price = 0
+        rating = 0
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
             if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
                 continue
-            if NEXT.search(line) is not None:
+            if re.search(unicode(r'매출액', 'utf-8').encode('utf-8'), line) is not None:
+                price = int(re.search(unicode(r'(?<=단식:)[ ,\d]+', 'utf-8').encode('utf-8'), line).group().replace(',', ''))
                 break
             parse_line = re.search(unicode(r'%s\s+\d+[.]\d' % exp, 'utf-8').encode('utf-8'), line)
 
             if parse_line is not None:
                 rating = parse_line.group().split('-')[1].split()[1]
-                for i in range(cnt):
-                    data[-cnt+i].extend([rating])
-                    data[-cnt+i].extend([cnt])
-                    data[-cnt+i].extend([rcno])
-                    data[-cnt+i].extend([month])
                 get_rate = True
                 break
+
+        for _ in range(300):
+            if price != 0:
+                break
+            line = input_file.readline()
+            line = unicode(line, 'euc-kr').encode('utf-8')
+            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
+                continue
+            if re.search(unicode(r'매출액', 'utf-8').encode('utf-8'), line) is not None:
+                price = int(re.search(unicode(r'(?<=단식:)[ ,\d]+', 'utf-8').encode('utf-8'), line).group().replace(',', ''))
+                break
+
+        for i in range(cnt):
+            data[-cnt + i].extend([rating])
+            data[-cnt + i].extend([cnt])
+            data[-cnt + i].extend([rcno])
+            data[-cnt + i].extend([month])
+            data[-cnt + i].extend([price])
+        # 쌍, 복연, 삼복, 삼쌍 배당률 가져오기
+
         assert get_rate
     return data
 
@@ -381,7 +400,7 @@ def get_data_w_date(filename):
         data[i].extend([date_i])
     df = pd.DataFrame(data)
     df.columns = ['course', 'humidity', 'kind', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 12
-                  'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'month', # 10
+                  'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'month', 'price', # 10
                   'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
                   'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
                   'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
