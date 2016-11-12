@@ -306,12 +306,23 @@ def simulation_all(pred, ans):
 def training(train_bd, train_ed):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-    X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2007_2016.csv')
-    print("%d data is fully loaded" % len(X_train))
 
-    estimator = RandomForestRegressor(random_state=0, n_estimators=100)
-    estimator.fit(X_train, Y_train)
+    model_name = "../model/%d_%d.pkl" % (train_bd_i, train_ed_i)
+
+    from sklearn.externals import joblib
+    if os.path.exists(model_name):
+        print("model exist. try to loading..")
+        estimator = joblib.load(model_name)
+    else:
+        print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2007_2016.csv')
+        print("%d data is fully loaded" % len(X_train))
+
+        estimator = RandomForestRegressor(random_state=0, n_estimators=100)
+        estimator.fit(X_train, Y_train)
+
+        joblib.dump(estimator, model_name)
+
     return estimator
 
 def print_log(data, pred, fname):
@@ -399,10 +410,10 @@ if __name__ == '__main__':
     outfile = '../data/weekly_result_1_1.txt'
     train_bd = datetime.date(2011, 1, 1)
     train_ed = datetime.date(2016, 9, 9)
-    test_bd = datetime.date(2015, 12, 30)
+    test_bd = datetime.date(2016, 1, 1)
     test_ed = datetime.date(2016, 11, 8)
 
-    simulation_weekly(test_bd, test_ed, outfile, 0, 1)
+    simulation_weekly(test_bd, test_ed, outfile, 0, 5)
     remove_outlier = False
 """
     #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30))
