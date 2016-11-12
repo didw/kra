@@ -85,7 +85,7 @@ def get_data_from_csv(begin_date, end_date, fname_csv):
     data = df.drop(df.index[remove_index])
     data = normalize_data(data)
 
-    R_data = data[['rank', 'r1', 'r2', 'r3', 'hr_nt', 'hr_dt', 'jk_nt', 'tr_nt', 'cnt', 'rcno']]
+    R_data = data[['rank', 'r1', 'r2', 'r3', 'hr_nt', 'hr_dt', 'jk_nt', 'tr_nt', 'cnt', 'rcno', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok']]
     Y_data = data['rctime']
     X_data = data.copy()
 
@@ -322,7 +322,7 @@ def training(train_bd, train_ed):
         estimator = joblib.load(model_name)
     else:
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2007_2016.csv')
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016.csv')
         print("%d data is fully loaded" % len(X_train))
 
         estimator = RandomForestRegressor(random_state=0, n_estimators=100)
@@ -372,7 +372,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2007_2016.csv')
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016.csv')
         print("%d data is fully loaded" % len(X_train))
 
         if remove_outlier:
@@ -391,7 +391,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
 
         print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
-        X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/2007_2016.csv')
+        X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016.csv')
         print("data is fully loaded")
         DEBUG = False
         if DEBUG:
@@ -414,7 +414,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
 
 if __name__ == '__main__':
     dbname = '../data/train_201101_20160909.pkl'
-    outfile = '../data/weekly_result_1_1.txt'
+    outfile = '../data/weekly_result_1_5.txt'
     train_bd = datetime.date(2011, 1, 1)
     train_ed = datetime.date(2016, 9, 9)
     test_bd = datetime.date(2016, 1, 1)

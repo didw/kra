@@ -159,22 +159,24 @@ def parse_txt_race(input_file):
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
-            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
+            if DEBUG: print("line1: %s" % line)
+            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:10]) is not None:
                 break
-        bokyeon = [-1, -1, -1]
-        boksik = ''
-        ssang = ''
-        sambok = ''
+        bokyeon = ['-1', '-1', '-1']
+        boksik = ['-1']
+        ssang = ['-1']
+        sambok = ['-1']
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
+            if DEBUG: print("line2: %s" % line)
             if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
-                continue
+                break
             res = re.search(r'(?<= 복:).+(?=4F)', line)
             if res is not None:
                 res = res.group().split()
                 if len(res) == 2:
-                    boksik.append("%s%s" % (res[0], res[1]))
+                    boksik[0] = "%s%s" % (res[0], res[1])
                 elif len(res) == 1:
                     boksik = res
                 else:
@@ -183,7 +185,7 @@ def parse_txt_race(input_file):
             if res is not None:
                 res = res.group().split()
                 if len(res) == 2:
-                    ssang.append("%s%s" % (res[0], res[1]))
+                    ssang[0] = "%s%s" % (res[0], res[1])
                 elif len(res) == 1:
                     ssang = res
                 else:
@@ -192,9 +194,9 @@ def parse_txt_race(input_file):
             if res is not None:
                 res = res.group().split()
                 if len(res) == 6:
-                    bokyeon.append("%s%s" % (res[0], res[1]))
-                    bokyeon.append("%s%s" % (res[2], res[3]))
-                    bokyeon.append("%s%s" % (res[4], res[5]))
+                    bokyeon[0] = "%s%s" % (res[0], res[1])
+                    bokyeon[1] = "%s%s" % (res[2], res[3])
+                    bokyeon[2] = "%s%s" % (res[4], res[5])
                 elif len(res) == 3:
                     bokyeon = res
                 else:
@@ -203,13 +205,18 @@ def parse_txt_race(input_file):
             if res is not None:
                 res = res.group().split()
                 if len(res) == 2:
-                    sambok.append("%s%s" % (res[0], res[1]))
+                    sambok[0] = "%s%s" % (res[0], res[1])
                 elif len(res) == 1:
                     sambok = res
                 else:
                     print("not expected.. %s" % line)
                 break
-
+        if DEBUG:
+            print("price: %s" % price)
+            print("%d, %s, %s, %s" % (len(bokyeon), bokyeon[0], bokyeon[1], bokyeon[2]))
+            print("%d, %s" % (len(boksik), boksik[0]))
+            print("%d, %s" % (len(ssang), ssang[0]))
+            print("%d, %s" % (len(sambok), sambok[0]))
         for i in range(cnt):
             data[-cnt + i].extend([rating])
             data[-cnt + i].extend([cnt])
@@ -468,7 +475,7 @@ def get_data_w_date(filename):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/1/rcresult/rcresult_1_20161106.txt'
+    filename = '../txt/1/rcresult/rcresult_1_20070203.txt'
     data = get_data(filename)
     print(data)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)
