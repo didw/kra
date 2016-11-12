@@ -192,6 +192,56 @@ def pandas_compare():
     df.loc[df['A'] == '가', 'A'] = 4
     print(df)
 
+def get_rate():
+    line = "     복연: ⑨⑤3.9 ⑨⑦16.0 ⑤⑦110.4"
+    line = "     복연:④⑬   2.1   ④⑧   7.2   ⑬⑧   6.0"
+    line = "배당률 단: ⑨5.5        연: ⑨1.7 ⑧1.9 ③3.6          복: ⑨⑧11.7      4F:50.0"
+    num_circle_list = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭"  #
+    bokyeon = [-1, -1, -1]
+    boksik = ''
+    ssang = ''
+    sambok = ''
+    res = re.search(r'(?<= 복:).+(?=4F)', line)
+    if res is not None:
+        res = res.group().split()
+        if len(res) == 2:
+            boksik.append("%s%s" % (res[0], res[1]))
+        elif len(res) == 1:
+            boksik = res[0]
+        else:
+            print("not expected.. %s" % line)
+    res = re.search(r'(?<= 쌍:).+', line)
+    if res is not None:
+        res = res.group().split()
+        if len(res) == 2:
+            ssang.append("%s%s" % (res[0], res[1]))
+        elif len(res) == 1:
+            ssang = res[0]
+        else:
+            print("not expected.. %s" % line)
+    res = re.search(r'(?<=복연:).+', line)
+    if res is not None:
+        res = res.group().split()
+        if len(res) == 6:
+            bokyeon.append("%s%s" % (res[0], res[1]))
+            bokyeon.append("%s%s" % (res[2], res[3]))
+            bokyeon.append("%s%s" % (res[4], res[5]))
+        elif len(res) == 3:
+            bokyeon = res[0]
+        else:
+            print("not expected.. %s" % line)
+    res = re.search(r'(?<=삼복:).+', line)
+    if res is not None:
+        res = res.group().split()
+        if len(res) == 2:
+            sambok.append("%s%s" % (res[0], res[1]))
+        elif len(res) == 1:
+            sambok = res[0]
+        else:
+            print("not expected.. %s" % line)
+    print("%s, %s, %s" % (bokyeon[0], bokyeon[1], bokyeon[2]))
+    print("복: %s, 쌍: %s, 삼복: %s" % (boksik, ssang, sambok))
+
 
 
 def load_save_csv():
@@ -199,5 +249,5 @@ def load_save_csv():
     df.to_csv('../log/2016_2.csv', index=False)
 
 if __name__ == '__main__':
-    pandas_compare()
+    get_rate()
 
