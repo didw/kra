@@ -308,13 +308,24 @@ def training(train_bd, train_ed):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-    print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-    X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_2007_2016.csv')
-    print("%d data is fully loaded" % len(X_train))
+    model_name = "../model/%d_%d.pkl" % (train_bd_i, train_ed_i)
 
-    #X_train, Y_train = delete_lack_data(X_train, Y_train)
-    estimator = RandomForestRegressor(random_state=0, n_estimators=100)
-    estimator.fit(X_train, Y_train)
+    from sklearn.externals import joblib
+    if os.path.exists(model_name):
+        print("model exist. try to loading..")
+        estimator = joblib.load(model_name)
+    else:
+        print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_2007_2016.csv')
+        print("%d data is fully loaded" % len(X_train))
+
+        #X_train, Y_train = delete_lack_data(X_train, Y_train)
+        estimator = RandomForestRegressor(random_state=0, n_estimators=100)
+        estimator.fit(X_train, Y_train)
+
+        joblib.dump(estimator, model_name)
+
+
     return estimator
 
 def print_log(data, pred, fname):
@@ -357,7 +368,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_2007_2016.csv')
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016.csv')
         print("%d data is fully loaded" % len(X_train))
 
         if remove_outlier:

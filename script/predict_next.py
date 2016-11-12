@@ -60,8 +60,8 @@ def print_log(data, pred, fname):
     flog.close()
 
 
-def predict_next(estimator, meet, date):
-    data_pre = xe.parse_xml_entry(meet, date)
+def predict_next(estimator, meet, date, rcno):
+    data_pre = xe.parse_xml_entry(meet, date, rcno)
     data = normalize_data(data_pre)
     X_data = data.copy()
     del X_data['name']
@@ -85,6 +85,7 @@ def predict_next(estimator, meet, date):
             rctime = pd.Series(rctime)
             rcdata = pd.DataFrame(rcdata)
             rcrank = rctime.rank()
+            print("")
             for i, v in enumerate(rcrank):
                 if v == 1:
                     print("rcNo: %s, 1st: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
@@ -92,6 +93,7 @@ def predict_next(estimator, meet, date):
                     print("rcNo: %s, 2nd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
                 elif v == 3:
                     print("rcNo: %s, 3rd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
+            print("")
             rctime = []
             rcdata = []
             prev_rc = row['rcno']
@@ -103,9 +105,10 @@ def predict_next(estimator, meet, date):
 if __name__ == '__main__':
     meet = 2
     date = 20161112
+    rcno = 9
     #import get_api
     #get_api.get_data(meet, date/100)
     estimator = tr.training(datetime.date(2011, 1, 1), datetime.date(2016, 10, 31))
-    predict_next(estimator, meet, date)
+    predict_next(estimator, meet, date, rcno)
 
 
