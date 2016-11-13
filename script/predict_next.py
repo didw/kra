@@ -73,26 +73,26 @@ def predict_next(estimator, meet, date, rcno):
     __DEBUG__ = True
     if __DEBUG__:
         pd.concat([data_pre, pred], axis=1).to_csv('../log/%d_xml.csv' % date, index=False)
-    print(pd.concat([data, pred], axis=1))
-    print(pd.concat([data[['rcno', 'name', 'jockey', 'trainer']], pred], axis=1))
+    #print(pd.concat([data, pred], axis=1))
+    #print(pd.concat([data[['rcno', 'name', 'jockey', 'trainer']], pred], axis=1))
     prev_rc = data['rcno'][0]
     rctime = []
     rcdata = []
     for idx, row in data.iterrows():
         if int(data['hr_nt'][idx]) == 0 or int(data['jk_nt'][idx]) == 0 or int(data['tr_nt'][idx]) == 0:
-            print("data is not enough. be careful")
+            print("%s data is not enough. be careful" % (data['name'][idx]))
         if row['rcno'] != prev_rc or idx+1 == len(data):
             rctime = pd.Series(rctime)
             rcdata = pd.DataFrame(rcdata)
             rcrank = rctime.rank()
-            print("")
+            print("rcNo, order, idx(name): rctime")
             for i, v in enumerate(rcrank):
                 if v == 1:
-                    print("rcNo: %s, 1st: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
+                    print("%s, 1st: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
                 elif v == 2:
-                    print("rcNo: %s, 2nd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
+                    print("%s, 2nd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
                 elif v == 3:
-                    print("rcNo: %s, 3rd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
+                    print("%s, 3rd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
             print("")
             rctime = []
             rcdata = []
@@ -105,11 +105,19 @@ def predict_next(estimator, meet, date, rcno):
 if __name__ == '__main__':
     meet = 1
     date = 20161113
-    rcno = 2
+    rcno = 7
     #import get_api
     #get_api.get_data(meet, date/100)
-    #estimator = tr.training(datetime.date(2011, 1, 1), datetime.date(2016, 10, 31))
-    estimator = tr.training(datetime.date(2015, 11, 1), datetime.date(2016, 10, 31))
-    predict_next(estimator, meet, date, rcno)
+    estimator1 = tr.training(datetime.date(2011, 1, 1), datetime.date(2016, 10, 31))
+    estimator2 = tr.training(datetime.date(2011, 11, 1), datetime.date(2016, 10, 31))
+    estimator3 = tr.training(datetime.date(2015, 11, 1), datetime.date(2016, 10, 31))
+    import get_txt
+    get_txt.download_txt(datetime.date.today(), datetime.date.today(), 1)
+    estimator4 = tr.training(datetime.date.today() + datetime.timedelta(days=-365), datetime.date.today())
+
+    predict_next(estimator1, meet, date, rcno)
+    predict_next(estimator2, meet, date, rcno)
+    predict_next(estimator3, meet, date, rcno)
+    predict_next(estimator4, meet, date, rcno)
 
 

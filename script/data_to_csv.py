@@ -31,7 +31,9 @@ def get_data(begin_date, end_date, fname_csv):
 
 
 if __name__ == '__main__':
-    begin_date = datetime.date(2007, 1, 1)
+    import get_txt
+    get_txt.download_txt(datetime.date.today() + datetime.timedelta(days=-1), datetime.date.today(), 1, True)
+    begin_date = datetime.date.today() + datetime.timedelta(days=-400)
     end_date = datetime.date.today()
-    fname_csv = '../data/1_2007_2016.csv'
+    fname_csv = '../data/1_recent_1year.csv'
     get_data(begin_date, end_date, fname_csv)

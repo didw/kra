@@ -9,7 +9,7 @@ import os
 # http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/rcresult/20161030dacom11.rpt&meet=3
 # http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/jeju/horse/20161102cdb1.txt&meet=2
 # http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/chulma/20161103dacom01.rpt&meet=1
-def download_txt(bd, ed, meet):
+def download_txt(bd, ed, meet, overwrite=False):
     data = [# seoul
             [["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/rcresult/", "rcresult", "dacom11.rpt", [5, 6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/horse/", "horse", "sdb1.txt", [3, 6]],
@@ -41,7 +41,7 @@ def download_txt(bd, ed, meet):
             request = "%s%d%s&meet=%d" % (race_url, date_s, line[2], meet)
             try:
                 fname = "../txt/%d/%s/%s_%d_%d.txt" % (meet, line[1], line[1], meet, date_s)
-                if os.path.exists(fname):
+                if not overwrite and os.path.exists(fname):
                     continue
                 response_body = urlopen(request).read()
                 fout = open(fname, 'w')
@@ -58,7 +58,7 @@ def download_txt(bd, ed, meet):
 # 체중, 최종출전일: http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&meet=1&rcNo=1&rcDate=20161113
 # 훈련현황:         http://race.kra.co.kr/chulmainfo/chulmaDetailInfoTrainState.do?Act=02&Sub=1&meet=1&rcNo=1&rcDate=20161113
 
-def download_chulmaDetailInfo(bd, ed, meet):
+def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
     data = [# seoul http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=1&rcNo=3&rcDate=20070415
         #      http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=1&rcNo=5&rcDate=20070714
             [["DistanceRecord.do?Act=02&Sub=1", "dist_rec", [5, 6]],
@@ -90,7 +90,7 @@ def download_chulmaDetailInfo(bd, ed, meet):
                 request = "%s&meet=%d&rcNo=%d&rcDate=%d" % (race_url, meet, rcno, date_s)
                 try:
                     fname = "../txt/%d/%s/%s_%d_%d_%d.txt" % (meet, line[1], line[1], meet, date_s, rcno)
-                    if os.path.exists(fname):
+                    if not overwrite and os.path.exists(fname):
                         continue
                     response_body = urlopen(request).read()
                     fout = open(fname, 'w')
@@ -104,6 +104,6 @@ def download_chulmaDetailInfo(bd, ed, meet):
 
 if __name__ == '__main__':
     for i in range(1, 4):
-        download_chulmaDetailInfo(datetime.date(2007, 10, 1), datetime.date.today(), i)
-        #download_txt(datetime.date(2003, 1, 1), datetime.date.today(), i)
+        download_chulmaDetailInfo(datetime.date(2007, 10, 1), datetime.date.today(), i, False)
+        #download_txt(datetime.date(2016, 11, 1), datetime.date.today(), i)
 
