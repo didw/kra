@@ -11,26 +11,26 @@ import train as tr
 def normalize_data(org_data):
     data = org_data.dropna()
     data = data.reset_index()
-    data['gender'][data['gender'] == '암'] = 1
-    data['gender'][data['gender'] == '수'] = 1
-    data['gender'][data['gender'] == '거'] = 2
-    data['cntry'][data['cntry'] == '한'] = 0
-    data['cntry'][data['cntry'] == '한(포)'] = 1
-    data['cntry'][data['cntry'] == '미'] = 2
-    data['cntry'][data['cntry'] == '뉴'] = 3
-    data['cntry'][data['cntry'] == '호'] = 4
-    data['cntry'][data['cntry'] == '일'] = 5
-    data['cntry'][data['cntry'] == '캐'] = 6
-    data['cntry'][data['cntry'] == '브'] = 7
-    data['cntry'][data['cntry'] == '헨'] = 8
-    data['cntry'][data['cntry'] == '남'] = 9
-    data['cntry'][data['cntry'] == '아일'] = 10
-    data['cntry'][data['cntry'] == '모'] = 11
-    data['cntry'][data['cntry'] == '영'] = 12
-    data['cntry'][data['cntry'] == '인'] = 13
-    data['cntry'][data['cntry'] == '아'] = 14
-    data['cntry'][data['cntry'] == '중'] = 15
-    data['cntry'][data['cntry'] == '프'] = 16
+    data.loc[data['gender'] == '암', 'gender'] = 0
+    data.loc[data['gender'] == '수', 'gender'] = 1
+    data.loc[data['gender'] == '거', 'gender'] = 2
+    data.loc[data['cntry'] == '한', 'cntry'] = 0
+    data.loc[data['cntry'] == '한(포)', 'cntry'] = 1
+    data.loc[data['cntry'] == '일', 'cntry'] = 2
+    data.loc[data['cntry'] == '중', 'cntry'] = 3
+    data.loc[data['cntry'] == '미', 'cntry'] = 4
+    data.loc[data['cntry'] == '캐', 'cntry'] = 5
+    data.loc[data['cntry'] == '뉴', 'cntry'] = 6
+    data.loc[data['cntry'] == '호', 'cntry'] = 7
+    data.loc[data['cntry'] == '브', 'cntry'] = 8
+    data.loc[data['cntry'] == '헨', 'cntry'] = 9
+    data.loc[data['cntry'] == '남', 'cntry'] = 10
+    data.loc[data['cntry'] == '아일', 'cntry'] = 11
+    data.loc[data['cntry'] == '모', 'cntry'] = 12
+    data.loc[data['cntry'] == '영', 'cntry'] = 13
+    data.loc[data['cntry'] == '인', 'cntry'] = 14
+    data.loc[data['cntry'] == '아', 'cntry'] = 15
+    data.loc[data['cntry'] == '프', 'cntry'] = 16
     return data
 
 
@@ -105,10 +105,11 @@ def predict_next(estimator, meet, date, rcno):
 if __name__ == '__main__':
     meet = 1
     date = 20161113
-    rcno = 0
+    rcno = 2
     #import get_api
     #get_api.get_data(meet, date/100)
-    estimator = tr.training(datetime.date(2011, 1, 1), datetime.date(2016, 10, 31))
+    #estimator = tr.training(datetime.date(2011, 1, 1), datetime.date(2016, 10, 31))
+    estimator = tr.training(datetime.date(2015, 11, 1), datetime.date(2016, 10, 31))
     predict_next(estimator, meet, date, rcno)
 
 
