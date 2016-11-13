@@ -384,7 +384,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2015_2016.csv', course)
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016.csv', course)
         print("%d data is fully loaded" % len(X_train))
 
         if remove_outlier:
@@ -403,16 +403,19 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
 
         print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
-        X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2015_2016.csv', course)
-        print("data is fully loaded")
-        DEBUG = False
-        if DEBUG:
-            X_test.to_csv('../log/2016_7_9.csv', index=False)
-        score = estimator.score(X_test, Y_test)
-        print("Score with the entire test dataset = %.2f" % score)
-        pred = estimator.predict(X_test)
+        X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016.csv', course)
+        print("%d data is fully loaded" % (len(X_test)))
+        if len(X_test) == 0:
+            res1 = [0, 0]
+        else:
+            DEBUG = False
+            if DEBUG:
+                X_test.to_csv('../log/2016_7_9.csv', index=False)
+            score = estimator.score(X_test, Y_test)
+            print("Score with the entire test dataset = %.2f" % score)
+            pred = estimator.predict(X_test)
 
-        res1 = simulation1(pred, R_test)
+            res1 = simulation1(pred, R_test)
 
         print("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
         print("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
@@ -426,13 +429,13 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
 
 
 if __name__ == '__main__':
-    delta_year = 1
+    delta_year = 4
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
     test_bd = datetime.date(2016, 1, 1)
     test_ed = datetime.date(2016, 11, 12)
-    for c in [0, 1000, 1300, 1400, 2000]:
+    for c in [1400]:
         outfile = '../data/weekly_result_m1_y%d_c%d.txt' % (delta_year, c)
         simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c)
     remove_outlier = False

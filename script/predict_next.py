@@ -105,7 +105,7 @@ def predict_next(estimator, meet, date, rcno):
 if __name__ == '__main__':
     meet = 1
     date = 20161113
-    rcno = 7
+    rcno = 11
     #import get_api
     #get_api.get_data(meet, date/100)
     estimator1 = tr.training(datetime.date(2011, 1, 1), datetime.date(2016, 10, 31))
