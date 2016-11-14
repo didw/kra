@@ -194,7 +194,7 @@ def parse_txt_race(filename):
             res = re.search(r'(?<= 쌍:).+', line)
             if res is not None:
                 res = res.group().split()
-                if len(res) == 2:
+                if len(res) >= 2:
                     ssang[0] = "%s%s" % (res[0], res[1])
                 elif len(res) == 1:
                     ssang = res
@@ -203,7 +203,7 @@ def parse_txt_race(filename):
             res = re.search(r'(?<=복연:).+', line)
             if res is not None:
                 res = res.group().split()
-                if len(res) == 6:
+                if len(res) >= 6:
                     bokyeon[0] = "%s%s" % (res[0], res[1])
                     bokyeon[1] = "%s%s" % (res[2], res[3])
                     bokyeon[2] = "%s%s" % (res[4], res[5])
@@ -214,7 +214,7 @@ def parse_txt_race(filename):
             res = re.search(r'(?<=삼복:).+', line)
             if res is not None:
                 res = res.group().split()
-                if len(res) == 2:
+                if len(res) >= 2:
                     sambok[0] = "%s%s" % (res[0], res[1])
                 elif len(res) == 1:
                     sambok = res
@@ -464,7 +464,7 @@ def get_data(filename):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/1/rcresult/rcresult_1_20070203.txt'
+    filename = '../txt/1/rcresult/rcresult_1_20070624.txt'
     data = get_data(filename)
     print(data)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)
