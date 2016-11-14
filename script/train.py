@@ -143,9 +143,9 @@ def simulation1(pred, ans):
                 rack_data = True
             sim_data.append(pred[i])
             total_player = int(ans['cnt'][i])
+            price = int(ans['price'][i])
             total += 1
             i += 1
-        price = 20000000
         a = price*0.8 / r1
         r1 = (price+100000)*0.8 / (a+100000) - 1.0
         if r1 > 20:

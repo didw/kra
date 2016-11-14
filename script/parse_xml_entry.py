@@ -11,11 +11,13 @@ import parse_xml_tr as xt
 import parse_xml_train as xtr
 import datetime
 import sys
+import os
+
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
 
-
+DEBUG = False
 
 def get_humidity():
     url = "http://race.kra.co.kr/chulmainfo/trackView.do?Act=02&Sub=10&meet=1"

@@ -289,8 +289,10 @@ def get_distance_record(hrname, rcno, date):
             continue
 
     for line in f_input:
+        if not line:
+            break
         line = unicode(line, 'euc-kr').encode('utf-8')
-        if not line or len(res) == 6:
+        if len(res) == 6:
             break
         dnt = re.search(unicode(r'(?<=>)\d+(?=\()', 'utf-8').encode('utf-8'), line)
         if dnt is not None:
@@ -322,9 +324,9 @@ def parse_txt_horse(date, rcno, name):
     f_input = open(filename)
     while True:
         line = f_input.readline()
-        line = unicode(line, 'euc-kr').encode('utf-8')
-        if len(line) == 0:
+        if not line:
             break
+        line = unicode(line, 'euc-kr').encode('utf-8')
         if re.search(unicode(name, 'utf-8').encode('utf-8'), line) is not None:
             data = []
             birth = re.search(unicode(r'\d{4}/\d{2}/\d{2}', 'utf-8').encode('utf-8'), line).group()
@@ -354,7 +356,7 @@ def parse_txt_horse(date, rcno, name):
             assert len(data) == 17
             return data
     print("can not find %s in %s" % (name, filename))
-    return [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+    return [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1] # len: 17
 
 
 # 이름  소속 생일        데뷔일  총경기수, 총1, 총2, 1년, 1년1, 1년2

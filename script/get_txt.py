@@ -32,27 +32,26 @@ def download_txt(bd, ed, meet, overwrite=False):
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/chulma/", "chulma", "dacom01.rpt", [2]]]
             ]
 
-    #for line in data[meet-1]:
-    line = data[meet-1][5]
-    race_url = line[0]
-    date = bd + datetime.timedelta(days=-1)
-    while date < ed:
-        date += datetime.timedelta(days=1)
-        if date.weekday() not in line[3]:
-            continue
-        date_s = int("%d%02d%02d" % (date.year, date.month, date.day))
-        request = "%s%d%s&meet=%d" % (race_url, date_s, line[2], meet)
-        try:
-            fname = "../txt/%d/%s/%s_%d_%d.txt" % (meet, line[1], line[1], meet, date_s)
-            if not overwrite and os.path.exists(fname):
+    for line in data[meet-1]:
+        race_url = line[0]
+        date = bd + datetime.timedelta(days=-1)
+        while date < ed:
+            date += datetime.timedelta(days=-1)
+            if date.weekday() not in line[3]:
                 continue
-            response_body = urlopen(request).read()
-            fout = open(fname, 'w')
-            fout.write(response_body)
-            fout.close()
-            print "[%s] data is downloaded" % request
-        except:
-            print '[%s] data downloading failed' % request
+            date_s = int("%d%02d%02d" % (date.year, date.month, date.day))
+            request = "%s%d%s&meet=%d" % (race_url, date_s, line[2], meet)
+            try:
+                fname = "../txt/%d/%s/%s_%d_%d.txt" % (meet, line[1], line[1], meet, date_s)
+                if not overwrite and os.path.exists(fname):
+                    continue
+                response_body = urlopen(request).read()
+                fout = open(fname, 'w')
+                fout.write(response_body)
+                fout.close()
+                print "[%s] data is downloaded" % request
+            except:
+                print '[%s] data downloading failed' % request
     print "job has completed"
 
 
