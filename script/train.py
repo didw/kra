@@ -106,6 +106,8 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0):
     del X_data['boksik']
     del X_data['ssang']
     del X_data['sambok']
+    del X_data['weight']
+    del X_data['dweight']
     #print(R_data)
     return X_data, Y_data, R_data, data
 
@@ -429,13 +431,13 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
 
 
 if __name__ == '__main__':
-    delta_year = 4
+    delta_year = 2
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
     test_bd = datetime.date(2016, 1, 1)
     test_ed = datetime.date(2016, 11, 12)
-    for c in [1400]:
+    for c in [1000, 1200, 1300, 1400, 1700, 2000, 0]:
         outfile = '../data/weekly_result_m1_y%d_c%d.txt' % (delta_year, c)
         simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c)
     remove_outlier = False
