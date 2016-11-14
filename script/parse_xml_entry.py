@@ -346,7 +346,7 @@ def parse_xml_entry(meet, date, number):
         rcno = int("%s" % (itemElm.rcno.string))
         if date != rcdate:
             continue
-        if number != rcno:
+        if number > 0 and number != rcno:
             continue
         hr_gender, hr_days = get_hr_data(data_hr, itemElm.hrname.string)
         hr_weight, hr_dweight = get_hr_weight(meet, itemElm.rcdate.string, itemElm.rcno.string, itemElm.hrname.string)
@@ -435,6 +435,7 @@ def parse_xml_entry(meet, date, number):
 if __name__ == '__main__':
     DEBUG = True
     meet = 2
+    rcno = 8
     date = 20161112
-    data = parse_xml_entry(meet, date)
+    data = parse_xml_entry(meet, date, rcno)
     print data
