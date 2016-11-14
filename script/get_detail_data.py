@@ -16,6 +16,7 @@ def get_budam(meet, date, rcno, name):
         url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
         response_body = urlopen(url).read()
     xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    xml_text.decompose()
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             print(itemElm2)
@@ -34,6 +35,7 @@ def get_dbudam(meet, date, rcno, name):
         url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
         response_body = urlopen(url).read()
     xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    xml_text.decompose()
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
@@ -51,6 +53,7 @@ def get_weight(meet, date, rcno, name):
         url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
         response_body = urlopen(url).read()
     xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    xml_text.decompose()
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
@@ -69,6 +72,7 @@ def get_dweight(meet, date, rcno, name):
         url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
         response_body = urlopen(url).read()
     xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    xml_text.decompose()
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
@@ -86,14 +90,42 @@ def get_drweight(meet, date, rcno, name):
         url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
         response_body = urlopen(url).read()
     xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    xml_text.decompose()
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
             if name == itemList[1].string.encode('utf-8'):
                 last_date = itemList[4].string
-                last_date = datetime.date(int(last_date[:4]), int(last_date[5:7]), int(last_date[8:10]))
-                delta_day = datetime.date(date/10000, date/100%100, date%100) - last_date
-                return float(itemList[3].string) / delta_day.days
+                if len(last_date) > 10:
+                    last_date = datetime.date(int(last_date[:4]), int(last_date[5:7]), int(last_date[8:10]))
+                    delta_day = datetime.date(date/10000, date/100%100, date%100) - last_date
+                    return float(itemList[3].string) / delta_day.days
+                else: # first attand
+                    -1
+    return -1
+
+
+def get_lastday(meet, date, rcno, name):
+    fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    xml_text.decompose()
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if name == itemList[1].string.encode('utf-8'):
+                last_date = itemList[4].string
+                if len(last_date) > 10:
+                    last_date = datetime.date(int(last_date[:4]), int(last_date[5:7]), int(last_date[8:10]))
+                    delta_day = datetime.date(date/10000, date/100%100, date%100) - last_date
+                    return delta_day.days
+                else: # first attand
+                    -1
     return -1
 
 
@@ -108,6 +140,7 @@ def get_train_state(meet, date, rcno, name):
         url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
         response_body = urlopen(url).read()
     xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    xml_text.decompose()
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
@@ -131,6 +164,7 @@ def get_train_info(hridx):
     print(url)
     response_body = urlopen(url).read()
     xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    xml_text.decompose()
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             if len(itemElm2) != 15:

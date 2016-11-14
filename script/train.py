@@ -69,6 +69,7 @@ def get_data(begin_date, end_date):
     del X_data['r3']
     del X_data['r2']
     del X_data['r1']
+    del X_data['date']
     print(R_data)
     return X_data, Y_data, R_data, data
 

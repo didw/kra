@@ -22,18 +22,26 @@ def get_data(begin_date, end_date, fname_csv):
         if not os.path.isfile(filename):
             continue
         if first:
-            data = pr.get_data_w_date(filename)
+            data = pr.get_data(filename)
             first = False
         else:
-            data = data.append(pr.get_data_w_date(filename), ignore_index=True)
+            data = data.append(pr.get_data(filename), ignore_index=True)
     data.to_csv(fname_csv, index=False)
     return data
 
 
 if __name__ == '__main__':
-    import get_txt
-    get_txt.download_txt(datetime.date.today() + datetime.timedelta(days=-1), datetime.date.today(), 1, True)
-    begin_date = datetime.date.today() + datetime.timedelta(days=-400)
-    end_date = datetime.date.today()
-    fname_csv = '../data/1_recent_1year.csv'
-    get_data(begin_date, end_date, fname_csv)
+    recent = False
+    if recent:
+        import get_txt
+        get_txt.download_txt(datetime.date.today() + datetime.timedelta(days=-1), datetime.date.today(), 1, True)
+        begin_date = datetime.date.today() + datetime.timedelta(days=-400)
+        end_date = datetime.date.today()
+        fname_csv = '../data/1_recent_1year.csv'
+        get_data(begin_date, end_date, fname_csv)
+    else:
+        begin_date = datetime.date(2007, 1, 1)
+        end_date = datetime.date.today()
+        fname_csv = '../data/1_2007_2016.csv'
+        get_data(begin_date, end_date, fname_csv)
+

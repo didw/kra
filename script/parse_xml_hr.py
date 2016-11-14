@@ -13,6 +13,7 @@ def parse_xml_hr(meet):
     print "process in %s" % filename
     response_body = file_input.read()
     xml_text = BeautifulSoup(response_body, 'html.parser')
+    xml_text.decompose()
     for itemElm in xml_text.findAll('item'):
         #print itemElm
         try:

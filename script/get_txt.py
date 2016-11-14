@@ -9,13 +9,15 @@ import os
 # http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/rcresult/20161030dacom11.rpt&meet=3
 # http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/jeju/horse/20161102cdb1.txt&meet=2
 # http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/chulma/20161103dacom01.rpt&meet=1
+# http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/daily-train/20161113dacom55.rpt&meet=1
 def download_txt(bd, ed, meet, overwrite=False):
     data = [# seoul
             [["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/rcresult/", "rcresult", "dacom11.rpt", [5, 6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/horse/", "horse", "sdb1.txt", [3, 6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/jockey/", "jockey", "sdb2.txt", [3, 6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/trainer/", "trainer", "sdb3.txt", [3, 6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/chulma/", "chulma", "dacom01.rpt", [3]]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/chulma/", "chulma", "dacom01.rpt", [3]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/daily-train/", "daily-train", "dacom55.rpt", [0,1,2,3,4,5,6]]],
             # jeju
             [["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/jungbo/rcresult/", "rcresult", "dacom11.rpt", [4, 5]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/jeju/horse/", "horse", "cdb1.txt", [2, 5]],
@@ -30,26 +32,27 @@ def download_txt(bd, ed, meet, overwrite=False):
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/chulma/", "chulma", "dacom01.rpt", [2]]]
             ]
 
-    for line in data[meet-1]:
-        race_url = line[0]
-        date = bd + datetime.timedelta(days=-1)
-        while date < ed:
-            date += datetime.timedelta(days=1)
-            if date.weekday() not in line[3]:
+    #for line in data[meet-1]:
+    line = data[meet-1][5]
+    race_url = line[0]
+    date = bd + datetime.timedelta(days=-1)
+    while date < ed:
+        date += datetime.timedelta(days=1)
+        if date.weekday() not in line[3]:
+            continue
+        date_s = int("%d%02d%02d" % (date.year, date.month, date.day))
+        request = "%s%d%s&meet=%d" % (race_url, date_s, line[2], meet)
+        try:
+            fname = "../txt/%d/%s/%s_%d_%d.txt" % (meet, line[1], line[1], meet, date_s)
+            if not overwrite and os.path.exists(fname):
                 continue
-            date_s = int("%d%02d%02d" % (date.year, date.month, date.day))
-            request = "%s%d%s&meet=%d" % (race_url, date_s, line[2], meet)
-            try:
-                fname = "../txt/%d/%s/%s_%d_%d.txt" % (meet, line[1], line[1], meet, date_s)
-                if not overwrite and os.path.exists(fname):
-                    continue
-                response_body = urlopen(request).read()
-                fout = open(fname, 'w')
-                fout.write(response_body)
-                fout.close()
-                print "[%s] data is downloaded" % request
-            except:
-                print '[%s] data downloading failed' % request
+            response_body = urlopen(request).read()
+            fout = open(fname, 'w')
+            fout.write(response_body)
+            fout.close()
+            print "[%s] data is downloaded" % request
+        except:
+            print '[%s] data downloading failed' % request
     print "job has completed"
 
 
@@ -103,7 +106,7 @@ def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
 
 
 if __name__ == '__main__':
-    for i in range(1, 4):
-        download_chulmaDetailInfo(datetime.date(2007, 10, 1), datetime.date.today(), i, False)
-        #download_txt(datetime.date(2016, 11, 1), datetime.date.today(), i)
+    for i in range(1, 2):
+        #download_chulmaDetailInfo(datetime.date(2006, 10, 1), datetime.date.today(), i, False)
+        download_txt(datetime.date(2006, 10, 1), datetime.date.today(), i)
 
