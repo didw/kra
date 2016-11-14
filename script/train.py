@@ -43,9 +43,9 @@ def get_data(begin_date, end_date):
     date += datetime.timedelta(days=-1)
     while date < train_ed:
         date += datetime.timedelta(days=1)
-        if date.weekday() != 5 and date.weekday() != 6:
+        if date.weekday() != 4 and date.weekday() != 6:
             continue
-        filename = "../txt/1/rcresult/rcresult_1_%02d%02d%02d.txt" % (date.year, date.month, date.day)
+        filename = "../txt/3/rcresult/rcresult_3_%02d%02d%02d.txt" % (date.year, date.month, date.day)
         if not os.path.isfile(filename):
             continue
         if first:
@@ -69,6 +69,7 @@ def get_data(begin_date, end_date):
     del X_data['r3']
     del X_data['r2']
     del X_data['r1']
+    del X_data['date']
     print(R_data)
     return X_data, Y_data, R_data, data
 
@@ -106,6 +107,8 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0):
     del X_data['boksik']
     del X_data['ssang']
     del X_data['sambok']
+    del X_data['weight']
+    del X_data['dweight']
     #print(R_data)
     return X_data, Y_data, R_data, data
 
@@ -140,9 +143,9 @@ def simulation1(pred, ans):
                 rack_data = True
             sim_data.append(pred[i])
             total_player = int(ans['cnt'][i])
+            price = int(ans['price'][i])
             total += 1
             i += 1
-        price = 20000000
         a = price*0.8 / r1
         r1 = (price+100000)*0.8 / (a+100000) - 1.0
         if r1 > 20:
@@ -332,9 +335,9 @@ def training(train_bd, train_ed, course=0):
     else:
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
         if train_bd >= datetime.date.today() + datetime.timedelta(days=-365):
-            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_recent_1year.csv', course)
+            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/3_recent_1year.csv', course)
         else:
-            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016.csv', course)
+            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/3_2007_2016.csv', course)
         print("%d data is fully loaded" % len(X_train))
 
         estimator = RandomForestRegressor(random_state=0, n_estimators=100)
@@ -377,14 +380,14 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         test_ed = today + datetime.timedelta(days=2)
         test_bd_s = "%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day)
         test_ed_s = "%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day)
-        if not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_bd_s) and not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_ed_s):
+        if not os.path.exists('../txt/3/rcresult/rcresult_3_%s.txt' % test_bd_s) and not os.path.exists('../txt/3/rcresult/rcresult_1_%s.txt' % test_ed_s):
             continue
         remove_outlier = False
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016.csv', course)
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/3_2007_2016.csv', course)
         print("%d data is fully loaded" % len(X_train))
 
         if remove_outlier:
@@ -403,7 +406,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
 
         print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
-        X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016.csv', course)
+        X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/3_2007_2016.csv', course)
         print("%d data is fully loaded" % (len(X_test)))
         if len(X_test) == 0:
             res1 = [0, 0]
@@ -435,7 +438,7 @@ if __name__ == '__main__':
     train_ed = datetime.date(2016, 10, 31)
     test_bd = datetime.date(2016, 1, 1)
     test_ed = datetime.date(2016, 11, 12)
-    for c in [1400]:
+    for c in [1000, 1200, 1300, 1400, 1700, 2000, 0]:
         outfile = '../data/weekly_result_m1_y%d_c%d.txt' % (delta_year, c)
         simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c)
     remove_outlier = False
@@ -480,5 +483,4 @@ if __name__ == '__main__':
     print("연승식 result: %f, %f" % (res2[0], res2[1]))
     print("복승식 result: %f, %f" % (res3[0], res3[1]))
     print("total result: %f" % res)
-
 """

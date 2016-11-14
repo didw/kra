@@ -11,11 +11,13 @@ import parse_xml_tr as xt
 import parse_xml_train as xtr
 import datetime
 import sys
+import os
+
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
 
-
+DEBUG = False
 
 def get_humidity():
     url = "http://race.kra.co.kr/chulmainfo/trackView.do?Act=02&Sub=10&meet=1"
@@ -121,7 +123,7 @@ def get_tr_win(data, name):
 
 def get_distance_record_url(hrname, rcno, date):
     #print("name: %s, rcno: %d, date: %d" % (hrname, rcno, date))
-    url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=1&rcNo=%d&rcDate=%d" % (rcno, date)
+    url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=3&rcNo=%d&rcDate=%d" % (rcno, date)
     response_body = urlopen(url).read()
     line = unicode(response_body, 'euc-kr').encode('utf-8')
     #print("%s" % line)
@@ -145,11 +147,11 @@ def get_distance_record_url(hrname, rcno, date):
     return res
 
 def get_game_info(date, rcno):
-    if date.weekday() == 5:
+    if date.weekday() == 4:
         file_date = date + datetime.timedelta(days=-2)
     if date.weekday() == 6:
-        file_date = date + datetime.timedelta(days=-3)
-    fname = '../txt/1/chulma/chulma_1_%d%02d%02d.txt' % (file_date.year, file_date.month, file_date.day)
+        file_date = date + datetime.timedelta(days=-4)
+    fname = '../txt/3/chulma/chulma_3_%d%02d%02d.txt' % (file_date.year, file_date.month, file_date.day)
     #print(fname)
     finput = open(fname)
     date_s = "%d[.]%02d[.]%02d" % (date.year % 100, date.month, date.day)
@@ -287,7 +289,7 @@ def parse_xml_entry(meet, date, number):
 
 
 if __name__ == '__main__':
-    meet = 1
+    meet = 3
     rcno = 8
     date = 20161112
     data = parse_xml_entry(meet, date, rcno)

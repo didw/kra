@@ -13,4 +13,4 @@ def get_data(meet, date):
     atrain.get_data(meet, date)
 
 if __name__ == '__main__':
-    get_data(1, 201611)
+    get_data(3, 20161111)

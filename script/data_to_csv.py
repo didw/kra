@@ -18,14 +18,14 @@ def get_data(begin_date, end_date, fname_csv):
         date += datetime.timedelta(days=1)
         if date.weekday() != 5 and date.weekday() != 6:
             continue
-        filename = "../txt/1/rcresult/rcresult_1_%02d%02d%02d.txt" % (date.year, date.month, date.day)
+        filename = "../txt/3/rcresult/rcresult_3_%02d%02d%02d.txt" % (date.year, date.month, date.day)
         if not os.path.isfile(filename):
             continue
         if first:
-            data = pr.get_data_w_date(filename)
+            data = pr.get_data(filename)
             first = False
         else:
-            data = data.append(pr.get_data_w_date(filename), ignore_index=True)
+            data = data.append(pr.get_data(filename), ignore_index=True)
     data.to_csv(fname_csv, index=False)
     return data
 
