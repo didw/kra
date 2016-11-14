@@ -6,6 +6,7 @@ from urllib2 import Request, urlopen
 import random
 import datetime
 import os
+from bs4 import BeautifulSoup
 
 
 def get_humidity():
@@ -19,7 +20,6 @@ def get_humidity():
     if pl is not None:
         res = pl.group()
     return res
-
 
 
 def get_hr_weight(meet, date, rcno, hrname):
@@ -40,26 +40,28 @@ def get_hr_weight(meet, date, rcno, hrname):
     return res
 
 
-
 def test():
     df = pd.DataFrame([[1,2,3],[4,5,6]])
     df.columns = ['a', 'b', 'c']
     for idx, rows in df.iterrows():
         print(rows['a'])
 
+
 def test_rank():
-    data = pd.Series([1,4,2,3])
+    data = pd.Series([1,4,3,2])
     top = data.rank()
     print top[0] in [1, 2]
     print top[1] in [1, 2]
     print top[2] in [1, 2]
     print top[3] in [1, 2]
 
+
 def df_concat():
     a = pd.DataFrame([[1,2,3,4,5], [2,3,4,5,6]])
     a.columns = ['a', 'b', 'c', 'd', 'e']
     b = pd.DataFrame([4,3])
     print(pd.concat([a[['c','a']], b], axis=1))
+
 
 def test_random():
     total = 10
@@ -102,6 +104,7 @@ def get_fname_dist(date, rcno):
         elif date.weekday() == 6:
             date = date + datetime.timedelta(days=-1)
     return -1
+
 
 def get_distance_record(hrname, rcno, date):
     filename = get_fname_dist(date, rcno)
@@ -187,11 +190,151 @@ def get_game_info(date, rcno):
             return [num.group(), kind.group()[-1]]
     return [-1, -1]
 
+
 def pandas_compare():
     df = pd.DataFrame([['가',2,3,4,5], ['나',3,4,5,6], ['다',4,5,6,7]], columns=['A', 'B', 'C', 'D', 'E'])
     df.loc[df['A'] == '가', 'A'] = 4
     print(df)
 
+
+def get_rate():
+    line = "     복연: ⑨⑤3.9 ⑨⑦16.0 ⑤⑦110.4"
+    line = "     복연:④⑬   2.1   ④⑧   7.2   ⑬⑧   6.0"
+    line = "배당률 단: ⑨5.5        연: ⑨1.7 ⑧1.9 ③3.6          복: ⑨⑧11.7      4F:50.0"
+    num_circle_list = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭"  #
+    bokyeon = [-1, -1, -1]
+    boksik = ''
+    ssang = ''
+    sambok = ''
+    res = re.search(r'(?<= 복:).+(?=4F)', line)
+    if res is not None:
+        res = res.group().split()
+        if len(res) == 2:
+            boksik.append("%s%s" % (res[0], res[1]))
+        elif len(res) == 1:
+            boksik = res[0]
+        else:
+            print("not expected.. %s" % line)
+    res = re.search(r'(?<= 쌍:).+', line)
+    if res is not None:
+        res = res.group().split()
+        if len(res) == 2:
+            ssang.append("%s%s" % (res[0], res[1]))
+        elif len(res) == 1:
+            ssang = res[0]
+        else:
+            print("not expected.. %s" % line)
+    res = re.search(r'(?<=복연:).+', line)
+    if res is not None:
+        res = res.group().split()
+        if len(res) == 6:
+            bokyeon.append("%s%s" % (res[0], res[1]))
+            bokyeon.append("%s%s" % (res[2], res[3]))
+            bokyeon.append("%s%s" % (res[4], res[5]))
+        elif len(res) == 3:
+            bokyeon = res[0]
+        else:
+            print("not expected.. %s" % line)
+    res = re.search(r'(?<=삼복:).+', line)
+    if res is not None:
+        res = res.group().split()
+        if len(res) == 2:
+            sambok.append("%s%s" % (res[0], res[1]))
+        elif len(res) == 1:
+            sambok = res[0]
+        else:
+            print("not expected.. %s" % line)
+    print("%s, %s, %s" % (bokyeon[0], bokyeon[1], bokyeon[2]))
+    print("복: %s, 쌍: %s, 삼복: %s" % (boksik, ssang, sambok))
+
+
+def get_dbudam(meet, date, rcno, name):
+    fname = '../txt/%d/chulmapyo/chulmapyo_%d_%d_%d.txt' % (meet, meet, date, rcno)
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoChulmapyo.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if name == itemList[1].string.encode('utf-8'):
+                return itemList[7].string
+    return -1
+
+
+def get_budam(meet, date, rcno, name):
+    fname = '../txt/%d/chulmapyo/chulmapyo_%d_%d_%d.txt' % (meet, meet, date, rcno)
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoChulmapyo.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if name == itemList[1].string.encode('utf-8'):
+                return itemList[6].string
+    return -1
+
+
+def get_weight(meet, date, rcno, name):
+    fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            print(itemList)
+            if name == itemList[1].string.encode('utf-8'):
+                return itemList[2].string
+    return -1
+
+
+def get_dweight(meet, date, rcno, name):
+    fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if name == itemList[1].string.encode('utf-8'):
+                return itemList[3].string
+    return -1
+
+
+def get_drweight(meet, date, rcno, name):
+    fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if name == itemList[1].string.encode('utf-8'):
+                last_date = itemList[4].string
+                last_date = datetime.date(int(last_date[:4]), int(last_date[5:7]), int(last_date[8:10]))
+                delta_day = datetime.date(date/10000, date/100%100, date%100) - last_date
+                return float(itemList[3].string) / delta_day.days
+    return -1
 
 
 def load_save_csv():
@@ -199,5 +342,5 @@ def load_save_csv():
     df.to_csv('../log/2016_2.csv', index=False)
 
 if __name__ == '__main__':
-    pandas_compare()
+    print(get_drweight(2, 20091212, 10, "풀스텝"))
 

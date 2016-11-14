@@ -12,6 +12,7 @@ import parse_xml_train as xtr
 import datetime
 import sys
 import os
+
 reload(sys)
 sys.setdefaultencoding('utf-8')
 

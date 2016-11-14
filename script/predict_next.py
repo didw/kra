@@ -11,26 +11,26 @@ import train as tr
 def normalize_data(org_data):
     data = org_data.dropna()
     data = data.reset_index()
-    data['gender'][data['gender'] == '암'] = 1
-    data['gender'][data['gender'] == '수'] = 1
-    data['gender'][data['gender'] == '거'] = 2
-    data['cntry'][data['cntry'] == '한'] = 0
-    data['cntry'][data['cntry'] == '한(포)'] = 1
-    data['cntry'][data['cntry'] == '미'] = 2
-    data['cntry'][data['cntry'] == '뉴'] = 3
-    data['cntry'][data['cntry'] == '호'] = 4
-    data['cntry'][data['cntry'] == '일'] = 5
-    data['cntry'][data['cntry'] == '캐'] = 6
-    data['cntry'][data['cntry'] == '브'] = 7
-    data['cntry'][data['cntry'] == '헨'] = 8
-    data['cntry'][data['cntry'] == '남'] = 9
-    data['cntry'][data['cntry'] == '아일'] = 10
-    data['cntry'][data['cntry'] == '모'] = 11
-    data['cntry'][data['cntry'] == '영'] = 12
-    data['cntry'][data['cntry'] == '인'] = 13
-    data['cntry'][data['cntry'] == '아'] = 14
-    data['cntry'][data['cntry'] == '중'] = 15
-    data['cntry'][data['cntry'] == '프'] = 16
+    data.loc[data['gender'] == '암', 'gender'] = 0
+    data.loc[data['gender'] == '수', 'gender'] = 1
+    data.loc[data['gender'] == '거', 'gender'] = 2
+    data.loc[data['cntry'] == '한', 'cntry'] = 0
+    data.loc[data['cntry'] == '한(포)', 'cntry'] = 1
+    data.loc[data['cntry'] == '일', 'cntry'] = 2
+    data.loc[data['cntry'] == '중', 'cntry'] = 3
+    data.loc[data['cntry'] == '미', 'cntry'] = 4
+    data.loc[data['cntry'] == '캐', 'cntry'] = 5
+    data.loc[data['cntry'] == '뉴', 'cntry'] = 6
+    data.loc[data['cntry'] == '호', 'cntry'] = 7
+    data.loc[data['cntry'] == '브', 'cntry'] = 8
+    data.loc[data['cntry'] == '헨', 'cntry'] = 9
+    data.loc[data['cntry'] == '남', 'cntry'] = 10
+    data.loc[data['cntry'] == '아일', 'cntry'] = 11
+    data.loc[data['cntry'] == '모', 'cntry'] = 12
+    data.loc[data['cntry'] == '영', 'cntry'] = 13
+    data.loc[data['cntry'] == '인', 'cntry'] = 14
+    data.loc[data['cntry'] == '아', 'cntry'] = 15
+    data.loc[data['cntry'] == '프', 'cntry'] = 16
     return data
 
 
@@ -72,27 +72,27 @@ def predict_next(estimator, meet, date, rcno):
     pred.columns = ['predict']
     __DEBUG__ = True
     if __DEBUG__:
-        pd.concat([data_pre, pred], axis=1).to_csv('../log/%d_xml_2.csv' % date, index=False)
-    print(pd.concat([data, pred], axis=1))
-    print(pd.concat([data[['rcno', 'name', 'jockey', 'trainer']], pred], axis=1))
+        pd.concat([data_pre, pred], axis=1).to_csv('../log/%d_xml.csv' % date, index=False)
+    #print(pd.concat([data, pred], axis=1))
+    #print(pd.concat([data[['rcno', 'name', 'jockey', 'trainer']], pred], axis=1))
     prev_rc = data['rcno'][0]
     rctime = []
     rcdata = []
     for idx, row in data.iterrows():
         if int(data['hr_nt'][idx]) == 0 or int(data['jk_nt'][idx]) == 0 or int(data['tr_nt'][idx]) == 0:
-            print("data is not enough. be careful")
+            print("%s data is not enough. be careful" % (data['name'][idx]))
         if row['rcno'] != prev_rc or idx+1 == len(data):
             rctime = pd.Series(rctime)
             rcdata = pd.DataFrame(rcdata)
             rcrank = rctime.rank()
-            print("")
+            print("rcNo, order, idx(name): rctime")
             for i, v in enumerate(rcrank):
                 if v == 1:
-                    print("rcNo: %s, 1st: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
+                    print("%s, 1st: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
                 elif v == 2:
-                    print("rcNo: %s, 2nd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
+                    print("%s, 2nd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
                 elif v == 3:
-                    print("rcNo: %s, 3rd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
+                    print("%s, 3rd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
             print("")
             rctime = []
             rcdata = []

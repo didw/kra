@@ -16,23 +16,22 @@ def normalize_data(org_data):
     data.loc[data['gender'] == '수', 'gender'] = 1
     data.loc[data['gender'] == '거', 'gender'] = 2
     data.loc[data['cntry'] == '한', 'cntry'] = 0
-    data.loc[data['cntry'] == '제', 'cntry'] = 1
-    data.loc[data['cntry'] == '한(포)', 'cntry'] = 2
-    data.loc[data['cntry'] == '일', 'cntry'] = 3
-    data.loc[data['cntry'] == '중', 'cntry'] = 4
-    data.loc[data['cntry'] == '미', 'cntry'] = 5
-    data.loc[data['cntry'] == '캐', 'cntry'] = 6
-    data.loc[data['cntry'] == '뉴', 'cntry'] = 7
-    data.loc[data['cntry'] == '호', 'cntry'] = 8
-    data.loc[data['cntry'] == '브', 'cntry'] = 9
-    data.loc[data['cntry'] == '헨', 'cntry'] = 10
-    data.loc[data['cntry'] == '남', 'cntry'] = 11
-    data.loc[data['cntry'] == '아일', 'cntry'] = 12
-    data.loc[data['cntry'] == '모', 'cntry'] = 13
-    data.loc[data['cntry'] == '영', 'cntry'] = 14
-    data.loc[data['cntry'] == '인', 'cntry'] = 15
-    data.loc[data['cntry'] == '아', 'cntry'] = 16
-    data.loc[data['cntry'] == '프', 'cntry'] = 17
+    data.loc[data['cntry'] == '한(포)', 'cntry'] = 1
+    data.loc[data['cntry'] == '일', 'cntry'] = 2
+    data.loc[data['cntry'] == '중', 'cntry'] = 3
+    data.loc[data['cntry'] == '미', 'cntry'] = 4
+    data.loc[data['cntry'] == '캐', 'cntry'] = 5
+    data.loc[data['cntry'] == '뉴', 'cntry'] = 6
+    data.loc[data['cntry'] == '호', 'cntry'] = 7
+    data.loc[data['cntry'] == '브', 'cntry'] = 8
+    data.loc[data['cntry'] == '헨', 'cntry'] = 9
+    data.loc[data['cntry'] == '남', 'cntry'] = 10
+    data.loc[data['cntry'] == '아일', 'cntry'] = 11
+    data.loc[data['cntry'] == '모', 'cntry'] = 12
+    data.loc[data['cntry'] == '영', 'cntry'] = 13
+    data.loc[data['cntry'] == '인', 'cntry'] = 14
+    data.loc[data['cntry'] == '아', 'cntry'] = 15
+    data.loc[data['cntry'] == '프', 'cntry'] = 16
     return data
 
 def get_data(begin_date, end_date):
@@ -70,23 +69,24 @@ def get_data(begin_date, end_date):
     del X_data['r3']
     del X_data['r2']
     del X_data['r1']
+    del X_data['date']
     print(R_data)
     return X_data, Y_data, R_data, data
 
 
-def get_data_from_csv(begin_date, end_date, fname_csv):
+def get_data_from_csv(begin_date, end_date, fname_csv, course=0):
     df = pd.read_csv(fname_csv)
     remove_index = []
     for idx in range(len(df)):
         #print(df['date'][idx])
         date = int(df['date'][idx])
-        if date < begin_date or date > end_date:
+        if date < begin_date or date > end_date or (course > 0 and course != int(df['course'][idx])):
             remove_index.append(idx)
             #print('Delete %dth row (hr: %s, jk: %s, tr: %s, dt: %s)' % (idx, X_data['hr_nt'][idx], X_data['jk_nt'][idx], X_data['tr_nt'][idx], X_data['hr_dt'][idx]))
     data = df.drop(df.index[remove_index])
     data = normalize_data(data)
 
-    R_data = data[['rank', 'r1', 'r2', 'r3', 'hr_nt', 'hr_dt', 'jk_nt', 'tr_nt', 'cnt', 'rcno', 'price']]
+    R_data = data[['rank', 'r1', 'r2', 'r3', 'hr_nt', 'hr_dt', 'jk_nt', 'tr_nt', 'cnt', 'rcno', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok']]
     Y_data = data['rctime']
     X_data = data.copy()
 
@@ -99,8 +99,16 @@ def get_data_from_csv(begin_date, end_date, fname_csv):
     del X_data['r3']
     del X_data['r2']
     del X_data['r1']
-    del X_data['price']
     del X_data['date']
+    del X_data['price']
+    del X_data['bokyeon1']
+    del X_data['bokyeon2']
+    del X_data['bokyeon3']
+    del X_data['boksik']
+    del X_data['ssang']
+    del X_data['sambok']
+    del X_data['weight']
+    del X_data['dweight']
     #print(R_data)
     return X_data, Y_data, R_data, data
 
@@ -116,6 +124,7 @@ def delete_lack_data(X_data, Y_data):
 
 # 단승식
 def simulation1(pred, ans):
+    #print(ans)
     i = 0
     res1, res2 = 0, 0
     assert len(pred) == len(ans)
@@ -139,6 +148,8 @@ def simulation1(pred, ans):
             i += 1
         a = price*0.8 / r1
         r1 = (price+100000)*0.8 / (a+100000) - 1.0
+        if r1 > 20:
+            r1 *= 0.8
         # if rack_data or total < total_player:
         #     continue
         sim_data = pd.Series(sim_data)
@@ -189,11 +200,15 @@ def simulation2(pred, ans):
         top = sim_data.rank()
         if total_player > 7:
             if top1 in [0, 1, 2]:
+                if r2[top1] > 20:
+                    r2[top1] *= 0.8
                 res1 += 100 * r2[top1]
             else:
                 res1 -= 100
         else:
             if top1 in [0, 1]:
+                if r2[top1] > 20:
+                    r2[top1] *= 0.8
                 res1 += 100 * r2[top1]
             else:
                 res1 -= 100
@@ -220,6 +235,7 @@ def simulation2(pred, ans):
 # 복승식
 def simulation3(pred, ans):
     print(ans)
+    bet = 10
     i = 0
     res1, res2 = 0, 0
     assert len(pred) == len(ans)
@@ -228,6 +244,8 @@ def simulation3(pred, ans):
             break
         sim_data = [pred[i]]
         r3 = float(ans['r3'][i]) - 1
+        if r3*bet > 2000:
+            r3 *= 0.8
         rcno = int(ans['rcno'][i])
         i += 1
         total = 1
@@ -247,16 +265,16 @@ def simulation3(pred, ans):
         if total < 2:
             continue
         if (top[0] in [1, 2]) and (top[1] in [1, 2]):
-            res1 += 100 * r3
+            res1 += bet * r3
         else:
-            res1 -= 100
+            res1 -= bet
 
         if total < 2:
             continue
         if (top[0] in [2, 3]) and (top[1] in [2, 3]):
-            res2 += 100 * r3
+            res2 += bet * r3
         else:
-            res2 -= 100
+            res2 -= bet
         print("복승식: %f, %f" % (res1, res2))
     return [res1, res2]
 
@@ -304,27 +322,28 @@ def simulation_all(pred, ans):
     return res
 
 
-def training(train_bd, train_ed):
+def training(train_bd, train_ed, course=0):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-    model_name = "../model/%d_%d.pkl" % (train_bd_i, train_ed_i)
+    model_name = "../model/%d_%d_%s.pkl" % (train_bd_i, train_ed_i, course)
 
     from sklearn.externals import joblib
-    if os.path.exists(model_name):
+    if train_bd < datetime.date.today() + datetime.timedelta(days=-365) and os.path.exists(model_name):
         print("model exist. try to loading..")
         estimator = joblib.load(model_name)
     else:
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_2007_2016.csv')
+        if train_bd >= datetime.date.today() + datetime.timedelta(days=-365):
+            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_recent_1year.csv', course)
+        else:
+            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_2007_2016.csv', course)
         print("%d data is fully loaded" % len(X_train))
 
-        #X_train, Y_train = delete_lack_data(X_train, Y_train)
         estimator = RandomForestRegressor(random_state=0, n_estimators=100)
         estimator.fit(X_train, Y_train)
 
         joblib.dump(estimator, model_name)
-
 
     return estimator
 
@@ -347,7 +366,7 @@ def print_log(data, pred, fname):
     flog.close()
 
 
-def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_year=0):
+def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_year=0, course=0):
     today = begin_date
     while today <= end_date:
         while today.weekday() != 3:
@@ -368,7 +387,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016.csv')
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_2007_2016.csv', course)
         print("%d data is fully loaded" % len(X_train))
 
         if remove_outlier:
@@ -387,19 +406,23 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
 
         print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
-        X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/2_2007_2016.csv')
-        print("data is fully loaded")
-        DEBUG = False
-        if DEBUG:
-            X_test.to_csv('../log/%s.csv' % fname_result, index=False)
-        score = estimator.score(X_test, Y_test)
-        print("Score with the entire test dataset = %.2f" % score)
-        pred = estimator.predict(X_test)
+        X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/2_2007_2016.csv', course)
+        print("%d data is fully loaded" % (len(X_test)))
+        if len(X_test) == 0:
+            res1 = [0, 0]
+        else:
+            DEBUG = False
+            if DEBUG:
+                X_test.to_csv('../log/2016_7_9.csv', index=False)
+            score = estimator.score(X_test, Y_test)
+            print("Score with the entire test dataset = %.2f" % score)
+            pred = estimator.predict(X_test)
 
-        res1 = simulation1(pred, R_test)
+            res1 = simulation1(pred, R_test)
 
         print("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
         print("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+        print("course: %d(0: all)\n" % course)
         print("단승식 result: %f\n\n" % (res1[0]))
         f_result = open(fname_result, 'a')
         f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
@@ -409,17 +432,18 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
 
 
 if __name__ == '__main__':
-    outfile = '../data/weekly_result.txt'
-    dbname = '../data/train_2_test.txt'
-    train_bd = datetime.date(2015, 1, 10)
-    train_ed = datetime.date(2015, 12, 30)
+    delta_year = 2
+    dbname = '../data/train_201101_20160909.pkl'
+    train_bd = datetime.date(2011, 11, 1)
+    train_ed = datetime.date(2016, 10, 31)
     test_bd = datetime.date(2016, 1, 1)
-    test_ed = datetime.date(2016, 11, 10)
-
-    simulation_weekly(test_bd, test_ed, outfile, 0, 5)
+    test_ed = datetime.date(2016, 11, 12)
+    for c in [1000, 1200, 1300, 1400, 1700, 2000, 0]:
+        outfile = '../data/weekly_result_m1_y%d_c%d.txt' % (delta_year, c)
+        simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c)
     remove_outlier = False
+"""
     #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30))
-    """
     if os.path.exists(dbname):
         X_train, Y_train = joblib.load(dbname)
     else:
@@ -441,7 +465,7 @@ if __name__ == '__main__':
     X_test, Y_test, R_test, X_data = get_data(test_bd, test_ed)
     DEBUG = False
     if DEBUG:
-        X_test.to_csv('../data/meet_2_%s.csv' % (str(test_bd)), index=False)
+        X_test.to_csv('../log/2016_7_9.csv', index=False)
     score = estimator.score(X_test, Y_test)
     print("Score with the entire test dataset = %.2f" % score)
     pred = estimator.predict(X_test)

@@ -5,14 +5,16 @@ import numpy as np
 import datetime
 import os.path
 from urllib2 import urlopen
+import get_detail_data as gdd
 
 
 NEXT = re.compile(unicode(r'마 체 중|단승식|복승식|매출액', 'utf-8').encode('utf-8'))
 WORD = re.compile(r"[^\s]+")
 DEBUG = False
 
-def parse_txt_race(input_file):
+def parse_txt_race(filename):
     data = []
+    input_file = open(filename)
     while True:
         # skip header
         humidity = 0
@@ -21,6 +23,9 @@ def parse_txt_race(input_file):
         rcno = -1
         course = ''
         kind = ''
+        hrname = ''
+        month = 0
+        date = int(re.search(r'\d{8}', filename).group())
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
@@ -79,8 +84,14 @@ def parse_txt_race(input_file):
                 hr_num[1] = tmp
 
             words = WORD.findall(line)
+            hrname = words[2]
+            dbudam = gdd.get_dbudam(1, date, int(rcno), hrname)
+            drweight = gdd.get_drweight(1, date, int(rcno), hrname)
+            lastday = gdd.get_lastday(1, date, int(rcno), hrname)
+            train_state = gdd.get_train_state(1, date, int(rcno), hrname)
             assert len(words) >= 10
-            adata = [course, humidity, kind]
+            adata = [course, humidity, kind, dbudam, drweight, lastday]
+            adata.extend(train_state)
             for i in range(10):
                 adata.append(words[i])
             data.append(adata)
@@ -165,14 +176,93 @@ def parse_txt_race(input_file):
 
             if parse_line is not None:
                 rating = parse_line.group().split('-')[1].split()[1]
-                for i in range(cnt):
-                    data[-cnt+i].extend([rating])
-                    data[-cnt+i].extend([cnt])
-                    data[-cnt+i].extend([rcno])
-                    data[-cnt+i].extend([month])
-                    data[-cnt+i].extend([price])
                 get_rate = True
                 break
+
+        for _ in range(300):
+            if price != 0:
+                break
+            line = input_file.readline()
+            line = unicode(line, 'euc-kr').encode('utf-8')
+            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
+                continue
+            if re.search(unicode(r'매출액', 'utf-8').encode('utf-8'), line) is not None:
+                price = int(re.search(unicode(r'(?<=단식:)[ ,\d]+', 'utf-8').encode('utf-8'), line).group().replace(',', ''))
+                break
+
+        for _ in range(300):
+            line = input_file.readline()
+            line = unicode(line, 'euc-kr').encode('utf-8')
+            if DEBUG: print("line1: %s" % line)
+            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:10]) is not None:
+                break
+        bokyeon = ['-1', '-1', '-1']
+        boksik = ['-1']
+        ssang = ['-1']
+        sambok = ['-1']
+        for _ in range(300):
+            line = input_file.readline()
+            line = unicode(line, 'euc-kr').encode('utf-8')
+            if DEBUG: print("line2: %s" % line)
+            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
+                break
+            res = re.search(r'(?<= 복:).+(?=4F)', line)
+            if res is not None:
+                res = res.group().split()
+                if len(res) == 2:
+                    boksik[0] = "%s%s" % (res[0], res[1])
+                elif len(res) == 1:
+                    boksik = res
+                else:
+                    print("not expected.. %s" % line)
+            res = re.search(r'(?<= 쌍:).+', line)
+            if res is not None:
+                res = res.group().split()
+                if len(res) >= 2:
+                    ssang[0] = "%s%s" % (res[0], res[1])
+                elif len(res) == 1:
+                    ssang = res
+                else:
+                    print("not expected.. %s" % line)
+            res = re.search(r'(?<=복연:).+', line)
+            if res is not None:
+                res = res.group().split()
+                if len(res) >= 6:
+                    bokyeon[0] = "%s%s" % (res[0], res[1])
+                    bokyeon[1] = "%s%s" % (res[2], res[3])
+                    bokyeon[2] = "%s%s" % (res[4], res[5])
+                elif len(res) == 3:
+                    bokyeon = res
+                else:
+                    print("not expected.. %s" % line)
+            res = re.search(r'(?<=삼복:).+', line)
+            if res is not None:
+                res = res.group().split()
+                if len(res) >= 2:
+                    sambok[0] = "%s%s" % (res[0], res[1])
+                elif len(res) == 1:
+                    sambok = res
+                else:
+                    print("not expected.. %s" % line)
+                break
+        if DEBUG:
+            print("price: %s" % price)
+            print("%d, %s, %s, %s" % (len(bokyeon), bokyeon[0], bokyeon[1], bokyeon[2]))
+            print("%d, %s" % (len(boksik), boksik[0]))
+            print("%d, %s" % (len(ssang), ssang[0]))
+            print("%d, %s" % (len(sambok), sambok[0]))
+
+        for i in range(cnt):
+            data[-cnt + i].extend([rating])
+            data[-cnt + i].extend([cnt])
+            data[-cnt + i].extend([rcno])
+            data[-cnt + i].extend([month])
+            data[-cnt + i].extend([price])
+            data[-cnt + i].extend(bokyeon)
+            data[-cnt + i].extend(boksik)
+            data[-cnt + i].extend(ssang)
+            data[-cnt + i].extend(sambok)
+
         assert get_rate
     return data
 
@@ -368,40 +458,19 @@ def parse_txt_trainer(date, name):
 
 def get_data(filename):
     print("race file: %s" % filename)
-    date = re.search(unicode(r'\d{8}', 'utf-8').encode('utf-8'), filename).group()
-    date = datetime.date(int(date[:4]), int(date[4:6]), int(date[6:]))
-    data = parse_txt_race(open(filename))
-    for i in range(len(data)):
-        #print("race file: %s" % filename)
-        #print("%s %s %s" % (data[i][5], data[i][10], data[i][11]))
-        data[i].extend(parse_txt_horse(date, int(data[i][20]), data[i][5]))
-        data[i].extend(parse_txt_jockey(date, data[i][10]))
-        data[i].extend(parse_txt_trainer(date, data[i][11]))
-    df = pd.DataFrame(data)
-    df.columns = ['course', 'humidity', 'kind', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 12
-                  'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'month', 'price', # 10
-                  'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
-                  'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
-                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
-                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2'] # 10
-    return df
-
-
-def get_data_w_date(filename):
-    print("race file: %s" % filename)
     date_i = re.search(unicode(r'\d{8}', 'utf-8').encode('utf-8'), filename).group()
     date = datetime.date(int(date_i[:4]), int(date_i[4:6]), int(date_i[6:]))
-    data = parse_txt_race(open(filename))
+    data = parse_txt_race(filename)
     for i in range(len(data)):
         #print("race file: %s" % filename)
         #print("%s %s %s" % (data[i][5], data[i][10], data[i][11]))
-        data[i].extend(parse_txt_horse(date, int(data[i][20]), data[i][5]))
-        data[i].extend(parse_txt_jockey(date, data[i][10]))
-        data[i].extend(parse_txt_trainer(date, data[i][11]))
+        data[i].extend(parse_txt_horse(date, int(data[i][28]), data[i][13]))
+        data[i].extend(parse_txt_jockey(date, data[i][18]))
+        data[i].extend(parse_txt_trainer(date, data[i][19]))
         data[i].extend([date_i])
     df = pd.DataFrame(data)
-    df.columns = ['course', 'humidity', 'kind', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 12
-                  'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'month', 'price', # 10
+    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 20
+                  'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'month', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', # 15
                   'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
                   'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
                   'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
