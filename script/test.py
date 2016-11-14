@@ -6,6 +6,7 @@ from urllib2 import Request, urlopen
 import random
 import datetime
 import os
+from bs4 import BeautifulSoup
 
 
 def get_humidity():
@@ -19,7 +20,6 @@ def get_humidity():
     if pl is not None:
         res = pl.group()
     return res
-
 
 
 def get_hr_weight(meet, date, rcno, hrname):
@@ -40,12 +40,12 @@ def get_hr_weight(meet, date, rcno, hrname):
     return res
 
 
-
 def test():
     df = pd.DataFrame([[1,2,3],[4,5,6]])
     df.columns = ['a', 'b', 'c']
     for idx, rows in df.iterrows():
         print(rows['a'])
+
 
 def test_rank():
     data = pd.Series([1,4,3,2])
@@ -55,11 +55,13 @@ def test_rank():
     print top[2] in [1, 2]
     print top[3] in [1, 2]
 
+
 def df_concat():
     a = pd.DataFrame([[1,2,3,4,5], [2,3,4,5,6]])
     a.columns = ['a', 'b', 'c', 'd', 'e']
     b = pd.DataFrame([4,3])
     print(pd.concat([a[['c','a']], b], axis=1))
+
 
 def test_random():
     total = 10
@@ -102,6 +104,7 @@ def get_fname_dist(date, rcno):
         elif date.weekday() == 6:
             date = date + datetime.timedelta(days=-1)
     return -1
+
 
 def get_distance_record(hrname, rcno, date):
     filename = get_fname_dist(date, rcno)
@@ -187,10 +190,12 @@ def get_game_info(date, rcno):
             return [num.group(), kind.group()[-1]]
     return [-1, -1]
 
+
 def pandas_compare():
     df = pd.DataFrame([['가',2,3,4,5], ['나',3,4,5,6], ['다',4,5,6,7]], columns=['A', 'B', 'C', 'D', 'E'])
     df.loc[df['A'] == '가', 'A'] = 4
     print(df)
+
 
 def get_rate():
     line = "     복연: ⑨⑤3.9 ⑨⑦16.0 ⑤⑦110.4"
@@ -243,11 +248,27 @@ def get_rate():
     print("복: %s, 쌍: %s, 삼복: %s" % (boksik, ssang, sambok))
 
 
+def get_dbudam(meet, date, rcno, name):
+    fname = '../txt/%d/chulmapyo/chulmapyo_%d_%d_%d.txt' % (meet, meet, date, rcno)
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoChulmapyo.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if name == itemList[1].string.encode('utf-8'):
+                return itemList[7].string
+    return -1
+
 
 def load_save_csv():
     df = pd.read_csv('../log/2016.csv')
     df.to_csv('../log/2016_2.csv', index=False)
 
 if __name__ == '__main__':
-    get_rate()
+    print(get_dbudam(1, 20091212, 10, "풀스텝"))
 

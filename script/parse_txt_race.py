@@ -5,6 +5,7 @@ import numpy as np
 import datetime
 import os.path
 from urllib2 import urlopen
+import get_detail_data as gdd
 
 
 NEXT = re.compile(unicode(r'마 체 중|단승식|복승식|매출액', 'utf-8').encode('utf-8'))
@@ -21,7 +22,9 @@ def parse_txt_race(input_file):
         rcno = -1
         course = ''
         kind = ''
+        hrname = ''
         month = 0
+        date = int(re.search(r'\d{8}', input_file).group())
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
@@ -78,8 +81,10 @@ def parse_txt_race(input_file):
                 hr_num[1] = tmp
 
             words = WORD.findall(line)
+            hrname = words[2]
+            dbudam = gdd.get_dbudam(1, date, rcno, hrname)
             assert len(words) >= 10
-            adata = [course, humidity, kind]
+            adata = [course, humidity, kind, dbudam]
             for i in range(10):
                 adata.append(words[i])
             data.append(adata)
@@ -442,7 +447,7 @@ def get_data(filename):
         data[i].extend(parse_txt_jockey(date, data[i][10]))
         data[i].extend(parse_txt_trainer(date, data[i][11]))
     df = pd.DataFrame(data)
-    df.columns = ['course', 'humidity', 'kind', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 12
+    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 12
                   'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'month', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', # 10
                   'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
                   'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
