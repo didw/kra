@@ -83,10 +83,10 @@ def parse_txt_race(filename):
 
             words = WORD.findall(line)
             hrname = words[2]
-            dbudam = gdd.get_dbudam(1, date, int(rcno), hrname)
-            drweight = gdd.get_drweight(1, date, int(rcno), hrname)
-            lastday = gdd.get_lastday(1, date, int(rcno), hrname)
-            train_state = gdd.get_train_state(1, date, int(rcno), hrname)
+            dbudam = gdd.get_dbudam(3, date, int(rcno), hrname)
+            drweight = gdd.get_drweight(3, date, int(rcno), hrname)
+            lastday = gdd.get_lastday(3, date, int(rcno), hrname)
+            train_state = gdd.get_train_state(3, date, int(rcno), hrname)
             assert len(words) >= 10
             adata = [course, humidity, kind, dbudam, drweight, lastday]
             adata.extend(train_state)
@@ -169,7 +169,6 @@ def parse_txt_race(filename):
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
-            if DEBUG: print("line1: %s" % line)
             if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:10]) is not None:
                 break
         bokyeon = ['-1', '-1', '-1']
@@ -179,7 +178,6 @@ def parse_txt_race(filename):
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
-            if DEBUG: print("line2: %s" % line)
             if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
                 break
             res = re.search(r'(?<= 복:).+(?=4F)', line)
@@ -257,7 +255,7 @@ def get_fname(date, job):
 def get_fname_dist(date, rcno):
     while True:
         date_s = int("%d%02d%02d" % (date.year, date.month, date.day))
-        filename = '../txt/2/dist_rec/dist_rec_2_%s_%d.txt' % (date_s, rcno)
+        filename = '../txt/3/dist_rec/dist_rec_3_%s_%d.txt' % (date_s, rcno)
         if os.path.isfile(filename):
             return filename
         date = date + datetime.timedelta(days=-1)
@@ -459,7 +457,7 @@ def get_data(filename):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/3/rcresult/rcresult_3_20070203.txt'
+    filename = '../txt/3/rcresult/rcresult_3_20080718.txt'
     data = get_data(filename)
     print(data)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)
