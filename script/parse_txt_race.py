@@ -85,10 +85,10 @@ def parse_txt_race(filename):
 
             words = WORD.findall(line)
             hrname = words[2]
-            dbudam = gdd.get_dbudam(1, date, int(rcno), hrname)
-            drweight = gdd.get_drweight(1, date, int(rcno), hrname)
-            lastday = gdd.get_lastday(1, date, int(rcno), hrname)
-            train_state = gdd.get_train_state(1, date, int(rcno), hrname)
+            dbudam = gdd.get_dbudam(2, date, int(rcno), hrname)
+            drweight = gdd.get_drweight(2, date, int(rcno), hrname)
+            lastday = gdd.get_lastday(2, date, int(rcno), hrname)
+            train_state = gdd.get_train_state(2, date, int(rcno), hrname)
             assert len(words) >= 10
             adata = [course, humidity, kind, dbudam, drweight, lastday]
             adata.extend(train_state)
@@ -480,7 +480,7 @@ def get_data(filename):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/2/rcresult/rcresult_2_20150612.txt'
+    filename = '../txt/2/rcresult/rcresult_2_20090404.txt'
     data = get_data(filename)
     print(data)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)
