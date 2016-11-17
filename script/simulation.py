@@ -14,6 +14,7 @@ def simulation1(pred, ans):
     #print(ans)
     i = 0
     res1 = 0
+    bet = 100
     assert len(pred) == len(ans)
     while True:
         if i >= len(pred):
@@ -35,7 +36,7 @@ def simulation1(pred, ans):
             i += 1
         a = price*0.8 / r1
         r1 = (price+100000)*0.8 / (a+100000) - 1.0
-        if r1 > 20:
+        if r1*bet > 2000:
             r1 *= 0.8
         # if rack_data or total < total_player:
         #     continue
@@ -53,6 +54,7 @@ def simulation2(pred, ans):
     i = 0
     res1 = 0
     rcno = 0
+    bet = 100
     assert len(pred) == len(ans)
     while True:
         rcno += 1
@@ -138,6 +140,7 @@ def simulation3(pred, ans):
 
 def get_num(line, bet):
     num_circle_list = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭"
+
     a = num_circle_list.find(line[:3]) / 3 + 1
     b = num_circle_list.find(line[3:6]) / 3 + 1
     r = float(line[6:]) - 1
@@ -156,6 +159,8 @@ def simulation4(pred, ans):
         if i >= len(pred):
             break
         sim_data = [pred[i]]
+        if type(ans['bokyeon1'][i]) in [type(1), type(1.1)] or len(ans['bokyeon1'][i]) <= 6:
+            return 0
         r4 = [get_num(ans['bokyeon1'][i], bet)]
         r4.append(get_num(ans['bokyeon2'][i], bet))
         r4.append(get_num(ans['bokyeon3'][i], bet))
@@ -200,6 +205,8 @@ def simulation5(pred, ans):
         if i >= len(pred):
             break
         sim_data = [pred[i]]
+        if type(ans['ssang'][i]) in [type(1), type(1.1)] or len(ans['ssang'][i]) <= 6:
+            return 0
         r5 = float(ans['ssang'][i][6:]) - 1
         if r5 * bet > 2000:
             r5 *= 0.8
@@ -240,6 +247,8 @@ def simulation6(pred, ans):
         if i >= len(pred):
             break
         sim_data = [pred[i]]
+        if type(ans['sambok'][i]) in [type(1), type(1.1)] or len(ans['sambok'][i]) <= 9:
+            return 0
         r6 = float(ans['sambok'][i][9:]) - 1
         if r6 * bet > 2000:
             r6 *= 0.8

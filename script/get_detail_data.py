@@ -39,7 +39,7 @@ def get_dbudam(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if name in itemList[1].string.encode('utf-8'):
+            if len(itemList) >= 10 and name in itemList[1].string.encode('utf-8'):
                 return unicode(itemList[7].string)
     print("can not find %s in %s" % (name, fname))
     return -1
@@ -152,7 +152,11 @@ def get_train_state(meet, date, rcno, name):
                 for item in itemList[2:]:
                     if item.string is None:
                         continue
-                    trainer = re.search(r'[가-힣]+', item.string.encode('utf-8')).group()
+                    trainer = re.search(r'[가-힣]+', item.string.encode('utf-8'))
+                    time = re.search(r'\d+', item.string.encode('utf-8'))
+                    if trainer is None or time is None:
+                        continue
+                    trainer = trainer.group()
                     who = cand.find(trainer) / 3
                     if who == -1:
                         who = 4
