@@ -134,7 +134,12 @@ def parse_txt_race(filename):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
             if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
-                continue
+                break
+        for _ in range(300):
+            line = input_file.readline()
+            line = unicode(line, 'euc-kr').encode('utf-8')
+            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
+                break
             if re.search(unicode(r'배당률', 'utf-8').encode('utf-8'), line) is not None:
                 break
             if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:5]) is None:
@@ -152,6 +157,66 @@ def parse_txt_race(filename):
             data[-cnt+idx].extend(adata)
             idx += 1
 
+        bokyeon = ['-1', '-1', '-1']
+        boksik = '-1'
+        ssang = '-1'
+        sambok = '-1'
+        for _ in range(300):
+            line = input_file.readline()
+            line = unicode(line, 'euc-kr').encode('utf-8')
+            if DEBUG: print("line2: %s" % line)
+            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
+                break
+            res = re.search(r'(?<= 복:).+(?=4F)', line)
+            if res is not None:
+                res = res.group().split()
+                if len(res) == 2:
+                    boksik = res[1]
+                elif len(res) == 1:
+                    boksik = res[0]
+                else:
+                    print("not expected.. %s" % line)
+            res = re.search(r'(?<= 쌍:).+', line)
+            if res is not None:
+                res = res.group().split()
+                if len(res) >= 2:
+                    ssang = res[1]
+                elif len(res) == 1:
+                    ssang = res[0][6:]
+                else:
+                    print("not expected.. %s" % line)
+            res = re.search(r'(?<=복연:).+', line)
+            if res is not None:
+                res = res.group().split()
+                try:
+                    if len(res) >= 6:
+                        bokyeon[0] = "%s%s" % (res[0], res[1])
+                        bokyeon[1] = "%s%s" % (res[2], res[3])
+                        bokyeon[2] = "%s%s" % (res[4], res[5])
+                        a = float(bokyeon[0][6:])
+                        a = float(bokyeon[1][6:])
+                        a = float(bokyeon[2][6:])
+                    elif len(res) == 3:
+                        bokyeon = res
+                        a = float(bokyeon[0][6:])
+                        a = float(bokyeon[1][6:])
+                        a = float(bokyeon[2][6:])
+                    else:
+                        print("not expected.. %s" % line)
+                except:
+                    print("can not parsing.. %s in %s" % (line, filename))
+            res = re.search(r'(?<=삼복:).+', line)
+            if res is not None:
+                res = res.group().split()
+                if len(res) >= 2:
+                    sambok = res[1]
+                elif len(res) == 1:
+                    sambok = res[0]
+                else:
+                    print("not expected.. %s" % line)
+                break
+
+        price = -1
         while True:
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
@@ -170,7 +235,7 @@ def parse_txt_race(filename):
             #print("%s" % line)
             if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
                 continue
-            if re.search(unicode(r'펄롱타임', 'utf-8').encode('utf-8'), line) is not None:
+            if re.search(unicode(r'펄롱타임|화롱타임', 'utf-8').encode('utf-8'), line) is not None:
                 break
             parse_line = re.search(unicode(r'%s:\s+\d+[.]\d' % exp, 'utf-8').encode('utf-8'), line)
 
@@ -179,78 +244,12 @@ def parse_txt_race(filename):
                 get_rate = True
                 break
 
-        for _ in range(300):
-            if price != 0:
-                break
-            line = input_file.readline()
-            line = unicode(line, 'euc-kr').encode('utf-8')
-            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
-                continue
-            if re.search(unicode(r'매출액', 'utf-8').encode('utf-8'), line) is not None:
-                price = int(re.search(unicode(r'(?<=단식:)[ ,\d]+', 'utf-8').encode('utf-8'), line).group().replace(',', ''))
-                break
-
-        for _ in range(300):
-            line = input_file.readline()
-            line = unicode(line, 'euc-kr').encode('utf-8')
-            if DEBUG: print("line1: %s" % line)
-            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:10]) is not None:
-                break
-        bokyeon = ['-1', '-1', '-1']
-        boksik = ['-1']
-        ssang = ['-1']
-        sambok = ['-1']
-        for _ in range(300):
-            line = input_file.readline()
-            line = unicode(line, 'euc-kr').encode('utf-8')
-            if DEBUG: print("line2: %s" % line)
-            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
-                break
-            res = re.search(r'(?<= 복:).+(?=4F)', line)
-            if res is not None:
-                res = res.group().split()
-                if len(res) == 2:
-                    boksik[0] = "%s%s" % (res[0], res[1])
-                elif len(res) == 1:
-                    boksik = res
-                else:
-                    print("not expected.. %s" % line)
-            res = re.search(r'(?<= 쌍:).+', line)
-            if res is not None:
-                res = res.group().split()
-                if len(res) >= 2:
-                    ssang[0] = "%s%s" % (res[0], res[1])
-                elif len(res) == 1:
-                    ssang = res
-                else:
-                    print("not expected.. %s" % line)
-            res = re.search(r'(?<=복연:).+', line)
-            if res is not None:
-                res = res.group().split()
-                if len(res) >= 6:
-                    bokyeon[0] = "%s%s" % (res[0], res[1])
-                    bokyeon[1] = "%s%s" % (res[2], res[3])
-                    bokyeon[2] = "%s%s" % (res[4], res[5])
-                elif len(res) == 3:
-                    bokyeon = res
-                else:
-                    print("not expected.. %s" % line)
-            res = re.search(r'(?<=삼복:).+', line)
-            if res is not None:
-                res = res.group().split()
-                if len(res) >= 2:
-                    sambok[0] = "%s%s" % (res[0], res[1])
-                elif len(res) == 1:
-                    sambok = res
-                else:
-                    print("not expected.. %s" % line)
-                break
         if DEBUG:
             print("price: %s" % price)
             print("%d, %s, %s, %s" % (len(bokyeon), bokyeon[0], bokyeon[1], bokyeon[2]))
-            print("%d, %s" % (len(boksik), boksik[0]))
-            print("%d, %s" % (len(ssang), ssang[0]))
-            print("%d, %s" % (len(sambok), sambok[0]))
+            print("%s" % boksik)
+            print("%s" % ssang)
+            print("%s" % sambok)
 
         for i in range(cnt):
             data[-cnt + i].extend([rating])
@@ -259,9 +258,10 @@ def parse_txt_race(filename):
             data[-cnt + i].extend([month])
             data[-cnt + i].extend([price])
             data[-cnt + i].extend(bokyeon)
-            data[-cnt + i].extend(boksik)
-            data[-cnt + i].extend(ssang)
-            data[-cnt + i].extend(sambok)
+            data[-cnt + i].append(boksik)
+            data[-cnt + i].append(ssang)
+            data[-cnt + i].append(sambok)
+        # 쌍, 복연, 삼복, 삼쌍 배당률 가져오기
 
         assert get_rate
     return data
@@ -480,7 +480,7 @@ def get_data(filename):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/2/rcresult/rcresult_2_20090404.txt'
+    filename = '../txt/2/rcresult/rcresult_2_20151205.txt'
     data = get_data(filename)
     print(data)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)

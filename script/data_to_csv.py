@@ -16,7 +16,7 @@ def get_data(begin_date, end_date, fname_csv):
     date += datetime.timedelta(days=-1)
     while date < train_ed:
         date += datetime.timedelta(days=1)
-        if date.weekday() != 5 and date.weekday() != 6:
+        if date.weekday() != 4 and date.weekday() != 5:
             continue
         filename = "../txt/2/rcresult/rcresult_2_%02d%02d%02d.txt" % (date.year, date.month, date.day)
         if not os.path.isfile(filename):

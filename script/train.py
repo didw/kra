@@ -224,9 +224,10 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
             res1 = sim.simulation1(pred, R_test)
             res2 = sim.simulation2(pred, R_test)
             res3 = sim.simulation3(pred, R_test)
-            res4 = sim.simulation4(pred, R_test)
-            res5 = sim.simulation5(pred, R_test)
-            res6 = sim.simulation6(pred, R_test)
+            res4, res5, res6 = 0, 0, 0
+            #res4 = sim.simulation4(pred, R_test)
+            #res5 = sim.simulation5(pred, R_test)
+            #res6 = sim.simulation6(pred, R_test)
 
         print("train data: %s - %s" % (str(train_bd), str(train_ed)))
         print("test data: %s - %s" % (str(test_bd), str(test_ed)))
