@@ -39,7 +39,6 @@ def get_dbudam(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            print("%s" % itemList[1].string.encode('utf-8'))
             if name in itemList[1].string.encode('utf-8'):
                 return unicode(itemList[7].string)
     print("can not find %s in %s" % (name, fname))

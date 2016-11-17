@@ -159,7 +159,7 @@ def simulation4(pred, ans):
         if i >= len(pred):
             break
         sim_data = [pred[i]]
-        if type(ans['bokyeon1']) in [type(1), type(1.1)] or len(ans['bokyeon1'][i]) <= 6:
+        if type(ans['bokyeon1'][i]) in [type(1), type(1.1)] or len(ans['bokyeon1'][i]) <= 6:
             return 0
         r4 = [get_num(ans['bokyeon1'][i], bet)]
         r4.append(get_num(ans['bokyeon2'][i], bet))
@@ -205,7 +205,7 @@ def simulation5(pred, ans):
         if i >= len(pred):
             break
         sim_data = [pred[i]]
-        if type(ans['ssang']) in [type(1), type(1.1)] or len(ans['ssang'][i]) <= 6:
+        if type(ans['ssang'][i]) in [type(1), type(1.1)] or len(ans['ssang'][i]) <= 6:
             return 0
         r5 = float(ans['ssang'][i][6:]) - 1
         if r5 * bet > 2000:
@@ -247,7 +247,7 @@ def simulation6(pred, ans):
         if i >= len(pred):
             break
         sim_data = [pred[i]]
-        if type(ans['smabok']) in [type(1), type(1.1)] or len(ans['sambok'][i]) <= 9:
+        if type(ans['sambok'][i]) in [type(1), type(1.1)] or len(ans['sambok'][i]) <= 9:
             return 0
         r6 = float(ans['sambok'][i][9:]) - 1
         if r6 * bet > 2000:

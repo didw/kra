@@ -172,9 +172,9 @@ def parse_txt_race(filename):
             if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:10]) is not None:
                 break
         bokyeon = ['-1', '-1', '-1']
-        boksik = ['-1']
-        ssang = ['-1']
-        sambok = ['-1']
+        boksik = '-1'
+        ssang = '-1'
+        sambok = '-1'
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
@@ -184,48 +184,56 @@ def parse_txt_race(filename):
             if res is not None:
                 res = res.group().split()
                 if len(res) == 2:
-                    boksik[0] = "%s%s" % (res[0], res[1])
+                    boksik = res[1]
                 elif len(res) == 1:
-                    boksik = res
+                    boksik = res[0]
                 else:
                     print("not expected.. %s" % line)
             res = re.search(r'(?<= 쌍:).+', line)
             if res is not None:
                 res = res.group().split()
                 if len(res) >= 2:
-                    ssang[0] = "%s%s" % (res[0], res[1])
+                    ssang = res[1]
                 elif len(res) == 1:
-                    ssang = res
+                    ssang = res[0][6:]
                 else:
                     print("not expected.. %s" % line)
             res = re.search(r'(?<=복연:).+', line)
             if res is not None:
                 res = res.group().split()
-                if len(res) >= 6:
-                    bokyeon[0] = "%s%s" % (res[0], res[1])
-                    bokyeon[1] = "%s%s" % (res[2], res[3])
-                    bokyeon[2] = "%s%s" % (res[4], res[5])
-                elif len(res) == 3:
-                    bokyeon = res
-                else:
-                    print("not expected.. %s" % line)
+                try:
+                    if len(res) >= 6:
+                        bokyeon[0] = "%s%s" % (res[0], res[1])
+                        bokyeon[1] = "%s%s" % (res[2], res[3])
+                        bokyeon[2] = "%s%s" % (res[4], res[5])
+                        a = float(bokyeon[0][6:])
+                        a = float(bokyeon[1][6:])
+                        a = float(bokyeon[2][6:])
+                    elif len(res) == 3:
+                        bokyeon = res
+                        a = float(bokyeon[0][6:])
+                        a = float(bokyeon[1][6:])
+                        a = float(bokyeon[2][6:])
+                    else:
+                        print("not expected.. %s" % line)
+                except:
+                    print("can not parsing.. %s in %s" % (line, filename))
             res = re.search(r'(?<=삼복:).+', line)
             if res is not None:
                 res = res.group().split()
                 if len(res) >= 2:
-                    sambok[0] = "%s%s" % (res[0], res[1])
+                    sambok = res[1]
                 elif len(res) == 1:
-                    sambok = res
+                    sambok = res[0]
                 else:
                     print("not expected.. %s" % line)
                 break
         if DEBUG:
             print("price: %s" % price)
             print("%d, %s, %s, %s" % (len(bokyeon), bokyeon[0], bokyeon[1], bokyeon[2]))
-            print("%d, %s" % (len(boksik), boksik[0]))
-            print("%d, %s" % (len(ssang), ssang[0]))
-            print("%d, %s" % (len(sambok), sambok[0]))
-
+            print("%s" % boksik)
+            print("%s" % ssang)
+            print("%s" % sambok)
         for i in range(cnt):
             data[-cnt + i].extend([rating])
             data[-cnt + i].extend([cnt])
@@ -233,9 +241,9 @@ def parse_txt_race(filename):
             data[-cnt + i].extend([month])
             data[-cnt + i].extend([price])
             data[-cnt + i].extend(bokyeon)
-            data[-cnt + i].extend(boksik)
-            data[-cnt + i].extend(ssang)
-            data[-cnt + i].extend(sambok)
+            data[-cnt + i].append(boksik)
+            data[-cnt + i].append(ssang)
+            data[-cnt + i].append(sambok)
         # 쌍, 복연, 삼복, 삼쌍 배당률 가져오기
 
         assert get_rate
@@ -457,7 +465,7 @@ def get_data(filename):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/3/rcresult/rcresult_3_20080718.txt'
+    filename = '../txt/3/rcresult/rcresult_3_20130224.txt'
     data = get_data(filename)
     print(data)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)
