@@ -7,6 +7,7 @@ import os.path
 from sklearn.ensemble.forest import RandomForestRegressor
 from sklearn.externals import joblib
 import random
+import numpy as np
 
 
 # 1 win
@@ -17,16 +18,19 @@ def simulation1(pred, ans):
     bet = 100
     assert len(pred) == len(ans)
     while True:
+        cache = np.zeros(20)
         if i >= len(pred):
             break
         sim_data = [pred[i]]
         r1 = float(ans['r1'][i])
         rcno = int(ans['rcno'][i])
+        cache[int(ans['rank'][i])] = 1
         i += 1
         total = 1
         rack_data = False
         total_player = 0
-        while i < len(pred) and int(ans['rcno'][i]) == rcno:
+        while i < len(pred) and int(ans['rcno'][i]) == rcno and cache[int(ans['rank'][i])] == 0:
+            cache[int(ans['rank'][i])] = 1
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
                 rack_data = True
             sim_data.append(pred[i])
@@ -35,7 +39,7 @@ def simulation1(pred, ans):
             total += 1
             i += 1
         a = price*0.8 / r1
-        r1 = (price+100000)*0.8 / (a+100000) - 1.0
+        r1 = (price+300000)*0.8 / (a+300000) - 1.0
         if r1*bet > 2000:
             r1 *= 0.8
         # if rack_data or total < total_player:
@@ -57,17 +61,20 @@ def simulation2(pred, ans):
     bet = 100
     assert len(pred) == len(ans)
     while True:
+        cache = np.zeros(20)
         rcno += 1
         if i >= len(pred):
             break
         sim_data = [pred[i]]
         r2 = [float(ans['r2'][i]) - 1]
         rc_no = int(ans['rcno'][i])
+        cache[int(ans['rank'][i])] = 1
         i += 1
         total = 1
         rack_data = False
         total_player = 0
-        while i < len(pred) and int(ans['rcno'][i]) == rc_no:
+        while i < len(pred) and int(ans['rcno'][i]) == rc_no and cache[int(ans['rank'][i])] == 0:
+            cache[int(ans['rank'][i])] = 1
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
                 rack_data = True
             sim_data.append(pred[i])
@@ -105,6 +112,7 @@ def simulation3(pred, ans):
     res1 = 0
     assert len(pred) == len(ans)
     while True:
+        cache = np.zeros(20)
         if i >= len(pred):
             break
         sim_data = [pred[i]]
@@ -112,11 +120,13 @@ def simulation3(pred, ans):
         if r3*bet > 2000:
             r3 *= 0.8
         rcno = int(ans['rcno'][i])
+        cache[int(ans['rank'][i])] = 1
         i += 1
         total = 1
         rack_data = False
         total_player = 0
-        while i < len(pred) and int(ans['rcno'][i]) == rcno:
+        while i < len(pred) and int(ans['rcno'][i]) == rcno and cache[int(ans['rank'][i])] == 0:
+            cache[int(ans['rank'][i])] = 1
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
                 rack_data = True
             sim_data.append(pred[i])
@@ -156,6 +166,7 @@ def simulation4(pred, ans):
     res1 = 0
     assert len(pred) == len(ans)
     while True:
+        cache = np.zeros(20)
         if i >= len(pred):
             break
         sim_data = [pred[i]]
@@ -165,11 +176,13 @@ def simulation4(pred, ans):
         r4.append(get_num(ans['bokyeon2'][i], bet))
         r4.append(get_num(ans['bokyeon3'][i], bet))
         rcno = int(ans['rcno'][i])
+        cache[int(ans['rank'][i])] = 1
         i += 1
         total = 1
         rack_data = False
         total_player = 0
-        while i < len(pred) and int(ans['rcno'][i]) == rcno:
+        while i < len(pred) and int(ans['rcno'][i]) == rcno and cache[int(ans['rank'][i])] == 0:
+            cache[int(ans['rank'][i])] = 1
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
                 rack_data = True
             sim_data.append(pred[i])
@@ -202,6 +215,7 @@ def simulation5(pred, ans):
     res1 = 0
     assert len(pred) == len(ans)
     while True:
+        cache = np.zeros(20)
         if i >= len(pred):
             break
         sim_data = [pred[i]]
@@ -211,11 +225,13 @@ def simulation5(pred, ans):
         if r5 * bet > 2000:
             r5 *= 0.8
         rcno = int(ans['rcno'][i])
+        cache[int(ans['rank'][i])] = 1
         i += 1
         total = 1
         rack_data = False
         total_player = 0
-        while i < len(pred) and int(ans['rcno'][i]) == rcno:
+        while i < len(pred) and int(ans['rcno'][i]) == rcno and cache[int(ans['rank'][i])] == 0:
+            cache[int(ans['rank'][i])] = 1
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
                 rack_data = True
             sim_data.append(pred[i])
@@ -244,6 +260,7 @@ def simulation6(pred, ans):
     res1 = 0
     assert len(pred) == len(ans)
     while True:
+        cache = np.zeros(20)
         if i >= len(pred):
             break
         sim_data = [pred[i]]
@@ -253,11 +270,13 @@ def simulation6(pred, ans):
         if r6 * bet > 2000:
             r6 *= 0.8
         rcno = int(ans['rcno'][i])
+        cache[int(ans['rank'][i])] = 1
         i += 1
         total = 1
         rack_data = False
         total_player = 0
-        while i < len(pred) and int(ans['rcno'][i]) == rcno:
+        while i < len(pred) and int(ans['rcno'][i]) == rcno and cache[int(ans['rank'][i])] == 0:
+            cache[int(ans['rank'][i])] = 1
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
                 rack_data = True
             sim_data.append(pred[i])
@@ -285,6 +304,7 @@ def simulation_all(pred, ans):
     res = 0
     assert len(pred) == len(ans)
     while True:
+        cache = np.zeros(20)
         if i >= len(pred):
             break
         sim_data = [pred[i]]
@@ -292,11 +312,13 @@ def simulation_all(pred, ans):
         r2 = [float(ans['r2'][i]) - 1]
         r3 = float(ans['r3'][i]) - 1
         rcno = int(ans['rcno'][i])
+        cache[int(ans['rank'][i])] = 1
         i += 1
         total = 1
         rack_data = False
         total_player = 0
-        while i < len(pred) and int(ans['rcno'][i]) == rcno:
+        while i < len(pred) and int(ans['rcno'][i]) == rcno and cache[int(ans['rank'][i])] == 0:
+            cache[int(ans['rank'][i])] = 1
             sim_data.append(pred[i])
             r2.append(float(ans['r2'][i]) - 1)
             total_player = int(ans['cnt'][i])

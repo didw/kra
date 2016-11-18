@@ -12,6 +12,7 @@ import parse_xml_train as xtr
 import datetime
 import sys
 import os
+import get_detail_data as gdd
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -215,9 +216,26 @@ def parse_xml_entry(meet, date, number):
                            itemElm.ord1y.string, itemElm.ord2y.string)
         jk_win = get_jk_win(data_jk, itemElm.jkname.string)
         tr_win = get_tr_win(data_tr, itemElm.trname.string)
+		
+        hrname = itemElm.hrname.string
+        dbudam = gdd.get_dbudam(1, date, int(rcno), hrname)
+        drweight = gdd.get_drweight(1, date, int(rcno), hrname)
+        lastday = gdd.get_lastday(1, date, int(rcno), hrname)
+        train_state = gdd.get_train_state(1, date, int(rcno), hrname)
+
         adata = [itemElm.rcdist.string,
                  humidity,
                  kind,
+				 
+                 dbudam,
+                 drweight,
+                 lastday,
+                 train_state[0],
+                 train_state[1],
+                 train_state[2],
+                 train_state[3],
+                 train_state[4],
+
                  itemElm.chulno.string,
                  itemElm.hrname.string,
                  itemElm.prdctyname.string,
@@ -279,7 +297,7 @@ def parse_xml_entry(meet, date, number):
         data.append(adata)
 
     df = pd.DataFrame(data)
-    df.columns = ['course', 'humidity', 'kind', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', 'owner',
+    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', 'owner', # 20
                   'weight', 'dweight', 'cnt', 'rcno', 'month', 'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1',
                   'hr_ny2', 'hr_y1', 'hr_y2', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl',
                   'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1',

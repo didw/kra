@@ -351,6 +351,15 @@ def get_num(line):
 
 
 
+def typecheck(input):
+    print(type(input))
+    print(type(1))
+    print(type(1.1))
+    if re.search(r'\d', input[:1]) is None:
+        print("it's not a number")
+    else:
+        print("it's a number")
+
 if __name__ == '__main__':
     print(get_num("③④3.4"))
 

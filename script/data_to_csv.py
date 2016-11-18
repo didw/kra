@@ -40,8 +40,8 @@ if __name__ == '__main__':
         fname_csv = '../data/1_recent_1year.csv'
         get_data(begin_date, end_date, fname_csv)
     else:
-        begin_date = datetime.date(2007, 1, 1)
+        begin_date = datetime.date(2009, 12, 1)
         end_date = datetime.date.today()
-        fname_csv = '../data/1_2007_2016.csv'
+        fname_csv = '../data/1_2007_2016_v1.1.csv'
         get_data(begin_date, end_date, fname_csv)
 

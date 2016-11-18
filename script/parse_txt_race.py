@@ -195,36 +195,27 @@ def parse_txt_race(filename):
                 res = res.group().split()
                 if len(res) >= 2:
                     ssang = res[1]
-                elif len(res) == 1:
+                elif len(res) == 1 and len(res[0]) > 6:
                     ssang = res[0][6:]
                 else:
                     print("not expected.. %s" % line)
             res = re.search(r'(?<=복연:).+', line)
             if res is not None:
                 res = res.group().split()
-                try:
-                    if len(res) >= 6 and float(res[1]):
-                        bokyeon[0] = "%s%s" % (res[0], res[1])
-                        bokyeon[1] = "%s%s" % (res[2], res[3])
-                        bokyeon[2] = "%s%s" % (res[4], res[5])
-                        a = float(bokyeon[0][6:])
-                        a = float(bokyeon[1][6:])
-                        a = float(bokyeon[2][6:])
-                    elif len(res) == 3:
-                        bokyeon = res
-                        a = float(bokyeon[0][6:])
-                        a = float(bokyeon[1][6:])
-                        a = float(bokyeon[2][6:])
-                    else:
-                        print("not expected.. %s" % line)
-                except:
+                if len(res) >= 6 and re.search(r'\d', res[1][:1]) is not None:
+                    bokyeon[0] = "%s%s" % (res[0], res[1])
+                    bokyeon[1] = "%s%s" % (res[2], res[3])
+                    bokyeon[2] = "%s%s" % (res[4], res[5])
+                elif len(res) == 3:
+                    bokyeon = res
+                else:
                     print("can not parsing.. %s in %s" % (line, filename))
             res = re.search(r'(?<=삼복:).+', line)
             if res is not None:
                 res = res.group().split()
                 if len(res) >= 2:
                     sambok = res[1]
-                elif len(res) == 1:
+                elif len(res) == 1 and len(res[0]) > 9:
                     sambok = res[0][9:]
                 else:
                     print("not expected.. %s" % line)
@@ -474,7 +465,7 @@ def get_data(filename):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/1/rcresult/rcresult_1_20131215.txt'
+    filename = '../txt/1/rcresult/rcresult_1_20160124.txt'
     data = get_data(filename)
     print(data)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)
