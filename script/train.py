@@ -108,8 +108,9 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0):
     del X_data['boksik']
     del X_data['ssang']
     del X_data['sambok']
-    del X_data['weight']
-    del X_data['dweight']
+    #del X_data['weight']
+    #del X_data['dweight']
+    #del X_data['drweight']
     #print(R_data)
     return X_data, Y_data, R_data, data
 
@@ -187,7 +188,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/3_2007_2016.csv', course)
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/3_2007_2016.csv', 0)
         print("%d data is fully loaded" % len(X_train))
         if len(X_train) < 10:
             res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
@@ -231,12 +232,12 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         print("train data: %s - %s" % (str(train_bd), str(train_ed)))
         print("test data: %s - %s" % (str(test_bd), str(test_ed)))
         print("course: %d(0: all)" % course)
-        print("\tsingle,\tonein2,\ttwoin3,\tbokyeon,\tssang,\tsambok")
+        print("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok")
         print("result: %.0f,\t%.0f,\t%.0f,\t%.0f,\t%.0f,\t%.0f\n" % (res1, res2, res3, res4, res5, res6))
         f_result = open(fname_result, 'a')
         f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
         f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
-        f_result.write("\tsingle,\tonein2,\ttwoin3,\tbokyeon,\tssang,\tsambok")
+        f_result.write("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok")
         f_result.write("result: %.0f, %.0f, %.0f, %.0f, %.0f, %.0f\n" % (res1, res2, res3, res4, res5, res6))
         f_result.close()
 
@@ -248,8 +249,8 @@ if __name__ == '__main__':
     train_ed = datetime.date(2016, 10, 31)
     test_bd = datetime.date(2016, 1, 1)
     test_ed = datetime.date(2016, 11, 12)
-    for delta_year in [1, 2, 4]:
-        for c in [1000, 1200, 1400, 1800, 1600, 2000, 2200, 1300, 1900, 1500, 0]:
+    for delta_year in [2]:
+        for c in [1000, 1200, 1400, 1800, 1600, 2000, 2200, 1300, 1900, 1500]:
             outfile = '../data/weekly_result_m3_y%d_c%d.txt' % (delta_year, c)
             simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c)
     remove_outlier = False
