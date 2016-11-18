@@ -342,12 +342,24 @@ def load_save_csv():
     df.to_csv('../log/2016_2.csv', index=False)
 
 
+def get_num(line):
+    num_circle_list = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭"
+    a = num_circle_list.find(line[:3]) / 3
+    b = num_circle_list.find(line[3:6]) / 3
+    r = float(line[6:])
+    return [a, b, r]
+
+
+
 def typecheck(input):
     print(type(input))
     print(type(1))
     print(type(1.1))
-    print(type(float(input)) in [type(1), type(1.1)])
+    if re.search(r'\d', input[:1]) is None:
+        print("it's not a number")
+    else:
+        print("it's a number")
 
 if __name__ == '__main__':
-    print(typecheck("s1.2"))
+    print(typecheck("1.2"))
 

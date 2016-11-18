@@ -12,6 +12,7 @@ import parse_xml_train as xtr
 import datetime
 import sys
 import os
+import get_detail_data as gdd
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -81,10 +82,8 @@ def get_hr_win(tt, t1, t2, yt, y1, y2):
 
 def get_jk_win(data, name):
     res = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
-    print("name: %s " % name)
     for idx, line in data.iterrows():
         if line['jkName'] == name:
-            print("%s" % line)
             res[0] = tt = int(line['cntT'])
             res[1] = t1 = int(line['ord1T'])
             res[2] = t2 = int(line['ord2T'])
@@ -359,9 +358,26 @@ def parse_xml_entry(meet, date, number):
         hr_info = parse_txt_horse(datetime.date(date/10000, date/100%100, date%100), int(itemElm.rcno.string), itemElm.hrname.string)
         jk_win = parse_txt_jockey(datetime.date(date/10000, date/100%100, date%100), itemElm.jkname.string)
         tr_win = parse_txt_trainer(datetime.date(date/10000, date/100%100, date%100), itemElm.trname.string)
+
+        hrname = itemElm.hrname.string
+        dbudam = gdd.get_dbudam(2, date, int(rcno), hrname)
+        drweight = gdd.get_drweight(2, date, int(rcno), hrname)
+        lastday = gdd.get_lastday(2, date, int(rcno), hrname)
+        train_state = gdd.get_train_state(2, date, int(rcno), hrname)
+
         adata = [itemElm.rcdist.string,
                  humidity,
                  kind,
+
+                 dbudam,
+                 drweight,
+                 lastday,
+                 train_state[0],
+                 train_state[1],
+                 train_state[2],
+                 train_state[3],
+                 train_state[4],
+
                  itemElm.chulno.string,
                  itemElm.hrname.string,
                  itemElm.prdctyname.string,
@@ -423,7 +439,7 @@ def parse_xml_entry(meet, date, number):
         data.append(adata)
 
     df = pd.DataFrame(data)
-    df.columns = ['course', 'humidity', 'kind', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', 'owner',
+    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', 'owner', # 20
                   'weight', 'dweight', 'cnt', 'rcno', 'month', 'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1',
                   'hr_ny2', 'hr_y1', 'hr_y2', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl',
                   'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1',

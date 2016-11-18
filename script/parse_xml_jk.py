@@ -16,18 +16,18 @@ def parse_xml_jk(meet):
     for itemElm in xml_text.findAll('item'):
         #print itemElm
         try:
-            data.append([itemElm.birth.string,
-                        itemElm.cntt.string,
-                        itemElm.cnty.string,
-                        itemElm.jkname.string,
-                        itemElm.ord1t.string,
-                        itemElm.ord1y.string,
-                        itemElm.ord2t.string,
-                        itemElm.ord2y.string,
-                        itemElm.part.string,
-                        itemElm.stdate.string,
-                        itemElm.wgother.string,
-                        itemElm.wgpart.string])
+            data.append([unicode(itemElm.birth.string),
+                         unicode(itemElm.cntt.string),
+                         unicode(itemElm.cnty.string),
+                         unicode(itemElm.jkname.string),
+                         unicode(itemElm.ord1t.string),
+                         unicode(itemElm.ord1y.string),
+                         unicode(itemElm.ord2t.string),
+                         unicode(itemElm.ord2y.string),
+                         unicode(itemElm.part.string),
+                         unicode(itemElm.stdate.string),
+                         unicode(itemElm.wgother.string),
+                         unicode(itemElm.wgpart.string)])
         except:
             pass
 
