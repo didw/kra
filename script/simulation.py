@@ -39,7 +39,7 @@ def simulation1(pred, ans):
             total += 1
             i += 1
         a = price*0.8 / r1
-        r1 = (price+300000)*0.8 / (a+300000) - 1.0
+        r1 = (price+100000)*0.8 / (a+100000) - 1.0
         if r1*bet > 2000:
             r1 *= 0.8
         # if rack_data or total < total_player:
