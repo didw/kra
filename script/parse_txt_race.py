@@ -193,7 +193,7 @@ def parse_txt_race(filename):
             res = re.search(r'(?<= 쌍:).+', line)
             if res is not None:
                 res = res.group().split()
-                if len(res) >= 2:
+                if len(res) >= 2 and re.search(r'\d', res[1][:1]) is not None:
                     ssang = res[1]
                 elif len(res) == 1 and len(res[0]) > 6:
                     ssang = res[0][6:]
@@ -213,7 +213,7 @@ def parse_txt_race(filename):
             res = re.search(r'(?<=삼복:).+', line)
             if res is not None:
                 res = res.group().split()
-                if len(res) >= 2:
+                if len(res) >= 2 and re.search(r'\d', res[1][:1]) is not None:
                     sambok = res[1]
                 elif len(res) == 1 and len(res[0]) > 9:
                     sambok = res[0][9:]
