@@ -68,6 +68,7 @@ def predict_next(estimator, meet, date, rcno):
     del X_data['jockey']
     del X_data['trainer']
     del X_data['owner']
+    del X_data['index']
     pred = pd.DataFrame(estimator.predict(X_data))
     pred.columns = ['predict']
     __DEBUG__ = True
@@ -104,20 +105,14 @@ def predict_next(estimator, meet, date, rcno):
 
 if __name__ == '__main__':
     meet = 1
-    date = 20161113
+    date = 20161119
     rcno = 11
     #import get_api
     #get_api.get_data(meet, date/100)
-    estimator1 = tr.training(datetime.date(2011, 1, 1), datetime.date(2016, 10, 31))
-    estimator2 = tr.training(datetime.date(2011, 11, 1), datetime.date(2016, 10, 31))
-    estimator3 = tr.training(datetime.date(2015, 11, 1), datetime.date(2016, 10, 31))
-    import get_txt
-    get_txt.download_txt(datetime.date.today(), datetime.date.today(), 1)
-    estimator4 = tr.training(datetime.date.today() + datetime.timedelta(days=-365), datetime.date.today())
+    #import get_txt
+    #get_txt.download_txt(datetime.date.today(), datetime.date.today(), 1)
+    estimator1 = tr.training(datetime.date.today() + datetime.timedelta(days=-365), datetime.date.today())
 
     predict_next(estimator1, meet, date, rcno)
-    predict_next(estimator2, meet, date, rcno)
-    predict_next(estimator3, meet, date, rcno)
-    predict_next(estimator4, meet, date, rcno)
 
 
