@@ -153,6 +153,8 @@ def get_num(line, bet):
 
     a = num_circle_list.find(line[:3]) / 3 + 1
     b = num_circle_list.find(line[3:6]) / 3 + 1
+    if a == -1 or b == -1:
+        return [-1, -1, -1]
     r = float(line[6:]) - 1
     if r * bet > 2000:
         r *= 0.8
@@ -175,6 +177,8 @@ def simulation4(pred, ans):
         r4 = [get_num(ans['bokyeon1'][i], bet)]
         r4.append(get_num(ans['bokyeon2'][i], bet))
         r4.append(get_num(ans['bokyeon3'][i], bet))
+        if -1 in r4[0] or -1 in r4[1] or -1 in r4[2]:
+            return 0
         rcno = int(ans['rcno'][i])
         cache[int(ans['rank'][i])] = 1
         i += 1
@@ -219,9 +223,7 @@ def simulation5(pred, ans):
         if i >= len(pred):
             break
         sim_data = [pred[i]]
-        if type(ans['ssang'][i]) in [type(1), type(1.1)] or len(ans['ssang'][i]) <= 6:
-            return 0
-        r5 = float(ans['ssang'][i][6:]) - 1
+        r5 = float(ans['ssang'][i]) - 1
         if r5 * bet > 2000:
             r5 *= 0.8
         rcno = int(ans['rcno'][i])
@@ -264,9 +266,7 @@ def simulation6(pred, ans):
         if i >= len(pred):
             break
         sim_data = [pred[i]]
-        if type(ans['sambok'][i]) in [type(1), type(1.1)] or len(ans['sambok'][i]) <= 9:
-            return 0
-        r6 = float(ans['sambok'][i][9:]) - 1
+        r6 = float(ans['sambok'][i]) - 1
         if r6 * bet > 2000:
             r6 *= 0.8
         rcno = int(ans['rcno'][i])
@@ -287,7 +287,7 @@ def simulation6(pred, ans):
         #     continue
         sim_data = pd.Series(sim_data)
         top = sim_data.rank()
-        if total < 2:
+        if total < 3:
             continue
         succeed = False
         if top[0] == 1 and top[1] == 2 and top[2] == 3:
