@@ -106,7 +106,7 @@ def predict_next(estimator, meet, date, rcno):
 if __name__ == '__main__':
     meet = 1
     date = 20161119
-    rcno = 11
+    rcno = 12
     #import get_api
     #get_api.get_data(meet, date/100)
     #import get_txt

@@ -323,7 +323,7 @@ if __name__ == '__main__':
     test_bd = datetime.date(2016, 1, 1)
     test_ed = datetime.date(2016, 11, 12)
     for delta_year in [1]:
-        simulation_weekly_train0(test_bd, test_ed, 0, delta_year, [1200, 1400, 1700])
+        simulation_weekly_train0(test_bd, test_ed, 0, delta_year, [1000, 1100, 1300, 1800, 1900, 2000, 2300])
         # for c in [1700, 1200, 1400]:#1400, 1000, 1800, 1700, 2000, 1200, 1900, 2300, 1300, 1100]:
         #     outfile = '../data/weekly_result_m1_y%d_c%d.txt' % (delta_year, c)
         #     simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c)
