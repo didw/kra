@@ -179,7 +179,7 @@ def parse_txt_race(filename):
             res = re.search(r'(?<= 쌍:).+', line)
             if res is not None:
                 res = res.group().split()
-                if len(res) >= 2:
+                if len(res) >= 2 and re.search(r'\d', res[1][:1]) is not None:
                     ssang = res[1]
                 elif len(res) == 1 and len(res[0]) > 6:
                     ssang = res[0][6:]
@@ -188,7 +188,7 @@ def parse_txt_race(filename):
             res = re.search(r'(?<=복연:).+', line)
             if res is not None:
                 res = res.group().split()
-                if re.search(r'\d', res[1][:1]) is not None:
+                if len(res) >= 6 and re.search(r'\d', res[1][:1]) is not None:
                     bokyeon[0] = "%s%s" % (res[0], res[1])
                     bokyeon[1] = "%s%s" % (res[2], res[3])
                     bokyeon[2] = "%s%s" % (res[4], res[5])
@@ -199,7 +199,7 @@ def parse_txt_race(filename):
             res = re.search(r'(?<=삼복:).+', line)
             if res is not None:
                 res = res.group().split()
-                if len(res) >= 2:
+                if len(res) >= 2 and re.search(r'\d', res[1][:1]) is not None:
                     sambok = res[1]
                 elif len(res) == 1 and len(res[0]) > 9:
                     sambok = res[0][9:]
