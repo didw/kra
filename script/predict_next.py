@@ -68,6 +68,7 @@ def predict_next(estimator, meet, date, rcno):
     del X_data['jockey']
     del X_data['trainer']
     del X_data['owner']
+    del X_data['index']
     pred = pd.DataFrame(estimator.predict(X_data))
     pred.columns = ['predict']
     __DEBUG__ = True
@@ -93,6 +94,8 @@ def predict_next(estimator, meet, date, rcno):
                     print("%s, 2nd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
                 elif v == 3:
                     print("%s, 3rd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
+                elif v == 4:
+                    print("%s, 4th: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
             print("")
             rctime = []
             rcdata = []
@@ -104,20 +107,12 @@ def predict_next(estimator, meet, date, rcno):
 
 if __name__ == '__main__':
     meet = 3
-    date = 20161113
-    rcno = 11
+    date = 20160501
+    rcno = 0
     #import get_api
     #get_api.get_data(meet, date/100)
-    estimator1 = tr.training(datetime.date(2011, 1, 1), datetime.date(2016, 10, 31))
-    estimator2 = tr.training(datetime.date(2011, 11, 1), datetime.date(2016, 10, 31))
-    estimator3 = tr.training(datetime.date(2015, 11, 1), datetime.date(2016, 10, 31))
-    import get_txt
-    get_txt.download_txt(datetime.date.today(), datetime.date.today(), 1)
-    estimator4 = tr.training(datetime.date.today() + datetime.timedelta(days=-365), datetime.date.today())
+    estimator = tr.training(datetime.date(2016, 4, 25) + datetime.timedelta(days=-365*2), datetime.date(2016, 4, 25))
 
-    predict_next(estimator1, meet, date, rcno)
-    predict_next(estimator2, meet, date, rcno)
-    predict_next(estimator3, meet, date, rcno)
-    predict_next(estimator4, meet, date, rcno)
+    predict_next(estimator, meet, date, rcno)
 
 

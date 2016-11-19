@@ -108,6 +108,7 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0):
     del X_data['boksik']
     del X_data['ssang']
     del X_data['sambok']
+    del X_data['index']
     #del X_data['weight']
     #del X_data['dweight']
     #del X_data['drweight']
@@ -130,16 +131,12 @@ def training(train_bd, train_ed, course=0):
     model_name = "../model/%d_%d_%s.pkl" % (train_bd_i, train_ed_i, course)
 
     from sklearn.externals import joblib
-    if train_bd < datetime.date.today() + datetime.timedelta(days=-365) and os.path.exists(model_name):
+    if os.path.exists(model_name) and False:
         print("model exist. try to loading..")
         estimator = joblib.load(model_name)
     else:
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-        if train_bd >= datetime.date.today() + datetime.timedelta(days=-365):
-            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/3_recent_1year.csv', course)
-        else:
-            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/3_2007_2016.csv', course)
-        print("%d data is fully loaded" % len(X_train))
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/3_2007_2016.csv', course)
 
         estimator = RandomForestRegressor(random_state=0, n_estimators=100)
         estimator.fit(X_train, Y_train)
@@ -242,17 +239,93 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         f_result.close()
 
 
+def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, courses=[0]):
+    today = begin_date
+    while today <= end_date:
+        while today.weekday() != 2:
+            today = today + datetime.timedelta(days=1)
+
+        today = today + datetime.timedelta(days=1)
+        train_bd = today + datetime.timedelta(days=-365*delta_year)
+        #train_bd = datetime.date(2011, 1, 1)
+        train_ed = today + datetime.timedelta(days=-delta_day)
+        test_bd = today + datetime.timedelta(days=1)
+        test_ed = today + datetime.timedelta(days=3)
+        test_bd_s = "%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day)
+        test_ed_s = "%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day)
+        if not os.path.exists('../txt/3/rcresult/rcresult_3_%s.txt' % test_bd_s) and not os.path.exists('../txt/3/rcresult/rcresult_1_%s.txt' % test_ed_s):
+            continue
+        remove_outlier = False
+        train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
+        train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
+
+        print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/3_2007_2016.csv', 0)
+        print("%d data is fully loaded" % len(X_train))
+        if len(X_train) < 10:
+            res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
+        else:
+            if remove_outlier:
+                X_train, Y_train = delete_lack_data(X_train, Y_train)
+            print("Start train model")
+            estimator = RandomForestRegressor(random_state=0, n_estimators=100)
+            estimator.fit(X_train, Y_train)
+            print("Finish train model")
+            print("important factor")
+            #print(X_train.columns)
+            #print(estimator.feature_importances_)
+            score = estimator.score(X_train, Y_train)
+            print("Score with the entire training dataset = %.2f" % score)
+
+        test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
+        test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
+        for course in courses:
+            fname_result = '../data/weekly_result_train0_m1_y%d_c%d.txt' % (delta_year, course)
+            print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
+            X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/3_2007_2016.csv', course)
+            print("%d data is fully loaded" % (len(X_test)))
+            if len(X_test) == 0 or len(X_train) < 10:
+                res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
+            else:
+                DEBUG = False
+                if DEBUG:
+                    X_test.to_csv('../log/2016_7_9.csv', index=False)
+                score = estimator.score(X_test, Y_test)
+                print("Score with the entire test dataset = %.2f" % score)
+                pred = estimator.predict(X_test)
+
+                res1 = sim.simulation1(pred, R_test)
+                res2 = sim.simulation2(pred, R_test)
+                res3 = sim.simulation3(pred, R_test)
+                res4 = sim.simulation4(pred, R_test)
+                res5 = sim.simulation5(pred, R_test)
+                res6 = sim.simulation6(pred, R_test)
+
+            print("train data: %s - %s" % (str(train_bd), str(train_ed)))
+            print("test data: %s - %s" % (str(test_bd), str(test_ed)))
+            print("course: %d(0: all)" % course)
+            print("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok")
+            print("result: %.0f,\t%.0f,\t%.0f,\t%.0f,\t%.0f,\t%.0f\n" % (res1, res2, res3, res4, res5, res6))
+            f_result = open(fname_result, 'a')
+            f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
+            f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+            f_result.write("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok")
+            f_result.write("result: %.0f, %.0f, %.0f, %.0f, %.0f, %.0f\n" % (res1, res2, res3, res4, res5, res6))
+            f_result.close()
+
+
 if __name__ == '__main__':
     delta_year = 4
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2016, 1, 1)
-    test_ed = datetime.date(2016, 11, 12)
+    test_bd = datetime.date(2015, 11, 14)
+    test_ed = datetime.date(2016, 11, 13)
     for delta_year in [2]:
-        for c in [1000, 1200, 1400, 1800, 1600, 2000, 2200, 1300, 1900, 1500]:
-            outfile = '../data/weekly_result_m3_y%d_c%d.txt' % (delta_year, c)
-            simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c)
+        simulation_weekly_train0(test_bd, test_ed, 0, delta_year, [1000, 1200, 1300, 1400, 1500, 1600, 1800, 1900, 2000, 2200, 0])
+        #for c in [1000, 1200, 1300, 1400, 1500, 1600, 1800, 1900, 2000, 2200]:
+        #    outfile = '../data/weekly_result_m3_y%d_c%d.txt' % (delta_year, c)
+        #    simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c)
     remove_outlier = False
 """
     #estimator = training(datetime.date(2011, 2, 1), datetime.date(2015, 12, 30))

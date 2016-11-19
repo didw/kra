@@ -218,10 +218,10 @@ def parse_xml_entry(meet, date, number):
         tr_win = get_tr_win(data_tr, itemElm.trname.string)
 		
         hrname = itemElm.hrname.string
-        dbudam = gdd.get_dbudam(1, date, int(rcno), hrname)
-        drweight = gdd.get_drweight(1, date, int(rcno), hrname)
-        lastday = gdd.get_lastday(1, date, int(rcno), hrname)
-        train_state = gdd.get_train_state(1, date, int(rcno), hrname)
+        dbudam = gdd.get_dbudam(3, date, int(rcno), hrname)
+        drweight = gdd.get_drweight(3, date, int(rcno), hrname)
+        lastday = gdd.get_lastday(3, date, int(rcno), hrname)
+        train_state = gdd.get_train_state(3, date, int(rcno), hrname)
 
         adata = [itemElm.rcdist.string,
                  humidity,
