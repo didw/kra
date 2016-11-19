@@ -69,6 +69,7 @@ def predict_next(estimator, meet, date, rcno):
     del X_data['jockey']
     del X_data['trainer']
     del X_data['owner']
+    del X_data['index']
     pred = pd.DataFrame(estimator.predict(X_data))
     pred.columns = ['predict']
     __DEBUG__ = True
@@ -105,11 +106,12 @@ def predict_next(estimator, meet, date, rcno):
 
 if __name__ == '__main__':
     meet = 2
-    date = 20161112
-    rcno = 9
+    date = 20161119
+    rcno = 7
     #import get_api
     #get_api.get_data(meet, date/100)
-    estimator = tr.training(datetime.date(2015, 1, 1), datetime.date(2016, 10, 31), 1000)
+    course = 400
+    estimator = tr.training(datetime.date.today() + datetime.timedelta(days=-365), datetime.date.today(), course)
     predict_next(estimator, meet, date, rcno)
 
 

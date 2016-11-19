@@ -54,10 +54,13 @@ def download_txt(bd, ed, meet, overwrite=False):
                 print "[%s] data is downloaded" % request
             except:
                 print '[%s] data downloading failed' % request
+                print 'or fail to save %s' % fname
     print "job has completed"
 
 
 # 해당거리 전적:    http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=1&rcNo=3&rcDate=20070415
+#                   http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=2&rcNo=1&rcDate=20161119
+#                   http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=2&rcNo=2&rcDate=20161119
 # 출전표:           http://race.kra.co.kr/chulmainfo/chulmaDetailInfoChulmapyo.do?Act=02&Sub=1&meet=1&rcNo=1&rcDate=20161113
 # 체중, 최종출전일: http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&meet=1&rcNo=1&rcDate=20161113
 # 훈련현황:         http://race.kra.co.kr/chulmainfo/chulmaDetailInfoTrainState.do?Act=02&Sub=1&meet=1&rcNo=1&rcDate=20161113
@@ -103,11 +106,12 @@ def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
                     print("[%s] data is downloaded" % request)
                 except:
                     print('[%s] data downloading failed' % request)
+                    print('or fail to save %s' % fname)
     print("job has completed")
 
 
 if __name__ == '__main__':
-    for i in range(1, 4):
-        download_chulmaDetailInfo(datetime.date(2007, 10, 1), datetime.date.today(), i, False)
-        #download_txt(datetime.date(2016, 11, 1), datetime.date.today(), i)
+    for i in range(2, 3):
+        download_chulmaDetailInfo(datetime.date(2016, 11, 13), datetime.date.today(), i, False)
+        download_txt(datetime.date(2016, 11, 13), datetime.date.today(), i)
 

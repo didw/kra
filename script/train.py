@@ -109,6 +109,7 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0):
     del X_data['boksik']
     del X_data['ssang']
     del X_data['sambok']
+    del X_data['index']
     #del X_data['weight']
     #del X_data['dweight']
     #del X_data['drweight']
@@ -131,15 +132,12 @@ def training(train_bd, train_ed, course=0):
     model_name = "../model/%d_%d_%s.pkl" % (train_bd_i, train_ed_i, course)
 
     from sklearn.externals import joblib
-    if train_bd < datetime.date.today() + datetime.timedelta(days=-365) and os.path.exists(model_name) and False:
+    if os.path.exists(model_name) and False:
         print("model exist. try to loading..")
         estimator = joblib.load(model_name)
     else:
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-        if train_bd >= datetime.date.today() + datetime.timedelta(days=-365):
-            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_recent_1year.csv', course)
-        else:
-            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_2007_2016.csv', course)
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_2007_2016.csv', course)
         print("%d data is fully loaded" % len(X_train))
 
         estimator = RandomForestRegressor(random_state=0, n_estimators=100)
@@ -250,8 +248,9 @@ if __name__ == '__main__':
     train_ed = datetime.date(2016, 10, 31)
     test_bd = datetime.date(2016, 1, 1)
     test_ed = datetime.date(2016, 11, 12)
-    for delta_year in [2, 4]:
-        for c in [900, 1000, 400, 1200, 800, 1610, 1400, 1700, 1800, 1110]:
+    for delta_year in [1]:
+        #for c in [900, 1000, 400, 1200, 800, 1610, 1400, 1700, 1800, 1110]:
+        for c in [900, 1000, 1110, 1200]:
             outfile = '../data/weekly_result_m2_m1_y%d_c%d.txt' % (delta_year, c)
             simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c)
     remove_outlier = False
