@@ -188,7 +188,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/3_2007_2016.csv', 0)
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/3_2007_2016.csv', course)
         print("%d data is fully loaded" % len(X_train))
         if len(X_train) < 10:
             res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
