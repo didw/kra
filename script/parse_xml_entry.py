@@ -100,6 +100,7 @@ def get_tr_win(data, name):
 
 
 def get_distance_record_url(hrname, rcno, date):
+    hrname = hrname.replace('★', '')
     #print("name: %s, rcno: %d, date: %d" % (hrname, rcno, date))
     url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=1&rcNo=%d&rcDate=%d" % (rcno, date)
     response_body = urlopen(url).read()
@@ -121,7 +122,7 @@ def get_distance_record_url(hrname, rcno, date):
         t = re.search(unicode(r'\d+[:]\d+[.]\d+', 'utf-8').encode('utf-8'), pls[7]).group()
         res[5] = int(t.split(':')[0])*600 + int(t.split(':')[1].split('.')[0])*10 + int(t.split('.')[1])
     else:
-        print("can not find %s in %s" % (hrname, url))
+        print("can not find distance record %s in %s" % (hrname, url))
     return res
 
 def get_game_info(date, rcno):

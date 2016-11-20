@@ -69,6 +69,7 @@ def predict_next(estimator, meet, date, rcno):
     del X_data['trainer']
     del X_data['owner']
     del X_data['index']
+    #X_data.to_csv('../log/20161120_debug.csv')
     pred = pd.DataFrame(estimator.predict(X_data))
     pred.columns = ['predict']
     __DEBUG__ = True
@@ -95,7 +96,6 @@ def predict_next(estimator, meet, date, rcno):
                     print("%s, 2nd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
                 elif v == 3:
                     print("%s, 3rd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
-            print("")
             rctime = []
             rcdata = []
             prev_rc = row['rcno']
@@ -107,12 +107,12 @@ def predict_next(estimator, meet, date, rcno):
 if __name__ == '__main__':
     meet = 1
     date = 20161120
-    rcno = 1
+    rcno = 9
     #import get_api
     #get_api.get_data(meet, date/100)
     #import get_txt
     #get_txt.download_txt(datetime.date.today(), datetime.date.today(), 1)
-    estimator1 = tr.training(datetime.date.today() + datetime.timedelta(days=-365), datetime.date.today())
+    estimator1 = tr.training(datetime.date(2016, 11, 19) + datetime.timedelta(days=-365), datetime.date(2016, 11, 19))
 
     predict_next(estimator1, meet, date, rcno)
 
