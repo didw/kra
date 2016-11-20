@@ -46,6 +46,7 @@ def get_dbudam(meet, date, rcno, name):
 
 
 def get_weight(meet, date, rcno, name):
+    name = name.replace('★'.encode('utf-8'), '')
     fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
     if os.path.exists(fname):
         response_body = open(fname).read()

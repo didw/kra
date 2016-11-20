@@ -73,7 +73,8 @@ def predict_next(estimator, meet, date, rcno):
     pred.columns = ['predict']
     __DEBUG__ = True
     if __DEBUG__:
-        pd.concat([data_pre, pred], axis=1).to_csv('../log/%d_xml.csv' % date, index=False)
+        pd.concat([data_pre, pred], axis=1).to_csv('../log/predict_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
+        X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
     #print(pd.concat([data, pred], axis=1))
     #print(pd.concat([data[['rcno', 'name', 'jockey', 'trainer']], pred], axis=1))
     prev_rc = data['rcno'][0]
@@ -105,8 +106,8 @@ def predict_next(estimator, meet, date, rcno):
 
 if __name__ == '__main__':
     meet = 1
-    date = 20161119
-    rcno = 12
+    date = 20161120
+    rcno = 1
     #import get_api
     #get_api.get_data(meet, date/100)
     #import get_txt
