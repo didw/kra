@@ -8,10 +8,10 @@ from sklearn.ensemble.forest import RandomForestRegressor
 from sklearn.externals import joblib
 import random
 import numpy as np
-
+import re
 
 # 1 win
-def simulation1(pred, ans):
+def simulation1(pred, ans, target=0):
     #print(ans)
     i = 0
     res1 = 0
@@ -22,9 +22,10 @@ def simulation1(pred, ans):
         if i >= len(pred):
             break
         sim_data = [pred[i]]
-        r1 = float(ans['r1'][i])
+        r1 = [float(ans['r1'][i])]
         rcno = int(ans['rcno'][i])
         cache[int(ans['rank'][i])] = 1
+        hrname = ans['name'][i]
         i += 1
         total = 1
         rack_data = False
@@ -35,23 +36,139 @@ def simulation1(pred, ans):
                 rack_data = True
             sim_data.append(pred[i])
             total_player = int(ans['cnt'][i])
+            r1.append(float(ans['r1'][i]))
             price = int(ans['price'][i])
             total += 1
             i += 1
-        a = price*0.8 / r1
-        r1 = (price+100000)*0.8 / (a+100000) - 1.0
-        if r1*bet > 2000:
-            r1 *= 0.8
+        a = price*0.8 / r1[0]
+        r1[0] = (price+100000)*0.8 / (a+100000)
+        if r1[0]*bet > 2000:
+            r1[0] *= 0.8
         # if rack_data or total < total_player:
         #     continue
         sim_data = pd.Series(sim_data)
         top1 = sim_data.argmin()
-        if top1 == 1:
-            res1 += 100 * r1
+
+        if top1 == target:
+            print("top1: %s" % hrname)
+            res1 += 100 * (r1[0] - 1)
         else:
             res1 -= 100
         #print("단승식: %f, %f" % (res1, res2))
     return res1
+
+
+# 1 win
+def simulation8(pred, ans):
+    #print(ans)
+    i = 0
+    res1 = 0
+    bet = 100
+    assert len(pred) == len(ans)
+    while True:
+        cache = np.zeros(20)
+        if i >= len(pred):
+            break
+        sim_data = [pred[i]]
+        r1 = [float(ans['r1'][i])]
+        rcno = int(ans['rcno'][i])
+        cache[int(ans['rank'][i])] = 1
+        hrname = ans['name'][i]
+        i += 1
+        total = 1
+        rack_data = False
+        total_player = 0
+        while i < len(pred) and int(ans['rcno'][i]) == rcno and cache[int(ans['rank'][i])] == 0:
+            cache[int(ans['rank'][i])] = 1
+            if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
+                rack_data = True
+            sim_data.append(pred[i])
+            total_player = int(ans['cnt'][i])
+            r1.append(float(ans['r1'][i]))
+            price = int(ans['price'][i])
+            total += 1
+            i += 1
+        # if rack_data or total < total_player:
+        #     continue
+        sim_data = pd.Series(sim_data)
+        top1 = sim_data.rank()
+        if len(top1) <= 2:
+            continue
+        #print(pd.concat([top1, pd.DataFrame(r1)], axis=1))
+        cand = top1[0]
+        r_most = r1[int(top1[0])-1]
+        if r1[int(top1[1])-1] > r1[int(top1[0])-1]:
+            cand = top1[1]
+
+        if r1[int(top1[2])-1] > r_most:
+            cand = top1[2]
+
+        a = price*0.8 / r1[0]
+        r1[0] = (price+100000)*0.8 / (a+100000)
+        if r1[0]*bet > 2000:
+            r1[0] *= 0.8
+
+        if cand == 1:
+            print("top1: %s" % hrname)
+            res1 += 100 * (r1[0] - 1)
+        else:
+            res1 -= 100
+        #print("단승식: %f, %f" % (res1, res2))
+    return res1
+
+
+# bet multiple target
+def simulation7(pred, ans, target_num=3):
+    #print(ans)
+    i = 0
+    res1 = 0
+    bet = 100
+    assert len(pred) == len(ans)
+    while True:
+        cache = np.zeros(20)
+        if i >= len(pred):
+            break
+        sim_data = [pred[i]]
+        r1 = [float(ans['r1'][i])]
+        rcno = int(ans['rcno'][i])
+        cache[int(ans['rank'][i])] = 1
+        hrname = ans['name'][i]
+        i += 1
+        total = 1
+        rack_data = False
+        total_player = 0
+        while i < len(pred) and int(ans['rcno'][i]) == rcno and cache[int(ans['rank'][i])] == 0:
+            cache[int(ans['rank'][i])] = 1
+            if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
+                rack_data = True
+            sim_data.append(pred[i])
+            total_player = int(ans['cnt'][i])
+            r1.append(float(ans['r1'][i]))
+            price = int(ans['price'][i])
+            total += 1
+            i += 1
+        a = price*0.8 / r1[0]
+        r1[0] = (price+100000)*0.8 / (a+100000)
+        if r1[0]*bet > 2000:
+            r1[0] *= 0.8
+        # if rack_data or total < total_player:
+        #     continue
+        sim_data = pd.Series(sim_data)
+        top = sim_data.rank()
+        if len(top) < 3:
+            continue
+        if target_num == 3:
+            res1 -= 300
+            if 1 in [top[0], top[1], top[2]]:
+                res1 += 100 * r1[0]
+        elif target_num == 2:
+            res1 -= 200
+            if 1 in [top[0], top[1]]:
+                res1 += 100 * r1[0]
+        #print("단승식: %f, %f" % (res1, res2))
+    return res1
+
+
 
 # 1 win in 2-3
 def simulation2(pred, ans):
@@ -86,7 +203,6 @@ def simulation2(pred, ans):
         #     continue
         sim_data = pd.Series(sim_data)
         top1 = sim_data.argmin()
-        top = sim_data.rank()
         if total_player > 7:
             if top1 in [0, 1, 2]:
                 if r2[top1] > 20:
@@ -155,7 +271,11 @@ def get_num(line, bet):
     b = num_circle_list.find(line[3:6]) / 3 + 1
     if a == -1 or b == -1:
         return [-1, -1, -1]
-    r = float(line[6:]) - 1
+    res = re.search(r'[\d.]+', line[6:])
+    if res is None:
+        return [-1, -1, -1]
+    r = float(res.group()) - 1
+    #r = float(line[6:]) - 1
     if r * bet > 2000:
         r *= 0.8
     return [a, b, r]
@@ -266,7 +386,10 @@ def simulation6(pred, ans):
         if i >= len(pred):
             break
         sim_data = [pred[i]]
-        r6 = float(ans['sambok'][i]) - 1
+        try:
+            r6 = float(ans['sambok'][i]) - 1
+        except TypeError:
+            r6 = -1
         if r6 * bet > 2000:
             r6 *= 0.8
         rcno = int(ans['rcno'][i])
@@ -287,10 +410,10 @@ def simulation6(pred, ans):
         #     continue
         sim_data = pd.Series(sim_data)
         top = sim_data.rank()
-        if total < 3:
+        if total < 3 or r6 == -1:
             continue
         succeed = False
-        if top[0] == 1 and top[1] == 2 and top[2] == 3:
+        if top[0] in [1, 2, 3] and top[1] in [1, 2, 3] and top[2] in [1, 2, 3]:
             res1 += bet * r6
         else:
             res1 -= bet

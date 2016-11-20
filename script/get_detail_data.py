@@ -46,6 +46,7 @@ def get_dbudam(meet, date, rcno, name):
 
 
 def get_weight(meet, date, rcno, name):
+    name = name.replace('★', '')
     fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
     if os.path.exists(fname):
         response_body = open(fname).read()
@@ -57,9 +58,11 @@ def get_weight(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            print(itemList)
             if name in itemList[1].string.encode('utf-8'):
-                return unicode(itemList[2].string)
+                try:
+                    return float(unicode(itemList[2].string))
+                except ValueError:
+                    return -1
     return -1
 
 
