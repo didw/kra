@@ -110,8 +110,8 @@ if __name__ == '__main__':
     rcno = 7
     #import get_api
     #get_api.get_data(meet, date/100)
-    course = 400
-    estimator = tr.training(datetime.date.today() + datetime.timedelta(days=-365), datetime.date.today(), course)
+    course = 1200
+    estimator = tr.training(datetime.date(2016, 11, 19) + datetime.timedelta(days=-365), datetime.date(2016, 11, 19), course)
     predict_next(estimator, meet, date, rcno)
 
 
