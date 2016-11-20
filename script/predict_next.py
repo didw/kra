@@ -69,7 +69,7 @@ def predict_next(estimator, meet, date, rcno):
     del X_data['trainer']
     del X_data['owner']
     del X_data['index']
-    #X_data.to_csv('../log/20161120_debug.csv')
+    X_data.to_csv('../log/20161120_debug.csv')
     pred = pd.DataFrame(estimator.predict(X_data))
     pred.columns = ['predict']
     __DEBUG__ = True
@@ -107,7 +107,7 @@ def predict_next(estimator, meet, date, rcno):
 if __name__ == '__main__':
     meet = 1
     date = 20161120
-    rcno = 9
+    rcno = 11
     #import get_api
     #get_api.get_data(meet, date/100)
     #import get_txt

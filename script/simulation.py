@@ -58,54 +58,6 @@ def simulation1(pred, ans, target=0):
     return res1
 
 
-# 1 win
-def simulation9(pred, ans):
-    #print(ans)
-    i = 0
-    res1 = 0
-    bet = 100
-    assert len(pred) == len(ans)
-    while True:
-        cache = np.zeros(20)
-        if i >= len(pred):
-            break
-        sim_data = [pred[i]]
-        r1 = [float(ans['r1'][i])]
-        rcno = int(ans['rcno'][i])
-        cache[int(ans['rank'][i])] = 1
-        hrname = ans['name'][i]
-        i += 1
-        total = 1
-        rack_data = False
-        total_player = 0
-        while i < len(pred) and int(ans['rcno'][i]) == rcno and cache[int(ans['rank'][i])] == 0:
-            cache[int(ans['rank'][i])] = 1
-            if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
-                rack_data = True
-            sim_data.append(pred[i])
-            total_player = int(ans['cnt'][i])
-            r1.append(float(ans['r1'][i]))
-            price = int(ans['price'][i])
-            total += 1
-            i += 1
-        a = price*0.8 / r1[0]
-        r1[0] = (price+100000)*0.8 / (a+100000)
-        if r1[0]*bet > 2000:
-            r1[0] *= 0.8
-        # if rack_data or total < total_player:
-        #     continue
-        sim_data = pd.Series(sim_data)
-        top1 = sim_data.argmin()
-
-        if top1 == 2:
-            print("top1: %s" % hrname)
-            print(sim_data)
-            res1 += 100 * (r1[0] - 1)
-        else:
-            res1 -= 100
-        #print("단승식: %f, %f" % (res1, res2))
-    return res1
-
 
 # 1 win
 def simulation8(pred, ans):
