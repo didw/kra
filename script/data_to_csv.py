@@ -30,8 +30,25 @@ def get_data(begin_date, end_date, fname_csv):
     return data
 
 
+def update_data(end_date, fname_csv):
+    data = pd.read_csv(fname_csv)
+    print("update data from %d to today" % data.loc[len(data)-1]['date'])
+    train_bd = data.loc[len(data)-1]['date']
+    train_ed = end_date
+    date = datetime.date(train_bd/10000, train_bd/100%100, train_bd%100)
+    while date < train_ed:
+        date += datetime.timedelta(days=1)
+        if date.weekday() != 4 and date.weekday() != 5:
+            continue
+        filename = "../txt/2/rcresult/rcresult_2_%02d%02d%02d.txt" % (date.year, date.month, date.day)
+        if not os.path.isfile(filename):
+            continue
+        data = data.append(pr.get_data(filename), ignore_index=True)
+    data.to_csv(fname_csv.replace('.csv', '_new.csv'), index=False)
+    return data
+
+
 if __name__ == '__main__':
-    begin_date = datetime.date(2007, 1, 1)
     end_date = datetime.date.today()
-    fname_csv = '../data/2_2007_2016_v1.1.csv'
-    get_data(begin_date, end_date, fname_csv)
+    fname_csv = '../data/2_2007_2016.csv'
+    update_data(end_date, fname_csv)
