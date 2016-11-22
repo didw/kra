@@ -456,7 +456,7 @@ def get_data(filename):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/3/rcresult/rcresult_3_20130224.txt'
+    filename = '../txt/3/rcresult/rcresult_3_20161118.txt'
     data = get_data(filename)
     print(data)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)

@@ -108,10 +108,10 @@ def predict_next(estimator, meet, date, rcno):
 if __name__ == '__main__':
     meet = 3
     date = 20161120
-    rcno = 6
+    rcno = 0
     #import get_api
     #get_api.get_data(meet, date/100)
-    estimator = tr.training(datetime.date(2016, 11, 19) + datetime.timedelta(days=-365*2), datetime.date(2016, 11, 19))
+    estimator = tr.training(datetime.date(2016, 11, 19) + datetime.timedelta(days=-365*4), datetime.date(2016, 11, 19))
 
     predict_next(estimator, meet, date, rcno)
 
