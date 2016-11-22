@@ -360,6 +360,21 @@ def typecheck(input):
     else:
         print("it's a number")
 
+
+def make_dir(cmd):
+    os.system(cmd)
+
+
+def make_df():
+    df = pd.DataFrame([[1,2,3,20161119],[2,3,4,20161120]])
+    df.columns = ['a','b','c','date']
+    df.to_csv('test.csv', index=False)
+
+
+def update_df():
+    df = pd.read_csv('../data/1_2007_2016.csv')
+    print(df.loc[len(df)-1]['date'])
+
 if __name__ == '__main__':
-    print(get_num("③④3.4"))
+    update_df()
 
