@@ -69,50 +69,38 @@ def predict_next(estimator, meet, date, rcno):
     del X_data['trainer']
     del X_data['owner']
     del X_data['index']
-    X_data.to_csv('../log/20161120_debug.csv')
     pred = pd.DataFrame(estimator.predict(X_data))
     pred.columns = ['predict']
     __DEBUG__ = True
     if __DEBUG__:
         pd.concat([data_pre, pred], axis=1).to_csv('../log/predict_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
         X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
-    #print(pd.concat([data, pred], axis=1))
-    #print(pd.concat([data[['rcno', 'name', 'jockey', 'trainer']], pred], axis=1))
     prev_rc = data['rcno'][0]
-    rctime = []
     rcdata = []
     for idx, row in data.iterrows():
         if int(data['hr_nt'][idx]) == 0 or int(data['jk_nt'][idx]) == 0 or int(data['tr_nt'][idx]) == 0:
             print("%s data is not enough. be careful" % (data['name'][idx]))
         if row['rcno'] != prev_rc or idx+1 == len(data):
-            rctime = pd.Series(rctime)
             rcdata = pd.DataFrame(rcdata)
-            rcrank = rctime.rank()
-            print("rcNo, order, idx(name): rctime")
-            for i, v in enumerate(rcrank):
-                if v == 1:
-                    print("%s, 1st: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
-                elif v == 2:
-                    print("%s, 2nd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
-                elif v == 3:
-                    print("%s, 3rd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
-            rctime = []
+            rcdata.columns = ['idx', 'name', 'time']
+            rcdata = rcdata.sort_values(by='time')
+            print("=========== %s ==========" % prev_rc)
+            print(rcdata)
             rcdata = []
             prev_rc = row['rcno']
         else:
-            rctime.append(float(pred['predict'][idx]))
-            rcdata.append([row['rcno'], row['name'], row['idx']])
+            rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
 
 
 if __name__ == '__main__':
     meet = 1
     date = 20161120
-    rcno = 11
+    rcno = 1
     #import get_api
     #get_api.get_data(meet, date/100)
     #import get_txt
     #get_txt.download_txt(datetime.date.today(), datetime.date.today(), 1)
-    estimator1 = tr.training(datetime.date(2016, 11, 19) + datetime.timedelta(days=-365), datetime.date(2016, 11, 19))
+    estimator1 = tr.training(datetime.date(2016, 11, 19) + datetime.timedelta(days=-365*4), datetime.date(2016, 11, 19))
 
     predict_next(estimator1, meet, date, rcno)
 

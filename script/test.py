@@ -7,7 +7,8 @@ import random
 import datetime
 import os
 from bs4 import BeautifulSoup
-
+import matplotlib.pyplot as plt
+import numpy as np
 
 def get_humidity():
     url = "http://race.kra.co.kr/chulmainfo/trackView.do?Act=02&Sub=10&meet=1"
@@ -375,6 +376,14 @@ def update_df():
     df = pd.read_csv('../data/1_2007_2016.csv')
     print(df.loc[len(df)-1]['date'])
 
+
+def test_plot():
+    x = np.arange(0, 5, 0.1)
+    y = np.sin(x)
+    plt.plot(x, y)
+    plt.show()
+
+
 if __name__ == '__main__':
-    update_df()
+    test_plot()
 

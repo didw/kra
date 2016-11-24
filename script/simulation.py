@@ -57,169 +57,6 @@ def simulation1(pred, ans, target=1):
     return res1
 
 
-
-# boksik
-def simulation0(pred, ans, target=[1, 2]):
-    #print(ans)
-    i = 0
-    res1 = 0
-    bet = 10
-    assert len(pred) == len(ans)
-    while True:
-        cache = np.zeros(20)
-        if i >= len(pred):
-            break
-        sim_data = [pred[i]]
-        r1 = float(ans['r3'][i])
-        rcno = int(ans['rcno'][i])
-        cache[int(ans['rank'][i])] = 1
-        hrname = ans['name'][i]
-        i += 1
-        total = 1
-        rack_data = False
-        total_player = 0
-        while i < len(pred) and int(ans['rcno'][i]) == rcno and cache[int(ans['rank'][i])] == 0:
-            cache[int(ans['rank'][i])] = 1
-            if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
-                rack_data = True
-            sim_data.append(pred[i])
-            total_player = int(ans['cnt'][i])
-            price = int(ans['price'][i])
-            total += 1
-            i += 1
-        # if rack_data or total < total_player:
-        #     continue
-        sim_data = pd.Series(sim_data)
-        top1 = sim_data.rank()
-        if len(top1) <= 5:
-            continue
-
-        price *= 10
-        a = price*0.8 / r1
-        r1 = (price+100000)*0.8 / (a+100000)
-        if r1*bet > 2000:
-            r1 *= 0.8
-
-        if top1[0] in target and top1[1] in target:
-            res1 += 100 * (r1 - 1)
-        else:
-            res1 -= 100
-    return res1
-
-
-
-# 1 win
-def simulation8(pred, ans):
-    #print(ans)
-    i = 0
-    res1 = 0
-    bet = 100
-    assert len(pred) == len(ans)
-    while True:
-        cache = np.zeros(20)
-        if i >= len(pred):
-            break
-        sim_data = [pred[i]]
-        r1 = [float(ans['r1'][i])]
-        rcno = int(ans['rcno'][i])
-        cache[int(ans['rank'][i])] = 1
-        hrname = ans['name'][i]
-        i += 1
-        total = 1
-        rack_data = False
-        total_player = 0
-        while i < len(pred) and int(ans['rcno'][i]) == rcno and cache[int(ans['rank'][i])] == 0:
-            cache[int(ans['rank'][i])] = 1
-            if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
-                rack_data = True
-            sim_data.append(pred[i])
-            total_player = int(ans['cnt'][i])
-            r1.append(float(ans['r1'][i]))
-            price = int(ans['price'][i])
-            total += 1
-            i += 1
-        # if rack_data or total < total_player:
-        #     continue
-        sim_data = pd.Series(sim_data)
-        top1 = sim_data.rank()
-        if len(top1) <= 2:
-            continue
-        #print(pd.concat([top1, pd.DataFrame(r1)], axis=1))
-        cand = top1[0]
-        r_most = r1[int(top1[0])-1]
-        if r1[int(top1[1])-1] > r1[int(top1[0])-1]:
-            cand = top1[1]
-
-        if r1[int(top1[2])-1] > r_most:
-            cand = top1[2]
-
-        a = price*0.8 / r1[0]
-        r1[0] = (price+100000)*0.8 / (a+100000)
-        if r1[0]*bet > 2000:
-            r1[0] *= 0.8
-
-        if cand == 1:
-            print("top1: %s" % hrname)
-            res1 += 100 * (r1[0] - 1)
-        else:
-            res1 -= 100
-        #print("단승식: %f, %f" % (res1, res2))
-    return res1
-
-
-# bet multiple target
-def simulation7(pred, ans, target_num=3):
-    #print(ans)
-    i = 0
-    res1 = 0
-    bet = 100
-    assert len(pred) == len(ans)
-    while True:
-        cache = np.zeros(20)
-        if i >= len(pred):
-            break
-        sim_data = [pred[i]]
-        r1 = [float(ans['r1'][i])]
-        rcno = int(ans['rcno'][i])
-        cache[int(ans['rank'][i])] = 1
-        hrname = ans['name'][i]
-        i += 1
-        total = 1
-        rack_data = False
-        total_player = 0
-        while i < len(pred) and int(ans['rcno'][i]) == rcno and cache[int(ans['rank'][i])] == 0:
-            cache[int(ans['rank'][i])] = 1
-            if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
-                rack_data = True
-            sim_data.append(pred[i])
-            total_player = int(ans['cnt'][i])
-            r1.append(float(ans['r1'][i]))
-            price = int(ans['price'][i])
-            total += 1
-            i += 1
-        a = price*0.8 / r1[0]
-        r1[0] = (price+100000)*0.8 / (a+100000)
-        if r1[0]*bet > 2000:
-            r1[0] *= 0.8
-        # if rack_data or total < total_player:
-        #     continue
-        sim_data = pd.Series(sim_data)
-        top = sim_data.rank()
-        if len(top) < 3:
-            continue
-        if target_num == 3:
-            res1 -= 300
-            if 1 in [top[0], top[1], top[2]]:
-                res1 += 100 * r1[0]
-        elif target_num == 2:
-            res1 -= 200
-            if 1 in [top[0], top[1]]:
-                res1 += 100 * r1[0]
-        #print("단승식: %f, %f" % (res1, res2))
-    return res1
-
-
-
 # 1 win in 2-3
 def simulation2(pred, ans, target=0):
     i = 0
@@ -321,6 +158,8 @@ def simulation3(pred, ans, target=[2,3]):
             continue
         if (top[0] in target) and (top[1] in target):
             res1 += bet * r3
+            if r3 > 40:
+                print("\nrcno[%d] boksik = %f\n" % (rcno, r3))
         else:
             res1 -= bet
 
@@ -344,7 +183,7 @@ def get_num(line, bet):
 
 
 # 2 win in 3
-def simulation4(pred, ans, target=[0,2]):
+def simulation4(pred, ans, target=[0,1]):
     bet = 100
     i = 0
     res1 = 0
@@ -436,6 +275,8 @@ def simulation5(pred, ans, targets=[[2,3],[3,2]]):
         for target in targets:
             if top[0] == target[0] and top[1] == target[1]:
                 res1 += bet * r5
+                if r5 > 40:
+                    print("\n== rcno[%d], ssang rate = %f\n" % (rcno, r5))
             else:
                 res1 -= bet
 
@@ -491,6 +332,8 @@ def simulation6(pred, ans, targets=[[0,1,3], [0,1,4], [0,2,3], [0,2,4], [0,3,4]]
         
         for target in targets:
             if top[target[0]] in [1, 2, 3] and top[target[1]] in [1, 2, 3] and top[target[2]] in [1, 2, 3]:
+                if r6 > 100:
+                    print("\n== rcno[%d], sambok rate = %f\n" % (rcno, r6))
                 res1 += bet * r6
             else:
                 res1 -= bet
@@ -499,18 +342,26 @@ def simulation6(pred, ans, targets=[[0,1,3], [0,1,4], [0,2,3], [0,2,4], [0,3,4]]
     return res1
 
 
-def simulation_all(pred, ans):
+# 3 straight win
+def simulation7(pred, ans, targets=[[0,1,2], [0,1,3], [0,2,1], [0,2,3], [0,3,1], [0,3,2], 
+                                    [1,0,2], [1,0,3], [1,2,0], [1,2,3], [1,3,0], [1,3,2], 
+                                    [2,0,1], [2,0,3], [2,1,0], [2,1,3], [2,3,0], [2,3,1], 
+                                    [3,0,1], [3,0,2], [3,1,0], [3,1,2], [3,2,0], [3,2,1]] ):
+    bet = 100 / len(targets)
     i = 0
-    res = 0
+    res1 = 0
     assert len(pred) == len(ans)
     while True:
         cache = np.zeros(20)
         if i >= len(pred):
             break
         sim_data = [pred[i]]
-        r1 = float(ans['r1'][i]) - 1
-        r2 = [float(ans['r2'][i]) - 1]
-        r3 = float(ans['r3'][i]) - 1
+        try:
+            r7 = float(ans['samssang'][i]) - 1
+        except TypeError:
+            r7 = -1
+        except ValueError:
+            r7 = float(re.search(r'[\d.]+', ans['samssang'][i]).group()) - 1
         rcno = int(ans['rcno'][i])
         cache[int(ans['rank'][i])] = 1
         i += 1
@@ -519,28 +370,37 @@ def simulation_all(pred, ans):
         total_player = 0
         while i < len(pred) and int(ans['rcno'][i]) == rcno and cache[int(ans['rank'][i])] == 0:
             cache[int(ans['rank'][i])] = 1
+            if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
+                rack_data = True
             sim_data.append(pred[i])
-            r2.append(float(ans['r2'][i]) - 1)
             total_player = int(ans['cnt'][i])
+            price = int(ans['price'][i])
             total += 1
             i += 1
-        # if rack_data:
+        
+        price *= 30
+        a = price*0.7 / r7
+        r7 = (price+bet)*0.7 / (a+bet)
+
+        if r7 * bet > 2000:
+            r7 *= 0.8
+        # if rack_data or total < total_player:
         #     continue
         sim_data = pd.Series(sim_data)
-        if total < 2:
-            continue
         top = sim_data.rank()
-        top1 = sim_data.argmin()
+        if total < 5 or r7 < 0:
+            continue
+        
+        for target in targets:
+            if top[target[0]]==1 and top[target[1]]==2 and top[target[2]]==3:
+                if r7 > 100:
+                    print("\n== rcno[%d], samssang rate = %f\n" % (rcno, r7))
+                res1 += bet * r7
+            else:
+                res1 -= bet
 
-        res1 = 100*r1 if top[0] == 1 else -100
-        if total > 7:
-            res2 = 100*r2[top1] if top[0] in [1, 2, 3] else -100
-        else:
-            res2 = 100*r2[top1] if top[0] in [1, 2] else -100
-        res3 = 100*r3 if top[0] in [1, 2] and top[1] in [1, 2] else -100
-        res += (res1 + res2 + res3)
-        print("res: %f <= (%f) + (%f) + (%f)" % (res, res1, res2, res3))
-    return res
+        #print("sambok: %f" % (res1))
+    return res1
 
 
 if __name__ == '__main__':
