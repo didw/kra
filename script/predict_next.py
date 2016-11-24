@@ -73,36 +73,23 @@ def predict_next(estimator, meet, date, rcno):
     pred.columns = ['predict']
     __DEBUG__ = True
     if __DEBUG__:
-        pd.concat([data_pre, pred], axis=1).to_csv('../log/%d_xml.csv' % date, index=False)
-    #print(pd.concat([data, pred], axis=1))
-    #print(pd.concat([data[['rcno', 'name', 'jockey', 'trainer']], pred], axis=1))
+        pd.concat([data_pre, pred], axis=1).to_csv('../log/predict_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
+        X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
     prev_rc = data['rcno'][0]
-    rctime = []
     rcdata = []
     for idx, row in data.iterrows():
         if int(data['hr_nt'][idx]) == 0 or int(data['jk_nt'][idx]) == 0 or int(data['tr_nt'][idx]) == 0:
             print("%s data is not enough. be careful" % (data['name'][idx]))
         if row['rcno'] != prev_rc or idx+1 == len(data):
-            rctime = pd.Series(rctime)
             rcdata = pd.DataFrame(rcdata)
-            rcrank = rctime.rank()
-            print("rcNo, order, idx(name): rctime")
-            for i, v in enumerate(rcrank):
-                if v == 1:
-                    print("%s, 1st: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
-                elif v == 2:
-                    print("%s, 2nd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
-                elif v == 3:
-                    print("%s, 3rd: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
-                elif v == 4:
-                    print("%s, 4th: %s (%s): %f" % (rcdata[0][i], rcdata[2][i], rcdata[1][i], rctime[i]))
-            print("")
-            rctime = []
+            rcdata.columns = ['idx', 'name', 'time']
+            rcdata = rcdata.sort_values(by='time')
+            print("=========== %s ==========" % prev_rc)
+            print(rcdata)
             rcdata = []
             prev_rc = row['rcno']
         else:
-            rctime.append(float(pred['predict'][idx]))
-            rcdata.append([row['rcno'], row['name'], row['idx']])
+            rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
 
 
 if __name__ == '__main__':

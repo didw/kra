@@ -87,7 +87,7 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0):
     data = df.drop(df.index[remove_index])
     data = normalize_data(data)
 
-    R_data = data[['name', 'rank', 'r1', 'r2', 'r3', 'hr_nt', 'hr_dt', 'jk_nt', 'tr_nt', 'cnt', 'rcno', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'idx']]
+    R_data = data[['name', 'rank', 'r1', 'r2', 'r3', 'hr_nt', 'hr_dt', 'jk_nt', 'tr_nt', 'cnt', 'rcno', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'samssang', 'idx']]
     Y_data = data['rctime']
     X_data = data.copy()
 
@@ -108,6 +108,7 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0):
     del X_data['boksik']
     del X_data['ssang']
     del X_data['sambok']
+    del X_data['samssang']
     del X_data['index']
     #del X_data['weight']
     #del X_data['dweight']
@@ -315,19 +316,18 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 res4 = sim.simulation4(pred, R_test)
                 res5 = sim.simulation5(pred, R_test)
                 res6 = sim.simulation6(pred, R_test)
+                res7 = sim.simulation7(pred, R_test)
 
             print("train data: %s - %s" % (str(train_bd), str(train_ed)))
             print("test data: %s - %s" % (str(test_bd), str(test_ed)))
             print("course: %d(0: all)" % course)
-            print("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok")
-            #print("result: %.0f,\t%.0f,\t%.0f,\t%.0f,\t%.0f,\t%.0f,\t%.0f,\t%.0f\n" % (res1, res2, res3, res4, res5, res6, res7, res8))
-            print("result: %.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f\n" % (res1, res2, res3, res4, res5, res6))
+            print("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok\tsamssang")
+            print("result: %.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f\n" % (res1, res2, res3, res4, res5, res6, res7))
             f_result = open(fname_result, 'a')
             f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
             f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
-            f_result.write("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok")
-            #f_result.write("result: %.0f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f\n" % (res1, res2, res3, res4, res5, res6, res7, res8))
-            f_result.write("result: %.0f, %.0f, %.0f, %.0f, %.0f, %.0f\n" % (res1, res2, res3, res4, res5, res6))
+            f_result.write("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok\tsamssang")
+            f_result.write("result: %.0f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f\n" % (res1, res2, res3, res4, res5, res6, res7))
             f_result.close()
 
 

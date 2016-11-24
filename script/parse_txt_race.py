@@ -175,6 +175,7 @@ def parse_txt_race(filename):
         boksik = '-1'
         ssang = '-1'
         sambok = '-1'
+        samssang = '-1'
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
@@ -218,6 +219,15 @@ def parse_txt_race(filename):
                     sambok = res[0][9:]
                 else:
                     print("not expected.. %s" % line)
+            res = re.search(r'(?<=삼쌍:).+', line)
+            if res is not None:
+                res = res.group().split()
+                if len(res) >= 2 and re.search(r'\d', res[1][:1]) is not None:
+                    sambok = res[1]
+                elif len(res) == 1 and len(res[0]) > 9:
+                    samssang = res[0][9:]
+                else:
+                    print("not expected.. %s" % line)
                 break
         if DEBUG:
             print("price: %s" % price)
@@ -225,6 +235,7 @@ def parse_txt_race(filename):
             print("%s" % boksik)
             print("%s" % ssang)
             print("%s" % sambok)
+            print("%s" % samssang)
         for i in range(cnt):
             data[-cnt + i].extend([rating])
             data[-cnt + i].extend([cnt])
@@ -235,6 +246,7 @@ def parse_txt_race(filename):
             data[-cnt + i].append(boksik)
             data[-cnt + i].append(ssang)
             data[-cnt + i].append(sambok)
+            data[-cnt + i].append(samssang)
         # 쌍, 복연, 삼복, 삼쌍 배당률 가져오기
 
         assert get_rate
@@ -446,7 +458,7 @@ def get_data(filename):
         data[i].extend([date_i])
     df = pd.DataFrame(data)
     df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 20
-                  'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'month', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', # 15
+                  'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'month', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'samssang', # 16
                   'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
                   'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
                   'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10

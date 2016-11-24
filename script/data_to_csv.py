@@ -49,6 +49,8 @@ def update_data(end_date, fname_csv):
 
 
 if __name__ == '__main__':
+    begin_date = datetime.date(2007, 1, 1)
     end_date = datetime.date.today()
     fname_csv = '../data/3_2007_2016.csv'
-    update_data(end_date, fname_csv)
+    get_data(begin_date, end_date, fname_csv)
+#    update_data(end_date, fname_csv)
