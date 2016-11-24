@@ -343,11 +343,8 @@ def simulation6(pred, ans, targets=[[0,1,3], [0,1,4], [0,2,3], [0,2,4], [0,3,4]]
 
 
 # 3 straight win
-def simulation7(pred, ans, targets=[[0,1,2], [0,1,3], [0,2,1], [0,2,3], [0,3,1], [0,3,2], 
-                                    [1,0,2], [1,0,3], [1,2,0], [1,2,3], [1,3,0], [1,3,2], 
-                                    [2,0,1], [2,0,3], [2,1,0], [2,1,3], [2,3,0], [2,3,1], 
-                                    [3,0,1], [3,0,2], [3,1,0], [3,1,2], [3,2,0], [3,2,1]] ):
-    bet = 100 / len(targets)
+def simulation7(pred, ans, targets=[0,1,2,3] ):
+    bet = 100 / (len(targets) * (len(targets)-1) * (len(targets)-2))
     i = 0
     res1 = 0
     assert len(pred) == len(ans)
@@ -391,13 +388,19 @@ def simulation7(pred, ans, targets=[[0,1,2], [0,1,3], [0,2,1], [0,2,3], [0,3,1],
         if total < 5 or r7 < 0:
             continue
         
-        for target in targets:
-            if top[target[0]]==1 and top[target[1]]==2 and top[target[2]]==3:
-                if r7 > 100:
-                    print("\n== rcno[%d], samssang rate = %f\n" % (rcno, r7))
-                res1 += bet * r7
-            else:
-                res1 -= bet
+        for x in targets:
+            for y in targets:
+                if x == y:
+                    continue
+                for z in targets:
+                    if x == z or y == z:
+                        continue
+                    if top[x]==1 and top[y]==2 and top[z]==3:
+                        if r7 > 100:
+                            print("\n== rcno[%d], samssang rate = %f\n" % (rcno, r7))
+                        res1 += bet * r7
+                    else:
+                        res1 -= bet
 
         #print("sambok: %f" % (res1))
     return res1
