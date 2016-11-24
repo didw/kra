@@ -90,7 +90,7 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0):
     data = df.drop(df.index[remove_index])
     data = normalize_data(data)
 
-    R_data = data[['name', 'rank', 'r1', 'r2', 'r3', 'hr_nt', 'hr_dt', 'jk_nt', 'tr_nt', 'cnt', 'rcno', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'idx', 'course']]
+    R_data = data[['name', 'rank', 'r1', 'r2', 'r3', 'hr_nt', 'hr_dt', 'jk_nt', 'tr_nt', 'cnt', 'rcno', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'samssang', 'idx', 'course']]
     Y_data = data['rctime']
     X_data = data.copy()
 
@@ -111,6 +111,7 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0):
     del X_data['boksik']
     del X_data['ssang']
     del X_data['sambok']
+    del X_data['samssang']
     del X_data['index']
     #del X_data['weight']
     #del X_data['dweight']
@@ -300,7 +301,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
             print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
             X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/2_2007_2016.csv', course)
             print("%d data is fully loaded" % (len(X_test)))
-            res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            res1, res2, res3, res4, res5, res6, res7, res8 = 0, 0, 0, 0, 0, 0, 0, 0
             if len(X_test) == 0:
                 res1, res2, res3, res4, res5, res6, res7, res8 = 0, 0, 0, 0, 0, 0, 0, 0
             else:
@@ -317,19 +318,18 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 res4 = sim.simulation4(pred, R_test)
                 res5 = sim.simulation5(pred, R_test)
                 res6 = sim.simulation6(pred, R_test)
+                res7 = sim.simulation7(pred, R_test)
 
             print("train data: %s - %s" % (str(train_bd), str(train_ed)))
             print("test data: %s - %s" % (str(test_bd), str(test_ed)))
             print("course: %d(0: all)" % course)
-            print("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok")
-            #print("result: %.0f,\t%.0f,\t%.0f,\t%.0f,\t%.0f,\t%.0f,\t%.0f,\t%.0f\n" % (res1, res2, res3, res4, res5, res6, res7, res8))
-            print("result: %.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f\n" % (res1, res2, res3, res4, res5, res6))
+            print("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok\tsamssang")
+            print("result: %.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f\n" % (res1, res2, res3, res4, res5, res6, res7))
             f_result = open(fname_result, 'a')
             f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
             f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
-            f_result.write("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok")
-            #f_result.write("result: %.0f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f\n" % (res1, res2, res3, res4, res5, res6, res7, res8))
-            f_result.write("result: %.0f, %.0f, %.0f, %.0f, %.0f, %.0f\n" % (res1, res2, res3, res4, res5, res6))
+            f_result.write("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok\tsamssang")
+            f_result.write("result: %.0f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f\n" % (res1, res2, res3, res4, res5, res6, res7))
             f_result.close()
 
 
@@ -345,4 +345,3 @@ if __name__ == '__main__':
         #for c in [900, 1000, 400, 1200, 800, 1610, 1400, 1700, 1800, 1110]:
         #    outfile = '../data/weekly_result_m2_y%d_c%d.txt' % (delta_year, c)
         #    simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c)
-    remove_outlier = False
