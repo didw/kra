@@ -21,7 +21,7 @@ sys.setdefaultencoding('utf-8')
 DEBUG = False
 
 def get_humidity():
-    url = "http://race.kra.co.kr/chulmainfo/trackView.do?Act=02&Sub=10&meet=1"
+    url = "http://race.kra.co.kr/chulmainfo/trackView.do?Act=02&Sub=10&meet=3"
     response_body = urlopen(url).read()
     line = unicode(response_body, 'euc-kr').encode('utf-8')
     #print("%s" % line)
@@ -123,6 +123,7 @@ def get_tr_win(data, name):
 
 
 def get_distance_record_url(hrname, rcno, date):
+    hrname = hrname.replace('★', '')
     #print("name: %s, rcno: %d, date: %d" % (hrname, rcno, date))
     url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=3&rcNo=%d&rcDate=%d" % (rcno, date)
     response_body = urlopen(url).read()
@@ -144,7 +145,7 @@ def get_distance_record_url(hrname, rcno, date):
         t = re.search(unicode(r'\d+[:]\d+[.]\d+', 'utf-8').encode('utf-8'), pls[7]).group()
         res[5] = int(t.split(':')[0])*600 + int(t.split(':')[1].split('.')[0])*10 + int(t.split('.')[1])
     else:
-        print("can not find %s in %s" % (hrname, url))
+        print("can not find distance record %s in %s" % (hrname, url))
     return res
 
 def get_game_info(date, rcno):
@@ -209,7 +210,9 @@ def parse_xml_entry(meet, date, number):
         if number > 0 and number != rcno:
             continue
         hr_gender, hr_days = get_hr_data(data_hr, itemElm.hrname.string)
-        hr_weight, hr_dweight = get_hr_weight(meet, itemElm.rcdate.string, itemElm.rcno.string, itemElm.hrname.string)
+        #hr_weight, hr_dweight = get_hr_weight(meet, itemElm.rcdate.string, itemElm.rcno.string, itemElm.hrname.string)
+        hr_weight = gdd.get_weight(meet, date, int(itemElm.rcno.string), itemElm.hrname.string)
+        hr_dweight = gdd.get_dweight(meet, date, int(itemElm.rcno.string), itemElm.hrname.string)
         hr_dist_rec = get_distance_record_url(itemElm.hrname.string, int(itemElm.rcno.string), date)
         cnt, kind = get_game_info(datetime.date(date/10000, date/100%100, date%100), int(itemElm.rcno.string))
         hr_win = get_hr_win(itemElm.cntt.string, itemElm.ord1t.string, itemElm.ord2t.string, itemElm.cnty.string,

@@ -19,7 +19,6 @@ def get_budam(meet, date, rcno, name):
     xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
-            print(itemElm2)
             itemList = itemElm2.findAll('td')
             if name in itemList[1].string.encode('utf-8'):
                 return unicode(itemList[6].string)
@@ -39,7 +38,7 @@ def get_dbudam(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if name in itemList[1].string.encode('utf-8'):
+            if len(itemList) >= 10 and name in itemList[1].string.encode('utf-8'):
                 return unicode(itemList[7].string)
     print("can not find %s in %s" % (name, fname))
     return -1
@@ -67,6 +66,7 @@ def get_weight(meet, date, rcno, name):
 
 
 def get_dweight(meet, date, rcno, name):
+    name = name.replace('★', '')
     fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
     if os.path.exists(fname):
         response_body = open(fname).read()
@@ -80,11 +80,12 @@ def get_dweight(meet, date, rcno, name):
             itemList = itemElm2.findAll('td')
             if name in itemList[1].string.encode('utf-8'):
                 return unicode(itemList[3].string)
-    print("can not find %s in %s" % (name, fname))
+    print("can not find dweight %s in %s" % (name, fname))
     return -1
 
 
 def get_drweight(meet, date, rcno, name):
+    name = name.replace('★', '')
     fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
     if os.path.exists(fname):
         response_body = open(fname).read()
@@ -106,11 +107,12 @@ def get_drweight(meet, date, rcno, name):
                     if "-R" not in last_date:
                         print("can not parsing get_drweight %s" % fname)
                     return -1
-    print("can not find %s in %s" % (name, fname))
+    print("can not find drweight %s in %s" % (name, fname))
     return -1
 
 
 def get_lastday(meet, date, rcno, name):
+    name = name.replace('★', '')
     fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
     if DEBUG: print(fname)
     if os.path.exists(fname):
@@ -133,11 +135,12 @@ def get_lastday(meet, date, rcno, name):
                     if "-R" not in last_date:
                         print("can not parsing get_lastday %s" % fname)
                     return -1
-    print("can not find %s in %s" % (name, fname))
+    print("can not find last day %s in %s" % (name, fname))
     return -1
 
 
 def get_train_state(meet, date, rcno, name):
+    name = name.replace('★', '')
     fname = '../txt/%d/train_state/train_state_%d_%d_%d.txt' % (meet, meet, date, rcno)
     res = [-1, -1, -1, -1, -1]
     cand = "조보후승기"
@@ -155,14 +158,18 @@ def get_train_state(meet, date, rcno, name):
                 for item in itemList[2:]:
                     if item.string is None:
                         continue
-                    trainer = re.search(r'[가-힣]+', item.string.encode('utf-8')).group()
+                    trainer = re.search(r'[가-힣]+', item.string.encode('utf-8'))
+                    time = re.search(r'\d+', item.string.encode('utf-8'))
+                    if trainer is None or time is None:
+                        continue
+                    trainer = trainer.group()
                     who = cand.find(trainer) / 3
                     if who == -1:
                         who = 4
                     train_time = int(re.search(r'\d+', item.string.encode('utf-8')).group())
                     res[who] += train_time
                 return res
-    print("can not find %s in %s" % (name, fname))
+    print("can not find train state %s in %s" % (name, fname))
     return res
 
 
