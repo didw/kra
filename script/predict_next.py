@@ -60,6 +60,13 @@ def print_log(data, pred, fname):
     flog.close()
 
 
+def get_chulma_fname(date):
+    if date.weekday() == 5:
+        date_ = date+ datetime.timedelta(days=-2)
+    if date.weekday() == 6:
+        date_ = date + datetime.timedelta(days=-3)
+    return "../txt/1/chulma/chulma_1_%4d%02d%02d.txt" % (date_.year, date_.month, date_.day)
+
 def predict_next(estimator, meet, date, rcno):
     data_pre = xe.parse_xml_entry(meet, date, rcno)
     data = normalize_data(data_pre)
@@ -94,13 +101,13 @@ def predict_next(estimator, meet, date, rcno):
 
 if __name__ == '__main__':
     meet = 1
-    date = 20161120
+    date = 20161126
     rcno = 1
     #import get_api
     #get_api.get_data(meet, date/100)
     #import get_txt
     #get_txt.download_txt(datetime.date.today(), datetime.date.today(), 1)
-    estimator1 = tr.training(datetime.date(2016, 11, 19) + datetime.timedelta(days=-365*4), datetime.date(2016, 11, 19))
+    estimator1 = tr.training(datetime.date(2016, 11, 20) + datetime.timedelta(days=-365*4), datetime.date(2016, 11, 20))
 
     predict_next(estimator1, meet, date, rcno)
 

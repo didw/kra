@@ -253,6 +253,127 @@ def parse_txt_race(filename):
         assert get_rate
     return data
 
+def get_humidity():
+    url = "http://race.kra.co.kr/chulmainfo/trackView.do?Act=02&Sub=10&meet=1"
+    response_body = urlopen(url).read()
+    line = unicode(response_body, 'euc-kr').encode('utf-8')
+    #print("%s" % line)
+    p = re.compile(unicode(r'(?<=함수율 <span>: )\d+(?=\%\()', 'utf-8').encode('utf-8'), re.MULTILINE)
+    pl = p.search(line)
+    res = 10
+    if pl is not None:
+        res = pl.group()
+    return res
+
+
+def parse_txt_race2(filename, _date=0, _rcno=0):
+    data = []
+    input_file = open(filename)
+    while True:
+        # skip header
+        humidity = 0
+        read_done = False
+        hr_num = [0, 0]
+        rcno = -1
+        course = ''
+        kind = ''
+        hrname = ''
+        month = 0
+        for _ in range(300):
+            line = input_file.readline()
+            line = unicode(line, 'euc-kr').encode('utf-8')
+            if len(line) == 0:
+                read_done = True
+                break
+            if re.search(unicode(r'제목', 'utf-8').encode('utf-8'), line) is not None:
+                print("%s" % line)
+                rcno = int(re.search(unicode(r'\d+(?=경주)', 'utf-8').encode('utf-8'), line).group())
+                date = re.search(r'\d+[.]\d+[.]\d+', line).group()
+                month = date[3:5]
+                date = int("20%s%s%s" % (date[:2], date[3:5], date[6:8]))
+                print("%d, %d, %d, %d" % (date, _date, rcno, _rcno))
+                if (_date != 0 and date != _date) or (_rcno != 0 and rcno != _rcno):
+                    while True:
+                        line = input_file.readline()
+                        line = unicode(line, 'euc-kr').encode('utf-8')
+                        if len(line) == 0:
+                            read_done = True
+                            break
+                        if re.search(unicode(r'\d+(?=경주)', 'utf-8').encode('utf-8'), line) is not None:
+                            print("%s" % line)
+                            rcno = int(re.search(unicode(r'\d+(?=경주)', 'utf-8').encode('utf-8'), line).group())
+                            date = re.search(r'\d+[.]\d+[.]\d+', line).group()
+                            month = date[3:5]
+                            date = int("20%s%s%s" % (date[:2], date[3:5], date[6:8]))
+                            print("%d, %d, %d, %d" % (date, _date, rcno, _rcno))
+                            if (_date == 0 or date == _date) and (_rcno == 0 or rcno == _rcno):
+                                break
+                            else:
+                                continue
+            if re.search(unicode(r'출발', 'utf-8').encode('utf-8'), line) is not None:
+                if DEBUG: print("%s" % line)
+                course = re.search(unicode(r'[\d ]+(?=M)', 'utf-8').encode('utf-8'), line).group()
+                kind = re.search(unicode(r'\d(?=등급)', 'utf-8').encode('utf-8'), line)
+                if kind is None:
+                    kind = 0
+                else:
+                    kind = kind.group()[-1]
+            humidity = get_humidity()
+            if re.search(unicode(r'조교사', 'utf-8').encode('utf-8'), line) is not None:
+                break
+        if read_done:
+            break
+
+        # 순위 마번    마    명      산지   성별 연령 부담중량 기수명 조교사   마주명           레이팅
+        cnt = 0
+        for _ in range(300):
+            line = input_file.readline()
+            line = unicode(line, 'euc-kr')
+            if re.match(r'[-─]+', line[:5]) is not None:
+                continue
+            if re.search(unicode(r'총전적', 'utf-8'), line) is not None:
+                break
+            if re.search(r'[^\s]+', line[:5]) is None:
+                continue
+            idx = re.search(r'\d+?', line).group()
+            hrname = re.search(unicode(r'[가-힣]+', 'utf-8'), line).group().encode('utf-8')
+            print("%s" % hrname)
+            budam = gdd.get_budam(1, date, int(rcno), hrname)
+            dbudam = gdd.get_dbudam(1, date, int(rcno), hrname)
+            drweight = gdd.get_drweight(1, date, int(rcno), hrname)
+            weight = gdd.get_weight(1, date, int(rcno), hrname)
+            dweight = gdd.get_dweight(1, date, int(rcno), hrname)
+            lastday = gdd.get_lastday(1, date, int(rcno), hrname)
+            train_state = gdd.get_train_state(1, date, int(rcno), hrname)
+
+
+            adata = [course, humidity, kind, dbudam, drweight, lastday]
+            adata.extend(train_state)
+
+            cntry = re.search(unicode(r'(?<= ).+?(?=암|거|수)', 'utf-8'), line).group()
+            gender = re.search(unicode(r'암|거|수', 'utf-8'), line).group()
+            age = re.search(unicode(r'(?<=암|거|수)[ \d]+?', 'utf-8'), line).group()
+            others = re.search(unicode(r'(?<=[.]\d)[ 가-힣]+[ ]+[가-힣]+', 'utf-8'), line).group().split()
+            jockey = others[0].encode('utf-8')
+            trainer = others[1].encode('utf-8')
+            adata.append(idx)
+            adata.append(hrname)
+            adata.append(cntry)
+            adata.append(gender)
+            adata.append(age)
+            adata.append(budam)
+            adata.append(jockey)
+            adata.append(trainer)
+            adata.extend([weight, dweight])
+            data.append(adata)
+            cnt += 1
+
+        for i in range(cnt):
+            data[-cnt + i].extend([cnt])
+            data[-cnt + i].extend([rcno])
+            data[-cnt + i].extend([month])
+    return data
+
 
 
 def get_fname(date, job):
@@ -373,6 +494,7 @@ def parse_txt_horse(date, rcno, name):
 # 이름  소속 생일        데뷔일  총경기수, 총1, 총2, 1년, 1년1, 1년2
 # 김동철491974/11/28371995/07/015252 3706  217  242  166   17   19
 def parse_txt_jockey(date, name):
+    print("jockey: %s" % name)
     if len(str(name)) > 9:
         #print("name is changed %s -> %s" % (name, name[:6]))
         name = str(name)[:6]
@@ -475,15 +597,32 @@ def get_data(filename):
     return df
 
 
+def get_data2(filename, _date, _rcno):
+    print("race file: %s" % filename)
+    date = datetime.date(_date/10000, _date/100%100, _date%100)
+    data = parse_txt_race2(filename, _date, _rcno)
+    for i in range(len(data)):
+        #print("race file: %s" % filename)
+        #print("%s %s %s" % (data[i][5], data[i][10], data[i][11]))
+        data[i].extend(parse_txt_horse(date, int(data[i][23]), data[i][12]))
+        data[i].extend(parse_txt_jockey(date, data[i][17]))
+        data[i].extend(parse_txt_trainer(date, data[i][18]))
+        data[i].extend([_date])
+    df = pd.DataFrame(data)
+    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 20
+                  'weight', 'dweight', 'cnt', 'rcno', 'month',
+                  'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
+                  'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
+                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
+                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2', 'date'] # 10
+    return df
+
+
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/1/rcresult/rcresult_1_20160124.txt'
-    data = get_data(filename)
+    filename = '../txt/1/chulma/chulma_1_20161124.txt'
+    data = get_data2(filename, 20161126, 1)
     print(data)
-    data.to_csv(filename.replace('.txt', '.csv'), index=False)
+    data.to_csv('../txt/1/chulma/chulma_1_20161124.csv', index=False)
 
-    data = data.dropna()
-    print(data[['rctime', 'r1', 'r2', 'r3']])
-    print(data['cnt'])
-    print(data['rcno'])
 
