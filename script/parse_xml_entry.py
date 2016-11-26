@@ -133,8 +133,8 @@ def get_game_info(date, rcno):
     fname = '../txt/1/chulma/chulma_1_%d%02d%02d.txt' % (file_date.year, file_date.month, file_date.day)
     #print(fname)
     finput = open(fname)
-    date_s = "%d[.]%02d[.]%02d" % (date.year % 100, date.month, date.day)
-    exp = "%s.*%d" % (date_s, rcno)
+    date_s = "%02d[.]%02d[.]%02d" % (date.year % 100, date.month, date.day)
+    exp = "%s.*%d경주" % (date_s, rcno)
     #print("%s" % exp)
     found = False
     for _ in range(3000):

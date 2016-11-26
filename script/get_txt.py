@@ -108,6 +108,6 @@ def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
 
 if __name__ == '__main__':
     for i in range(1, 2):
-        download_chulmaDetailInfo(datetime.date(2016, 11, 10), datetime.date.today(), i, False)
-        download_txt(datetime.date(2016, 11, 10), datetime.date.today(), i)
+        download_chulmaDetailInfo(datetime.date(2016, 11, 22), datetime.date.today()+datetime.timedelta(days=-1), i, True)
+        download_txt(datetime.date(2016, 11, 22), datetime.date.today()+datetime.timedelta(days=-1), i, True)
 
