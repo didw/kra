@@ -95,12 +95,12 @@ def predict_next(estimator, meet, date, rcno):
 
 if __name__ == '__main__':
     meet = 2
-    date = 20161119
-    rcno = 7
+    date = 20161126
+    rcno = 9
     #import get_api
     #get_api.get_data(meet, date/100)
     course = 1200
-    estimator = tr.training(datetime.date(2016, 11, 19) + datetime.timedelta(days=-365), datetime.date(2016, 11, 19), course)
+    estimator = tr.training(datetime.date(2016, 11, 20) + datetime.timedelta(days=-365*1), datetime.date(2016, 11, 20))
     predict_next(estimator, meet, date, rcno)
 
 

@@ -9,6 +9,7 @@ import re
 DEBUG = False
 
 def get_budam(meet, date, rcno, name):
+    name = name.replace('★', '')
     fname = '../txt/%d/chulmapyo/chulmapyo_%d_%d_%d.txt' % (meet, meet, date, rcno)
     if os.path.exists(fname):
         response_body = open(fname).read()
@@ -28,6 +29,7 @@ def get_budam(meet, date, rcno, name):
 
 
 def get_dbudam(meet, date, rcno, name):
+    name = name.replace('★', '')
     fname = '../txt/%d/chulmapyo/chulmapyo_%d_%d_%d.txt' % (meet, meet, date, rcno)
     if os.path.exists(fname):
         response_body = open(fname).read()
@@ -46,6 +48,7 @@ def get_dbudam(meet, date, rcno, name):
 
 
 def get_weight(meet, date, rcno, name):
+    name = name.replace('★', '')
     fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
     if os.path.exists(fname):
         response_body = open(fname).read()
@@ -64,6 +67,7 @@ def get_weight(meet, date, rcno, name):
 
 
 def get_dweight(meet, date, rcno, name):
+    name = name.replace('★', '')
     fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
     if os.path.exists(fname):
         response_body = open(fname).read()
@@ -82,6 +86,7 @@ def get_dweight(meet, date, rcno, name):
 
 
 def get_drweight(meet, date, rcno, name):
+    name = name.replace('★', '')
     fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
     if os.path.exists(fname):
         response_body = open(fname).read()
@@ -108,6 +113,7 @@ def get_drweight(meet, date, rcno, name):
 
 
 def get_lastday(meet, date, rcno, name):
+    name = name.replace('★', '')
     fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
     if DEBUG: print(fname)
     if os.path.exists(fname):
@@ -135,6 +141,7 @@ def get_lastday(meet, date, rcno, name):
 
 
 def get_train_state(meet, date, rcno, name):
+    name = name.replace('★', '')
     fname = '../txt/%d/train_state/train_state_%d_%d_%d.txt' % (meet, meet, date, rcno)
     res = [-1, -1, -1, -1, -1]
     cand = "조보후승기"
