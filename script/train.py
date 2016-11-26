@@ -310,16 +310,13 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 print("Score with the entire test dataset = %.2f" % score)
                 pred = estimator.predict(X_test)
 
-                res1 = sim.simulation6(pred, R_test, [[1,2,3]])
-                res2 = sim.simulation6(pred, R_test, [[1,2,4]])
-                res3 = sim.simulation6(pred, R_test, [[1,2,5]])
-                res4 = sim.simulation6(pred, R_test, [[1,3,4]])
-                res5 = sim.simulation6(pred, R_test, [[1,3,5]])
+                res1 = sim.simulation1(pred, R_test, [[1,2,3]])
+                res2 = sim.simulation2(pred, R_test, [[1,2,4]])
+                res3 = sim.simulation3(pred, R_test, [[1,2,5]])
+                res4 = sim.simulation4(pred, R_test, [[1,3,4]])
+                res5 = sim.simulation5(pred, R_test, [[1,3,5]])
                 res6 = sim.simulation6(pred, R_test, [[1,4,5]])
-                res7 = sim.simulation6(pred, R_test, [[2,3,4]])
-                res8 = sim.simulation6(pred, R_test, [[2,3,5]])
-                res9 = sim.simulation6(pred, R_test, [[2,4,5]])
-                res10 = sim.simulation6(pred, R_test, [[3,4,5]])
+                res7 = sim.simulation7(pred, R_test, [[2,3,4]])
 
             print("train data: %s - %s" % (str(train_bd), str(train_ed)))
             print("test data: %s - %s" % (str(test_bd), str(test_ed)))
@@ -339,9 +336,9 @@ if __name__ == '__main__':
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2015, 11, 21)
+    test_bd = datetime.date(2014, 11, 21)
     test_ed = datetime.date(2016, 11, 20)
-    for delta_year in [4]:
+    for delta_year in [1,2,4,6]:
         simulation_weekly_train0(test_bd, test_ed, 0, delta_year, [0])#, 1000, 1200, 1300, 1400, 1600, 1800, 1900])
         #for c in [1000, 1200, 1300, 1400, 1600, 1800, 1900]:
         #   outfile = '../data/weekly_result_m3_y%d_c%d.txt' % (delta_year, c)
