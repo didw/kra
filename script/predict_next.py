@@ -60,6 +60,37 @@ def print_log(data, pred, fname):
     flog.close()
 
 
+def print_bet(rcdata):
+    print("dan")
+    print("%s" % rcdata['idx'][1])
+    print("yeon")
+    print("%s" % rcdata['idx'][0])
+    print("bok")
+    print("%s,%s" % (rcdata['idx'][1], rcdata['idx'][2]))
+    print("bokyeon")
+    print("%s,%s" % (rcdata['idx'][1], rcdata['idx'][2]))
+    print("ssang")
+    print("%s,%s" % (rcdata['idx'][1], rcdata['idx'][2]))
+    print("sambok")
+    print("%s,%s,%s" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][3]))
+    print("%s,%s,%s" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][4]))
+    print("%s,%s,%s" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3]))
+    print("samssang")
+    print("%s,%s,%s" % (rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][2]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][4], rcdata['idx'][2], rcdata['idx'][3]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][2]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,%s" % (rcdata['idx'][1], rcdata['idx'][4], rcdata['idx'][3]))
+    print("%s,%s,%s" % (rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][0]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][1]))
+    print("%s,%s,%s" % (rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][1]))
+    print("%s,%s,%s" % (rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][1]))
+    print("%s,%s,%s" % (rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][1]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][4], rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][2]))
+
+
 def predict_next(estimator, meet, date, rcno):
     data_pre = xe.parse_xml_entry(meet, date, rcno)
     data = normalize_data(data_pre)
@@ -86,6 +117,7 @@ def predict_next(estimator, meet, date, rcno):
             rcdata = rcdata.sort_values(by='time')
             print("=========== %s ==========" % prev_rc)
             print(rcdata)
+            print_bet(rcdata)
             rcdata = []
             prev_rc = row['rcno']
         else:
