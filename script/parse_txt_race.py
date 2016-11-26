@@ -335,6 +335,7 @@ def get_distance_record(hrname, rcno, date):
 # 이름             산지  성별   birth  -    조교사  마주명             -                    -                     총경기, 총1, 총2, 1년경기, 1년1, 1년2,총상금
 # 킹메신저          한    수2014/03/08 2국6 18박대흥죽마조합            시에로골드          난초                    1    0    0    1    0    0    3000000                     0
 def parse_txt_horse(date, rcno, name):
+    name = name.replace('★', '')
     filename = get_fname(date, "horse")
     f_input = open(filename)
     while True:

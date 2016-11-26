@@ -34,7 +34,7 @@ def get_humidity():
 
 
 def get_hr_data(data, name):
-    name = name.replace('★'.encode('utf-8'), '')
+    name = name.replace('★', '')
     for idx, line in data.iterrows():
         #print ("line: ", line)
         #print ("name: %s" % name)
@@ -134,7 +134,7 @@ def get_game_info(date, rcno):
     #print("culma filename: %s" % fname)
     finput = open(fname)
     date_s = "%d[.]%02d[.]%02d" % (date.year % 100, date.month, date.day)
-    exp = "%s.*%d" % (date_s, rcno)
+    exp = "%s.*%d경주" % (date_s, rcno)
     #print("%s" % exp)
     found = False
     for _ in range(3000):
@@ -179,6 +179,7 @@ def get_fname(date, job):
 # 이름             산지  성별   birth  -    조교사  마주명             -                    -                     총경기, 총1, 총2, 1년경기, 1년1, 1년2,총상금
 # 킹메신저          한    수2014/03/08 2국6 18박대흥죽마조합            시에로골드          난초                    1    0    0    1    0    0    3000000                     0
 def parse_txt_horse(date, rcno, name):
+    name = name.replace('★', '')
     filename = get_fname(date, "horse")
     f_input = open(filename)
     while True:
