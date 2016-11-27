@@ -20,7 +20,6 @@ def get_budam(meet, date, rcno, name):
     xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
-            print(itemElm2)
             itemList = itemElm2.findAll('td')
             if name in itemList[1].string.encode('utf-8'):
                 return unicode(itemList[6].string)
@@ -60,9 +59,11 @@ def get_weight(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            print(itemList)
             if name in itemList[1].string.encode('utf-8'):
-                return unicode(itemList[2].string)
+                try:
+                    return int(unicode(itemList[2].string))
+                except ValueError:
+                    return -1
     return -1
 
 
@@ -179,7 +180,6 @@ def get_train_state(meet, date, rcno, name):
 def get_train_info(hridx):
     base_url = "http://race.kra.co.kr/racehorse/profileTrainState.do?Act=02&Sub=1&meet=1&hrNo="
     url = "%s%s" % (base_url, hridx)
-    print(url)
     response_body = urlopen(url).read()
     xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
     for itemElm in xml_text.findAll('tbody'):

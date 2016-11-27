@@ -70,12 +70,13 @@ def predict_next(estimator, meet, date, rcno):
     del X_data['trainer']
     del X_data['owner']
     del X_data['index']
-    pred = pd.DataFrame(estimator.predict(X_data))
-    pred.columns = ['predict']
     __DEBUG__ = True
     if __DEBUG__:
-        pd.concat([data_pre, pred], axis=1).to_csv('../log/predict_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
         X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
+    pred = pd.DataFrame(estimator.predict(X_data))
+    pred.columns = ['predict']
+    if __DEBUG__:
+        pd.concat([data_pre, pred], axis=1).to_csv('../log/predict_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
     prev_rc = data['rcno'][0]
     rcdata = []
     for idx, row in data.iterrows():
@@ -99,8 +100,8 @@ if __name__ == '__main__':
     rcno = 9
     #import get_api
     #get_api.get_data(meet, date/100)
-    course = 1200
-    estimator = tr.training(datetime.date(2016, 11, 20) + datetime.timedelta(days=-365*1), datetime.date(2016, 11, 20))
+    course = 0
+    estimator = tr.training(datetime.date(2016, 11, 13) + datetime.timedelta(days=-365*4), datetime.date(2016, 11, 13))
     predict_next(estimator, meet, date, rcno)
 
 

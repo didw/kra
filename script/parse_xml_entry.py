@@ -21,7 +21,7 @@ sys.setdefaultencoding('utf-8')
 DEBUG = False
 
 def get_humidity():
-    url = "http://race.kra.co.kr/chulmainfo/trackView.do?Act=02&Sub=10&meet=1"
+    url = "http://race.kra.co.kr/chulmainfo/trackView.do?Act=02&Sub=10&meet=2"
     response_body = urlopen(url).read()
     line = unicode(response_body, 'euc-kr').encode('utf-8')
     #print("%s" % line)
@@ -32,29 +32,6 @@ def get_humidity():
         res = pl.group()
     return res
 
-
-def get_hr_weight(meet, date, rcno, hrname):
-    hrname = hrname.replace('★'.encode('utf-8'), '')
-    #url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&meet=1&rcNo=11&rcDate=20161030"
-    date = "%s%s%s" % (date[:4], date[5:7], date[8:10])
-    url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&meet=%s&rcNo=%s&rcDate=%s" % (meet, rcno, date)
-    try:
-        response_body = urlopen(url).read()
-    except:
-        print "can not read %s" % url
-    line = unicode(response_body, 'euc-kr').encode('utf-8')
-
-    exp = '%s</a></td>\s+<td>\d+</td>\s+<td>[-\d]+(?=</td>)' % hrname
-    p = re.compile(exp.encode('utf-8'), re.MULTILINE)
-    pl = p.search(line)
-    res = [-1, -1]
-    if pl is not None:
-        weight = pl.group().split('<td>')[1].split('</td>')[0]
-        dweight = pl.group().split('<td>')[2]
-        res = [weight, dweight]
-    if res[0] == -1:
-        print("Can not parsing weight %s in %s" % (hrname, url))
-    return res
 
 def get_hr_data(data, name):
     name = name.replace('★', '')
@@ -123,8 +100,9 @@ def get_tr_win(data, name):
 
 
 def get_distance_record_url(hrname, rcno, date):
+    hrname = hrname.replace('★', '')
     #print("name: %s, rcno: %d, date: %d" % (hrname, rcno, date))
-    url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=2&rcNo=%d&rcDate=%d" % (rcno, int("%d%d%d" % (date.year, date.month, date.day)))
+    url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=2&rcNo=%d&rcDate=%d" % (rcno, date)
     response_body = urlopen(url).read()
     line = unicode(response_body, 'euc-kr').encode('utf-8')
     #print("%s" % line)
@@ -144,7 +122,7 @@ def get_distance_record_url(hrname, rcno, date):
         t = re.search(unicode(r'\d+[:]\d+[.]\d+', 'utf-8').encode('utf-8'), pls[7]).group()
         res[5] = int(t.split(':')[0])*600 + int(t.split(':')[1].split('.')[0])*10 + int(t.split('.')[1])
     else:
-        print("can not find %s in %s" % (hrname, url))
+        print("can not find distance record %s in %s" % (hrname, url))
     return res
 
 def get_game_info(date, rcno):
@@ -349,17 +327,16 @@ def parse_xml_entry(meet, date, number):
         if number > 0 and number != rcno:
             continue
         hr_gender, hr_days = get_hr_data(data_hr, itemElm.hrname.string)
-        hr_weight, hr_dweight = get_hr_weight(meet, itemElm.rcdate.string, itemElm.rcno.string, itemElm.hrname.string)
-        #hr_dist_rec = get_distance_record_url(itemElm.hrname.string, int(itemElm.rcno.string), date)
+        #hr_weight, hr_dweight = get_hr_weight(meet, itemElm.rcdate.string, itemElm.rcno.string, itemElm.hrname.string)
+        hr_weight = gdd.get_weight(meet, date, int(itemElm.rcno.string), itemElm.hrname.string)
+        hr_dweight = gdd.get_dweight(meet, date, int(itemElm.rcno.string), itemElm.hrname.string)
+        hr_dist_rec = get_distance_record_url(itemElm.hrname.string, int(itemElm.rcno.string), date)
         cnt, kind = get_game_info(datetime.date(date/10000, date/100%100, date%100), int(itemElm.rcno.string))
-        #hr_win = get_hr_win(itemElm.cntt.string, itemElm.ord1t.string, itemElm.ord2t.string, itemElm.cnty.string,
-        #                   itemElm.ord1y.string, itemElm.ord2y.string)
-        #jk_win = get_jk_win(data_jk, itemElm.jkname.string)
-        #tr_win = get_tr_win(data_tr, itemElm.trname.string)
-        hr_info = parse_txt_horse(datetime.date(date/10000, date/100%100, date%100), int(itemElm.rcno.string), itemElm.hrname.string)
-        jk_win = parse_txt_jockey(datetime.date(date/10000, date/100%100, date%100), itemElm.jkname.string)
-        tr_win = parse_txt_trainer(datetime.date(date/10000, date/100%100, date%100), itemElm.trname.string)
-
+        hr_win = get_hr_win(itemElm.cntt.string, itemElm.ord1t.string, itemElm.ord2t.string, itemElm.cnty.string,
+                           itemElm.ord1y.string, itemElm.ord2y.string)
+        jk_win = get_jk_win(data_jk, itemElm.jkname.string)
+        tr_win = get_tr_win(data_tr, itemElm.trname.string)
+		
         hrname = itemElm.hrname.string
         dbudam = gdd.get_dbudam(2, date, int(rcno), hrname)
         drweight = gdd.get_drweight(2, date, int(rcno), hrname)
@@ -394,25 +371,25 @@ def parse_xml_entry(meet, date, number):
                  cnt,
                  itemElm.rcno.string,
                  date/100%100,
-                 hr_info[0], #hr_days,
+                 hr_days,
 
-                 hr_info[1],  #itemElm.cntt.string,
-                 hr_info[2],  #itemElm.ord1t.string,
-                 hr_info[3],  #itemElm.ord2t.string,
-                 hr_info[4],  #hr_win[0],
-                 hr_info[5],  #hr_win[1],
-                 hr_info[6],  #itemElm.cnty.string,
-                 hr_info[7],  #itemElm.ord1y.string,
-                 hr_info[8],  #itemElm.ord2y.string,
-                 hr_info[9],  #hr_win[2],
-                 hr_info[10],  #hr_win[3],
+                 itemElm.cntt.string,
+                 itemElm.ord1t.string,
+                 itemElm.ord2t.string,
+                 hr_win[0],
+                 hr_win[1],
+                 itemElm.cnty.string,
+                 itemElm.ord1y.string,
+                 itemElm.ord2y.string,
+                 hr_win[2],
+                 hr_win[3],
 
-                 hr_info[11],  #hr_dist_rec[0],
-                 hr_info[12],  #hr_dist_rec[1],
-                 hr_info[13],  #hr_dist_rec[2],
-                 hr_info[14],  #hr_dist_rec[3],
-                 hr_info[15],  #hr_dist_rec[4],
-                 hr_info[16],  #hr_dist_rec[5],
+                 hr_dist_rec[0],
+                 hr_dist_rec[1],
+                 hr_dist_rec[2],
+                 hr_dist_rec[3],
+                 hr_dist_rec[4],
+                 hr_dist_rec[5],
 
                  jk_win[0],
                  jk_win[1],
