@@ -63,8 +63,6 @@ def print_log(data, pred, fname):
 def print_bet(rcdata):
     print("dan")
     print("%s" % rcdata['idx'][1])
-    print("yeon")
-    print("%s" % rcdata['idx'][0])
     print("bok")
     print("%s,%s" % (rcdata['idx'][1], rcdata['idx'][2]))
     print("bokyeon")
@@ -74,19 +72,26 @@ def print_bet(rcdata):
     print("sambok")
     print("%s,%s,%s" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2]))
     print("samssang")
-    print("%s,%s,%s" % (rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][2]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][4], rcdata['idx'][2], rcdata['idx'][3]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][2]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,%s" % (rcdata['idx'][1], rcdata['idx'][4], rcdata['idx'][3]))
-    print("%s,%s,%s" % (rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][0]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][1]))
-    print("%s,%s,%s" % (rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][1]))
-    print("%s,%s,%s" % (rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][1]))
-    print("%s,%s,%s" % (rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][1]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][4], rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][2]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][4], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][4], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][3]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][4], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][4], rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][4], rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][3]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][4], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2]))
 
 
 def predict_next(estimator, meet, date, rcno):
@@ -110,9 +115,13 @@ def predict_next(estimator, meet, date, rcno):
         if int(data['hr_nt'][idx]) == 0 or int(data['jk_nt'][idx]) == 0 or int(data['tr_nt'][idx]) == 0:
             print("%s data is not enough. be careful" % (data['name'][idx]))
         if row['rcno'] != prev_rc or idx+1 == len(data):
+            if idx+1 == len(data):
+                rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
+
             rcdata = pd.DataFrame(rcdata)
             rcdata.columns = ['idx', 'name', 'time']
             rcdata = rcdata.sort_values(by='time')
+            rcdata = rcdata.reset_index(drop=True)
             print("=========== %s ==========" % prev_rc)
             print(rcdata)
             print_bet(rcdata)
@@ -124,11 +133,11 @@ def predict_next(estimator, meet, date, rcno):
 
 if __name__ == '__main__':
     meet = 3
-    date = 20161118
-    rcno = 0
+    date = 20161127
+    rcno = 6
     #import get_api
     #get_api.get_data(meet, date/100)
-    estimator = tr.training(datetime.date(2016, 11, 13) + datetime.timedelta(days=-365*4), datetime.date(2016, 11, 13))
+    estimator = tr.training(datetime.date(2016, 11, 20) + datetime.timedelta(days=-365*4), datetime.date(2016, 11, 20))
 
     predict_next(estimator, meet, date, rcno)
 

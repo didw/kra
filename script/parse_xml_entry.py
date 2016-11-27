@@ -220,7 +220,7 @@ def parse_xml_entry(meet, date, number):
         jk_win = get_jk_win(data_jk, itemElm.jkname.string)
         tr_win = get_tr_win(data_tr, itemElm.trname.string)
 		
-        hrname = itemElm.hrname.string
+        hrname = unicode(itemElm.hrname.string)
         dbudam = gdd.get_dbudam(3, date, int(rcno), hrname)
         drweight = gdd.get_drweight(3, date, int(rcno), hrname)
         lastday = gdd.get_lastday(3, date, int(rcno), hrname)

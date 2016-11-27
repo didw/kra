@@ -15,7 +15,7 @@ def simulation1(pred, ans, target=2):
     #print(ans)
     i = 0
     res1 = 0
-    bet = 100
+    bet = 10.0
     assert len(pred) == len(ans)
     while True:
         cache = np.zeros(20)
@@ -50,9 +50,9 @@ def simulation1(pred, ans, target=2):
         top = sim_data.rank()
 
         if top[0] == target:
-            res1 += 100 * (r1[0] - 1)
+            res1 += bet * (r1[0] - 1)
         else:
-            res1 -= 100
+            res1 -= bet
         #print("단승식: %f, %f" % (res1, res2))
     return res1
 
@@ -62,7 +62,7 @@ def simulation2(pred, ans, target=1):
     i = 0
     res1 = 0
     rcno = 0
-    bet = 100
+    bet = 10.0
     assert len(pred) == len(ans)
     while True:
         cache = np.zeros(20)
@@ -102,27 +102,27 @@ def simulation2(pred, ans, target=1):
 
         if total_player > 7:
             if target == top[0]:
-                res1 += 100 * r2[0]
+                res1 += bet * r2[0]
             elif target == top[1]:
-                res1 += 100 * r2[1]
+                res1 += bet * r2[1]
             elif target == top[2]:
-                res1 += 100 * r2[2]
+                res1 += bet * r2[2]
             else:
-                res1 -= 100
+                res1 -= bet
         else:
             if target == top[0]:
-                res1 += 100 * r2[0]
+                res1 += bet * r2[0]
             elif target == top[1]:
-                res1 += 100 * r2[1]
+                res1 += bet * r2[1]
             else:
-                res1 -= 100
+                res1 -= bet
 
         #print("연승식: %f" % (res1))
     return res1
 
 # 2 win
 def simulation3(pred, ans, target=[2,3]):
-    bet = 100
+    bet = 10.0
     i = 0
     res1 = 0
     assert len(pred) == len(ans)
@@ -186,7 +186,7 @@ def get_num(line, bet):
 
 # 2 win in 3
 def simulation4(pred, ans, target=[2,3]):
-    bet = 100
+    bet = 10.0
     i = 0
     res1 = 0
     assert len(pred) == len(ans)
@@ -244,7 +244,7 @@ def simulation4(pred, ans, target=[2,3]):
 
 # 2 straight win
 def simulation5(pred, ans, targets=[[2,3]]):
-    bet = 100 / len(targets)
+    bet = 10.0 / len(targets)
     i = 0
     res1 = 0
     assert len(pred) == len(ans)
@@ -293,8 +293,8 @@ def simulation5(pred, ans, targets=[[2,3]]):
 
 
 # 3 straight win
-def simulation6(pred, ans, targets=[[1,2,4], [1,2,5], [2,3,4]]):
-    bet = 1.0 / len(targets)
+def simulation6(pred, ans, targets=[[1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5]]):
+    bet = 10.0 / len(targets)
     i = 0
     res1 = 0
     assert len(pred) == len(ans)
@@ -350,8 +350,8 @@ def simulation6(pred, ans, targets=[[1,2,4], [1,2,5], [2,3,4]]):
     return res1
 
 # 3 straight win
-def simulation7(pred, ans, targets=[[1,4,3],[1,5,3],[1,5,4],[2,1,4],[2,1,5],[2,3,4],[2,3,5],[2,4,1],[2,4,3],[2,5,4],[3,2,1],[3,4,1],[3,4,2],[3,5,1],[4,3,2],[4,5,2],[5,4,2],[5,4,3]]):
-    bet = 1.0 / len(targets)
+def simulation7(pred, ans, targets=[1,2,3,4,5]):
+    bet = 10.0 / (len(targets)*(len(targets)-1)*(len(targets)-2))
     i = 0
     res1 = 0
     assert len(pred) == len(ans)
@@ -386,7 +386,7 @@ def simulation7(pred, ans, targets=[[1,4,3],[1,5,3],[1,5,4],[2,1,4],[2,1,5],[2,3
         a = price*0.7 / r7
         r7 = (price+bet)*0.7 / (a+bet)
 
-        if r7 * bet > 2000:
+        if r7 * bet > 20000:
             r7 *= 0.8
         # if rack_data or total < total_player:
         #     continue
@@ -395,13 +395,17 @@ def simulation7(pred, ans, targets=[[1,4,3],[1,5,3],[1,5,4],[2,1,4],[2,1,5],[2,3
         if total < 5 or r7 < 0:
             continue
         
-        for target in targets:
-            if top[0] == target[0] and top[1] == target[1] and top[2] == target[2]:
-                if r7 > 100:
-                    print("\n== rcno[%d], samssang rate = %f\n" % (rcno, r7))
-                res1 += bet * r7
-            else:
-                res1 -= bet
+        for x in targets:
+            for y in targets:
+                for z in targets:
+                    if x==y or x ==z or y==z:
+                        continue
+                    if top[0] == x and top[1] == y and top[2] == z:
+                        if r7 > 100:
+                            print("\n== rcno[%d], samssang rate = %f\n" % (rcno, r7))
+                        res1 += bet * r7
+                    else:
+                        res1 -= bet
 
         #print("sambok: %f" % (res1))
     return res1
