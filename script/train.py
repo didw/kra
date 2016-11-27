@@ -313,29 +313,24 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 print("Score with the entire test dataset = %.2f" % score)
                 pred = estimator.predict(X_test)
 
-                res1 = sim.simulation7(pred, R_test, [[5,1,2]])
-                res2 = sim.simulation7(pred, R_test, [[5,1,3]])
-                res3 = sim.simulation7(pred, R_test, [[5,1,4]])
-                res4 = sim.simulation7(pred, R_test, [[5,2,1]])
-                res5 = sim.simulation7(pred, R_test, [[5,2,3]])
-                res6 = sim.simulation7(pred, R_test, [[5,2,4]])
-                res7 = sim.simulation7(pred, R_test, [[5,3,1]])
-                res8 = sim.simulation7(pred, R_test, [[5,3,2]])
-                res9 = sim.simulation7(pred, R_test, [[5,3,4]])
-                res10 = sim.simulation7(pred, R_test, [[5,4,1]])
-                res11 = sim.simulation7(pred, R_test, [[5,4,2]])
-                res12 = sim.simulation7(pred, R_test, [[5,4,3]])
+                res1 = sim.simulation1(pred, R_test)
+                res2 = sim.simulation2(pred, R_test)
+                res3 = sim.simulation3(pred, R_test)
+                res4 = sim.simulation4(pred, R_test)
+                res5 = sim.simulation5(pred, R_test)
+                res6 = sim.simulation6(pred, R_test)
+                res7 = sim.simulation7(pred, R_test)
 
             print("train data: %s - %s" % (str(train_bd), str(train_ed)))
             print("test data: %s - %s" % (str(test_bd), str(test_ed)))
             print("course: %d(0: all)" % course)
             print("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok\tsamssang")
-            print("result: %.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f\n" % (res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12))
+            print("result: %.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f\n" % (res1, res2, res3, res4, res5, res6, res7))
             f_result = open(fname_result, 'a')
             f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
             f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
             f_result.write("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok\tsamssang")
-            f_result.write("result: %.0f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f\n" % (res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12))
+            f_result.write("result: %.0f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f\n" % (res1, res2, res3, res4, res5, res6, res7))
             f_result.close()
 
 
@@ -344,9 +339,9 @@ if __name__ == '__main__':
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2016, 5, 21)
+    test_bd = datetime.date(2015, 11, 21)
     test_ed = datetime.date(2016, 11, 20)
-    for delta_year in [1]:
+    for delta_year in [4]:
         simulation_weekly_train0(test_bd, test_ed, 0, delta_year, [0]) # 900, 1000, 400, 1200, 800, 1610, 1400, 1700, 1800, 1110])
         #for c in [900, 1000, 400, 1200, 800, 1610, 1400, 1700, 1800, 1110]:
         #    outfile = '../data/weekly_result_m2_y%d_c%d.txt' % (delta_year, c)
