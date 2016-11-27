@@ -7,7 +7,6 @@ import random
 import datetime
 import os
 from bs4 import BeautifulSoup
-import matplotlib.pyplot as plt
 import numpy as np
 
 def get_humidity():
@@ -266,6 +265,67 @@ def get_dbudam(meet, date, rcno, name):
     return -1
 
 
+def get_hrno(meet, date, rcno, name):
+    fname = '../txt/%d/chulmapyo/chulmapyo_%d_%d_%d.txt' % (meet, meet, date, rcno)
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoChulmapyo.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if name == itemList[1].string.encode('utf-8'):
+                return re.search(r'\d{6}', unicode(itemList[1])).group()
+    return -1
+
+
+def get_hr_racescore(meet, hrno, _date):
+    result = [-1, -1, -1, -1, -1, -1] # 주, 1000, 1200, 1300, 1400, 1700
+    race_sum = [[], [], [], [], [], []]
+    fname = '../txt/%d/racescore/racescore_%d_%d.txt' % (meet, meet, hrno)
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/racehorse/profileRaceScore.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&hrNo=%06d" % (meet, hrno)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr')[2:]:
+            itemList = itemElm2.findAll('td')
+            print(itemList)
+            date = re.search(r'\d{4}/\d{2}/\d{2}', unicode(itemList[1])).group()
+            date = int("%s%s%s" % (date[:4], date[5:7], date[8:]))
+            if date > _date:
+                continue
+            racekind = unicode(itemList[3].string).strip()
+            distance = unicode(itemList[4].string).strip()
+            record = unicode(itemList[10].string).strip()
+            try:
+                record = int(record[0])*600 + int(record[2:4])*10 + int(record[5])
+            except:
+                record = -1
+            print("%d, %s, %s, %d" % (date, racekind, distance, record))
+    return -1
+
+
+def get_hr_testrecord(meet, hrno):
+    base_url = "http://race.kra.co.kr/racehorse/profileTrainCheck.do?Act=02&Sub=1&"
+    url = base_url + "meet=%d&hrNo=%06d" % (meet, hrno)
+    response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    for itemElm in xml_text.findAll('tbody')[1:]:
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if '주행' == unicode(itemList[2].string).encode('utf-8'):
+                print itemList
+    return -1
+
+
+
 def get_budam(meet, date, rcno, name):
     fname = '../txt/%d/chulmapyo/chulmapyo_%d_%d_%d.txt' % (meet, meet, date, rcno)
     if os.path.exists(fname):
@@ -377,13 +437,7 @@ def update_df():
     print(df.loc[len(df)-1]['date'])
 
 
-def test_plot():
-    x = np.arange(0, 5, 0.1)
-    y = np.sin(x)
-    plt.plot(x, y)
-    plt.show()
-
 
 if __name__ == '__main__':
-    test_plot()
-
+    print(get_hrno(1, 20161126, 4, "미라클엔젤"))
+    get_hr_racescore(1, 32938, 20161126)

@@ -68,35 +68,35 @@ def get_chulma_fname(date):
     return "../txt/1/chulma/chulma_1_%4d%02d%02d.txt" % (date_.year, date_.month, date_.day)
 
 def print_bet(rcdata):
-    print("dan")
-    print("%s" % rcdata['idx'][1])
-    print("yeon")
-    print("%s" % rcdata['idx'][0])
     print("bok")
     print("%s,%s" % (rcdata['idx'][1], rcdata['idx'][2]))
-    print("bokyeon")
-    print("%s,%s" % (rcdata['idx'][0], rcdata['idx'][1]))
     print("ssang")
-    print("%s,%s" % (rcdata['idx'][1], rcdata['idx'][0]))
-    print("%s,%s" % (rcdata['idx'][1], rcdata['idx'][2]))
+    print("%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2]))
     print("sambok")
-    print("%s,%s,%s" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][3]))
-    print("%s,%s,%s" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][4]))
     print("%s,%s,%s" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3]))
     print("samssang")
-    print("%s,%s,%s" % (rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][2]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][4], rcdata['idx'][2], rcdata['idx'][3]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][2]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,%s" % (rcdata['idx'][1], rcdata['idx'][4], rcdata['idx'][3]))
-    print("%s,%s,%s" % (rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][0]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][1]))
-    print("%s,%s,%s" % (rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][1]))
-    print("%s,%s,%s" % (rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][1]))
-    print("%s,%s,%s" % (rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][1]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][4], rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][2]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][4], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][4], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][3]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][4], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][4], rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][4], rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][3]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][4], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2]))
+
 
 def predict_next(estimator, meet, date, rcno):
     data_pre = xe.parse_xml_entry(meet, date, rcno)
@@ -119,9 +119,12 @@ def predict_next(estimator, meet, date, rcno):
         if int(data['hr_nt'][idx]) == 0 or int(data['jk_nt'][idx]) == 0 or int(data['tr_nt'][idx]) == 0:
             print("%s data is not enough. be careful" % (data['name'][idx]))
         if row['rcno'] != prev_rc or idx+1 == len(data):
+            if idx+1 == len(data):
+                rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
             rcdata = pd.DataFrame(rcdata)
             rcdata.columns = ['idx', 'name', 'time']
             rcdata = rcdata.sort_values(by='time')
+            rcdata = rcdata.reset_index(drop=True)
             print("=========== %s ==========" % prev_rc)
             print(rcdata)
             print_bet(rcdata)
@@ -133,13 +136,13 @@ def predict_next(estimator, meet, date, rcno):
 
 if __name__ == '__main__':
     meet = 1
-    date = 20161126
-    rcno = 12
+    date = 20161127
+    rcno = 11
     #import get_api
     #get_api.get_data(meet, date/100)
     #import get_txt
     #get_txt.download_txt(datetime.date.today(), datetime.date.today(), 1)
-    estimator1 = tr.training(datetime.date(2016, 11, 20) + datetime.timedelta(days=-365*4), datetime.date(2016, 11, 20))
+    estimator1 = tr.training(datetime.date(2016, 11, 26) + datetime.timedelta(days=-365*4), datetime.date(2016, 11, 26))
 
     predict_next(estimator1, meet, date, rcno)
 
