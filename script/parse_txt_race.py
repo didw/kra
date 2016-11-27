@@ -6,6 +6,8 @@ import datetime
 import os.path
 from urllib2 import urlopen
 import get_detail_data as gdd
+from bs4 import BeautifulSoup
+
 
 NEXT = re.compile(unicode(r'마 체 중|단승식|복승식|매출액', 'utf-8').encode('utf-8'))
 WORD = re.compile(r"[^\s]+")
@@ -403,54 +405,87 @@ def get_fname_dist(date, rcno):
     return -1
 
 
-def get_distance_record(hrname, rcno, date):
-    filename = get_fname_dist(date, rcno)
-    f_input = open(filename)
+def get_distance_record(meet, name, rcno, date, course):
+    name = name.replace('★', '')
+    date_i = int("%d%02d%02d" % (date.year, date.month, date.day))
+    fname = '../txt/%d/dist_rec/dist_rec_%d_%d_%d.txt' % (meet, meet, date_i, rcno)
     res = []
-    found = False
-    if DEBUG:
-        print("find %s in %s" % (hrname, filename))
-    for line in f_input:
-        if not line:
-            break
-        line = unicode(line, 'euc-kr').encode('utf-8')
-        if re.search(unicode(r'%s' % hrname, 'utf-8').encode('utf-8'), line) is not None:
-            found = True
-            break
-        if not found:
-            continue
-
-    for line in f_input:
-        if not line:
-            break
-        line = unicode(line, 'euc-kr').encode('utf-8')
-        if len(res) == 6:
-            break
-        dnt = re.search(unicode(r'(?<=>)\d+(?=\()', 'utf-8').encode('utf-8'), line)
-        if dnt is not None:
-            if dnt.group() == '0':
-                return [-1, -1, -1, -1, -1, -1]
-            res.append(dnt.group())
-            continue
-        dn = re.search(unicode(r'(?<=<td>)\d+[.]\d+(?=</td>)', 'utf-8').encode('utf-8'), line)
-        if dn is not None:
-            res.append(dn.group())
-            continue
-        dr = re.search(unicode(r'(?<=<td>)\d+[:]\d+[.]\d+', 'utf-8').encode('utf-8'), line)
-        if dr is not None:
-            t = dr.group()
-            res.append(int(t.split(':')[0])*600 + int(t.split(':')[1].split('.')[0])*10 + int(t.split('.')[1]))
-            continue
+    cand = "조보후승기"
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date_i)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if name in itemList[1].string.encode('utf-8'):
+                if int(unicode(itemList[2].string)[0]) == 0:
+                    if int(course) == 1000:
+                        return [0, 0, 0, 636, 642, 648]
+                    elif int(course) == 1100:
+                        return [0, 0, 0, 702, 705, 708]
+                    elif int(course) == 1200:
+                        return [0, 0, 0, 771, 779, 789]
+                    elif int(course) == 1300:
+                        return [0, 0, 0, 837, 845, 853]
+                    elif int(course) == 1400:
+                        return [0, 0, 0, 894, 904, 915]
+                    elif int(course) == 1700:
+                        return [0, 0, 0, 1133, 1143, 1154]
+                    elif int(course) == 1800:
+                        return [0, 0, 14.3, 1193, 1206, 1221]
+                    elif int(course) == 1900:
+                        return [0, 0, 9.1, 1256, 1270, 1283]
+                    elif int(course) == 2000:
+                        return [0, 0, 16.7, 1308, 1329, 1347]
+                    elif int(course) == 2300:
+                        return [0, 0, 16.7, 1497, 1512, 1529]
+                if DEBUG:
+                    print("%s, %s, %s, %s, %s, %s" % (unicode(itemList[2].string), unicode(itemList[3].string), unicode(itemList[4].string), unicode(itemList[5].string), unicode(itemList[6].string), unicode(itemList[7].string)))
+                try:
+                    res.append(int(unicode(itemList[2].string)[0]))
+                    res.append(float(unicode(itemList[3].string)))
+                    res.append(float(unicode(itemList[4].string)))
+                    t = unicode(itemList[5].string)
+                    res.append(int(t.split(':')[0]) * 600 + int(t.split(':')[1].split('.')[0]) * 10 + int(t.split('.')[1][0]))
+                    t = unicode(itemList[6].string)
+                    res.append(int(t.split(':')[0]) * 600 + int(t.split(':')[1].split('.')[0]) * 10 + int(t.split('.')[1][0]))
+                    t = unicode(itemList[7].string)
+                    res.append(int(t.split(':')[0]) * 600 + int(t.split(':')[1].split('.')[0]) * 10 + int(t.split('.')[1][0]))
+                except:
+                    break
     if len(res) == 6:
         return res
     else:
-        print("can not find %s in %s" % (hrname, filename))
-        return [-1, -1, -1, -1, -1, -1]
+        print("can not find %s in %s" % (name, fname))
+        if int(course) == 1000:
+            return [2, 0, 0, 636, 642, 648]
+        elif int(course) == 1100:
+            return [1, 0, 0, 702, 705, 708]
+        elif int(course) == 1200:
+            return [3, 0, 0, 771, 779, 789]
+        elif int(course) == 1300:
+            return [2, 0, 0, 837, 845, 853]
+        elif int(course) == 1400:
+            return [3, 0, 0, 894, 904, 915]
+        elif int(course) == 1700:
+            return [2, 0, 0, 1133, 1143, 1154]
+        elif int(course) == 1800:
+            return [3, 0, 14.3, 1193, 1206, 1221]
+        elif int(course) == 1900:
+            return [3, 0, 9.1, 1256, 1270, 1283]
+        elif int(course) == 2000:
+            return [4, 0, 16.7, 1308, 1329, 1347]
+        elif int(course) == 2300:
+            return [2, 0, 16.7, 1497, 1512, 1529]
 
 
 # 이름             산지  성별   birth  -    조교사  마주명             -                    -                     총경기, 총1, 총2, 1년경기, 1년1, 1년2,총상금
 # 킹메신저          한    수2014/03/08 2국6 18박대흥죽마조합            시에로골드          난초                    1    0    0    1    0    0    3000000                     0
-def parse_txt_horse(date, rcno, name):
+def parse_txt_horse(date, rcno, name, course):
     filename = get_fname(date, "horse")
     #print(filename)
     f_input = open(filename)
@@ -464,10 +499,10 @@ def parse_txt_horse(date, rcno, name):
             birth = re.search(unicode(r'\d{4}/\d{2}/\d{2}', 'utf-8').encode('utf-8'), line).group()
             data.append((date - datetime.date(int(birth[:4]), int(birth[5:7]), int(birth[8:]))).days)
             participates = re.search(unicode(r'\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().replace(',', '').split()
-            dist_rec = get_distance_record(name, rcno, date)
+            dist_rec = get_distance_record(1, name, rcno, date, course)
             #print(participates)
             if int(participates[0]) == 0:
-                data.extend([0, 0, 0, 0, 0])
+                data.extend([0, 1, 1, 10, 9])
             else:
                 data.append(int(participates[0]))
                 data.append(int(participates[1]))
@@ -476,7 +511,7 @@ def parse_txt_horse(date, rcno, name):
                 data.append(int(participates[2])*100/int(participates[0]))
 
             if int(participates[3]) == 0:
-                data.extend([0, 0, 0, 0, 0])
+                data.extend([0, 1, 1, 8, 8])
             else:
                 data.append(int(participates[3]))
                 data.append(int(participates[4]))
@@ -488,13 +523,31 @@ def parse_txt_horse(date, rcno, name):
             assert len(data) == 17
             return data
     print("can not find %s in %s" % (name, filename))
-    return [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1] # len: 17
+    if int(course) == 1000:
+        return [1348, 10, 1, 1, 4, 5, 8, 0, 0, 0, 0, 2, 0, 0, 636, 642, 648]
+    elif int(course) == 1100:
+        return [1348, 10, 1, 1, 4, 5, 8, 0, 0, 0, 0, 1, 0, 0, 702, 705, 708]
+    elif int(course) == 1200:
+        return [1348, 10, 1, 1, 4, 5, 8, 0, 0, 0, 0, 3, 0, 0, 771, 779, 789]
+    elif int(course) == 1300:
+        return [1348, 10, 1, 1, 4, 5, 8, 0, 0, 0, 0, 2, 0, 0, 837, 845, 853]
+    elif int(course) == 1400:
+        return [1348, 10, 1, 1, 4, 5, 8, 0, 0, 0, 0, 3, 0, 0, 894, 904, 915]
+    elif int(course) == 1700:
+        return [1348, 10, 1, 1, 4, 5, 8, 0, 0, 0, 0, 2, 0, 0, 1133, 1143, 1154]
+    elif int(course) == 1800:
+        return [1348, 10, 1, 1, 4, 5, 8, 0, 0, 0, 0, 3, 0, 14.3, 1193, 1206, 1221]
+    elif int(course) == 1900:
+        return [1348, 10, 1, 1, 4, 5, 8, 0, 0, 0, 0, 3, 0, 9.1, 1256, 1270, 1283]
+    elif int(course) == 2000:
+        return [1348, 10, 1, 1, 4, 5, 8, 0, 0, 0, 0, 4, 0, 16.7, 1308, 1329, 1347]
+    elif int(course) == 2300:
+        return [1348, 10, 1, 1, 4, 5, 8, 0, 0, 0, 0, 2, 0, 16.7, 1497, 1512, 1529]
 
 
 # 이름  소속 생일        데뷔일  총경기수, 총1, 총2, 1년, 1년1, 1년2
 # 김동철491974/11/28371995/07/015252 3706  217  242  166   17   19
 def parse_txt_jockey(date, name):
-    print("jockey: %s" % name)
     if len(str(name)) > 9:
         #print("name is changed %s -> %s" % (name, name[:6]))
         name = str(name)[:6]
@@ -530,7 +583,7 @@ def parse_txt_jockey(date, name):
 
             return data
     print("can not find %s in %s" % (name, filename))
-    return [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+    return [1606, 120, 128, 7, 8, 270, 19, 21, 7, 8]  # 10
 
 
 # 이름  소속 생일        데뷔일  총경기수, 총1, 총2, 1년, 1년1, 1년2
@@ -572,7 +625,7 @@ def parse_txt_trainer(date, name):
 
             return data
     print("can not find %s in %s" % (name, filename))
-    return [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+    return [2846, 257, 261, 9, 9, 255, 21, 22, 8, 8]
 
 
 def get_data(filename):
@@ -583,12 +636,12 @@ def get_data(filename):
     for i in range(len(data)):
         #print("race file: %s" % filename)
         #print("%s %s %s" % (data[i][5], data[i][10], data[i][11]))
-        data[i].extend(parse_txt_horse(date, int(data[i][28]), data[i][13]))
-        data[i].extend(parse_txt_jockey(date, data[i][18]))
-        data[i].extend(parse_txt_trainer(date, data[i][19]))
+        data[i].extend(parse_txt_horse(date, int(data[i][29]), data[i][14], data[i][0]))
+        data[i].extend(parse_txt_jockey(date, data[i][19]))
+        data[i].extend(parse_txt_trainer(date, data[i][20]))
         data[i].extend([date_i])
     df = pd.DataFrame(data)
-    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 20
+    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 20
                   'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'month', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'samssang', # 16
                   'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
                   'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
@@ -620,9 +673,9 @@ def get_data2(filename, _date, _rcno):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/1/chulma/chulma_1_20161124.txt'
-    data = get_data2(filename, 20161126, 1)
+    filename = '../txt/1/rcresult/rcresult_1_20070127.txt'
+    data = get_data(filename)
     print(data)
-    data.to_csv('../txt/1/chulma/chulma_1_20161124.csv', index=False)
+
 
 

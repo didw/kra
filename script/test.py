@@ -106,47 +106,6 @@ def get_fname_dist(date, rcno):
     return -1
 
 
-def get_distance_record(hrname, rcno, date):
-    filename = get_fname_dist(date, rcno)
-    f_input = open(filename)
-    res = []
-    found = False
-    for line in f_input:
-        if not line:
-            break
-        line = unicode(line, 'euc-kr').encode('utf-8')
-        if re.search(unicode(r'%s' % hrname, 'utf-8').encode('utf-8'), line) is not None:
-            found = True
-            break
-        if not found:
-            continue
-
-    for line in f_input:
-        line = unicode(line, 'euc-kr').encode('utf-8')
-        if not line or len(res) == 6:
-            break
-        dnt = re.search(unicode(r'(?<=>)\d+(?=\()', 'utf-8').encode('utf-8'), line)
-        if dnt is not None:
-            if dnt.group() == '0':
-                return [-1, -1, -1, -1, -1, -1]
-            res.append(dnt.group())
-            continue
-        dn = re.search(unicode(r'(?<=<td>)\d+[.]\d+(?=</td>)', 'utf-8').encode('utf-8'), line)
-        if dn is not None:
-            res.append(dn.group())
-            continue
-        dr = re.search(unicode(r'(?<=<td>)\d+[:]\d+[.]\d+', 'utf-8').encode('utf-8'), line)
-        if dr is not None:
-            t = dr.group()
-            res.append(int(t.split(':')[0])*600 + int(t.split(':')[1].split('.')[0])*10 + int(t.split('.')[1]))
-            continue
-    if len(res) == 6:
-        return res
-    else:
-        print("can not find %s in %s" % (hrname, filename))
-        return [-1, -1, -1, -1, -1, -1]
-
-
 def get_grade():
     str = "(서울) 제82일 1300M 국6    별정A       경주명 : 일반 "
     kind = re.search(unicode(r'M.+\d', 'utf-8').encode('utf-8'), str)
@@ -437,7 +396,79 @@ def update_df():
     print(df.loc[len(df)-1]['date'])
 
 
+def get_distance_record(meet, name, rcno, date, course):
+    name = name.replace('★', '')
+    date_i = int("%d%02d%02d" % (date.year, date.month, date.day))
+    fname = '../txt/%d/dist_rec/dist_rec_%d_%d_%d.txt' % (meet, meet, date_i, rcno)
+    res = []
+    cand = "조보후승기"
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date_i)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if name in itemList[1].string.encode('utf-8'):
+                if int(unicode(itemList[2].string)[0]) == 0:
+                    if int(course) == 1000:
+                        return [0, 0, 0, 636, 642, 648]
+                    elif int(course) == 1100:
+                        return [0, 0, 0, 702, 705, 708]
+                    elif int(course) == 1200:
+                        return [0, 0, 0, 771, 779, 789]
+                    elif int(course) == 1300:
+                        return [0, 0, 0, 837, 845, 853]
+                    elif int(course) == 1400:
+                        return [0, 0, 0, 894, 904, 915]
+                    elif int(course) == 1700:
+                        return [0, 0, 0, 1133, 1143, 1154]
+                    elif int(course) == 1800:
+                        return [0, 0, 14.3, 1193, 1206, 1221]
+                    elif int(course) == 1900:
+                        return [0, 0, 9.1, 1256, 1270, 1283]
+                    elif int(course) == 2000:
+                        return [0, 0, 16.7, 1308, 1329, 1347]
+                    elif int(course) == 2300:
+                        return [0, 0, 16.7, 1497, 1512, 1529]
+                res.append(int(unicode(itemList[2].string)[0]))
+                res.append(float(unicode(itemList[3].string)))
+                res.append(float(unicode(itemList[4].string)))
+                t = unicode(itemList[5].string)
+                res.append(int(t.split(':')[0]) * 600 + int(t.split(':')[1].split('.')[0]) * 10 + int(t.split('.')[1][0]))
+                t = unicode(itemList[6].string)
+                res.append(int(t.split(':')[0]) * 600 + int(t.split(':')[1].split('.')[0]) * 10 + int(t.split('.')[1][0]))
+                t = unicode(itemList[7].string)
+                res.append(int(t.split(':')[0]) * 600 + int(t.split(':')[1].split('.')[0]) * 10 + int(t.split('.')[1][0]))
+    if len(res) == 6:
+        return res
+    else:
+        print("can not find %s in %s" % (name, fname))
+        if int(course) == 1000:
+            return [2, 0, 0, 636, 642, 648]
+        elif int(course) == 1100:
+            return [1, 0, 0, 702, 705, 708]
+        elif int(course) == 1200:
+            return [3, 0, 0, 771, 779, 789]
+        elif int(course) == 1300:
+            return [2, 0, 0, 837, 845, 853]
+        elif int(course) == 1400:
+            return [3, 0, 0, 894, 904, 915]
+        elif int(course) == 1700:
+            return [2, 0, 0, 1133, 1143, 1154]
+        elif int(course) == 1800:
+            return [3, 0, 14.3, 1193, 1206, 1221]
+        elif int(course) == 1900:
+            return [3, 0, 9.1, 1256, 1270, 1283]
+        elif int(course) == 2000:
+            return [4, 0, 16.7, 1308, 1329, 1347]
+        elif int(course) == 2300:
+            return [2, 0, 16.7, 1497, 1512, 1529]
+
+
 
 if __name__ == '__main__':
-    print(get_hrno(1, 20161126, 4, "미라클엔젤"))
-    get_hr_racescore(1, 32938, 20161126)
+    print(get_distance_record(1, "비드타운", 5, datetime.date(2016, 11, 26), 1000))

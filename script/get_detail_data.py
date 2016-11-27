@@ -22,7 +22,7 @@ def get_budam(meet, date, rcno, name):
             itemList = itemElm2.findAll('td')
             if name in itemList[1].string.encode('utf-8'):
                 return unicode(itemList[6].string)
-    print("can not find %s in %s" % (name, fname))
+    print("can not find budam of %s in %s" % (name, fname))
     return -1
 
 
@@ -40,8 +40,8 @@ def get_dbudam(meet, date, rcno, name):
             itemList = itemElm2.findAll('td')
             if len(itemList) >= 10 and name in itemList[1].string.encode('utf-8'):
                 return unicode(itemList[7].string)
-    print("can not find %s in %s" % (name, fname))
-    return -1
+    print("can not find dbudam of %s in %s" % (name, fname))
+    return 0
 
 
 def get_weight(meet, date, rcno, name):
@@ -61,8 +61,8 @@ def get_weight(meet, date, rcno, name):
                 try:
                     return float(unicode(itemList[2].string))
                 except ValueError:
-                    return -1
-    return -1
+                    return 465
+    return 465
 
 
 def get_dweight(meet, date, rcno, name):
@@ -81,7 +81,7 @@ def get_dweight(meet, date, rcno, name):
             if name in itemList[1].string.encode('utf-8'):
                 return unicode(itemList[3].string)
     print("can not find dweight %s in %s" % (name, fname))
-    return -1
+    return 0
 
 
 def get_drweight(meet, date, rcno, name):
@@ -106,9 +106,9 @@ def get_drweight(meet, date, rcno, name):
                 else:
                     if "-R" not in last_date:
                         print("can not parsing get_drweight %s" % fname)
-                    return -1
+                    return 0
     print("can not find drweight %s in %s" % (name, fname))
-    return -1
+    return 0
 
 
 def get_lastday(meet, date, rcno, name):
@@ -131,18 +131,20 @@ def get_lastday(meet, date, rcno, name):
                     last_date = datetime.date(int(last_date[:4]), int(last_date[5:7]), int(last_date[8:10]))
                     delta_day = datetime.date(date/10000, date/100%100, date%100) - last_date
                     return delta_day.days
-                else:  # first attending
+                else:
                     if "-R" not in last_date:
                         print("can not parsing get_lastday %s" % fname)
-                    return -1
+                        return 29
+                    else:
+                        return 365  # first attending
     print("can not find last day %s in %s" % (name, fname))
-    return -1
+    return 29
 
 
 def get_train_state(meet, date, rcno, name):
     name = name.replace('★', '')
     fname = '../txt/%d/train_state/train_state_%d_%d_%d.txt' % (meet, meet, date, rcno)
-    res = [-1, -1, -1, -1, -1]
+    res = [0, 0, 0, 0, 0, 0]
     cand = "조보후승기"
     if os.path.exists(fname):
         response_body = open(fname).read()
@@ -168,9 +170,10 @@ def get_train_state(meet, date, rcno, name):
                         who = 4
                     train_time = int(re.search(r'\d+', item.string.encode('utf-8')).group())
                     res[who] += train_time
+                    res[5] += train_time
                 return res
     print("can not find train state %s in %s" % (name, fname))
-    return res
+    return [0, 0, 0, 0, 138, 155]
 
 
 # http://race.kra.co.kr/racehorse/profileTrainState.do?Act=02&Sub=1&meet=1&hrNo=036114
