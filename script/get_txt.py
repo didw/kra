@@ -51,6 +51,8 @@ def download_txt(bd, ed, meet, overwrite=False):
                 fout = open(fname, 'w')
                 fout.write(response_body)
                 fout.close()
+                if os.path.getsize(fname) < 100:
+                    os.remove(fname)
                 print "[%s] data is downloaded" % request
             except:
                 print '[%s] data downloading failed' % request
@@ -100,14 +102,46 @@ def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
                     fout = open(fname, 'w')
                     fout.write(response_body)
                     fout.close()
+                    if os.path.getsize(fname) < 5000:
+                        os.remove(fname)
                     print("[%s] data is downloaded" % request)
                 except:
                     print('[%s] data downloading failed' % request)
     print("job has completed")
 
+def download_racehorse(hrno_b, hrno_e, meet, overwrite=False):
+    data = [# seoul http://race.kra.co.kr/racehorse/profileRaceScore.do?Act=02&Sub=1&meet=1&hrNo=040000
+            ["profileRaceScore.do?Act=02&Sub=1&", "racehorse",
+             ],
+            ["profileRaceScore.do?Act=02&Sub=1&", "racehorse",
+             ],
+            ["profileRaceScore.do?Act=02&Sub=1&", "racehorse",
+             ]
+    ]
+    line = data[meet-1]
+    base_url = "http://race.kra.co.kr/racehorse/"
+    race_url = base_url + line[0]
+    for hrno in range(hrno_b, hrno_e):
+        request = "%s&meet=%d&hrNo=%06d" % (race_url, meet, hrno)
+        try:
+            fname = "../txt/%d/%s/%s_%d_%06d.txt" % (meet, line[1], line[1], meet, hrno)
+            if not overwrite and os.path.exists(fname):
+                continue
+            response_body = urlopen(request).read()
+            fout = open(fname, 'w')
+            fout.write(response_body)
+            fout.close()
+            if os.path.getsize(fname) < 31100:
+                os.remove(fname)
+            print("[%s] data is downloaded" % request)
+        except:
+            print('[%s] data downloading failed' % request)
+    print("job has completed")
+
 
 if __name__ == '__main__':
     for i in range(1, 2):
-        download_chulmaDetailInfo(datetime.date(2016, 11, 22), datetime.date.today()+datetime.timedelta(days=-1), i, True)
-        download_txt(datetime.date(2016, 11, 22), datetime.date.today()+datetime.timedelta(days=-1), i, True)
+        download_racehorse(30101, 30200, 1, False)
+        #download_chulmaDetailInfo(datetime.date(2016, 11, 22), datetime.date.today(), i, True)
+        #download_txt(datetime.date(2016, 11, 22), datetime.date.today(), i, True)
 

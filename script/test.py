@@ -224,66 +224,6 @@ def get_dbudam(meet, date, rcno, name):
     return -1
 
 
-def get_hrno(meet, date, rcno, name):
-    fname = '../txt/%d/chulmapyo/chulmapyo_%d_%d_%d.txt' % (meet, meet, date, rcno)
-    if os.path.exists(fname):
-        response_body = open(fname).read()
-    else:
-        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoChulmapyo.do?Act=02&Sub=1&"
-        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
-        response_body = urlopen(url).read()
-    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
-    for itemElm in xml_text.findAll('tbody'):
-        for itemElm2 in itemElm.findAll('tr'):
-            itemList = itemElm2.findAll('td')
-            if name == itemList[1].string.encode('utf-8'):
-                return re.search(r'\d{6}', unicode(itemList[1])).group()
-    return -1
-
-
-def get_hr_racescore(meet, hrno, _date):
-    result = [-1, -1, -1, -1, -1, -1] # 주, 1000, 1200, 1300, 1400, 1700
-    race_sum = [[], [], [], [], [], []]
-    fname = '../txt/%d/racescore/racescore_%d_%d.txt' % (meet, meet, hrno)
-    if os.path.exists(fname):
-        response_body = open(fname).read()
-    else:
-        base_url = "http://race.kra.co.kr/racehorse/profileRaceScore.do?Act=02&Sub=1&"
-        url = base_url + "meet=%d&hrNo=%06d" % (meet, hrno)
-        response_body = urlopen(url).read()
-    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
-    for itemElm in xml_text.findAll('tbody'):
-        for itemElm2 in itemElm.findAll('tr')[2:]:
-            itemList = itemElm2.findAll('td')
-            print(itemList)
-            date = re.search(r'\d{4}/\d{2}/\d{2}', unicode(itemList[1])).group()
-            date = int("%s%s%s" % (date[:4], date[5:7], date[8:]))
-            if date > _date:
-                continue
-            racekind = unicode(itemList[3].string).strip()
-            distance = unicode(itemList[4].string).strip()
-            record = unicode(itemList[10].string).strip()
-            try:
-                record = int(record[0])*600 + int(record[2:4])*10 + int(record[5])
-            except:
-                record = -1
-            print("%d, %s, %s, %d" % (date, racekind, distance, record))
-    return -1
-
-
-def get_hr_testrecord(meet, hrno):
-    base_url = "http://race.kra.co.kr/racehorse/profileTrainCheck.do?Act=02&Sub=1&"
-    url = base_url + "meet=%d&hrNo=%06d" % (meet, hrno)
-    response_body = urlopen(url).read()
-    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
-    for itemElm in xml_text.findAll('tbody')[1:]:
-        for itemElm2 in itemElm.findAll('tr'):
-            itemList = itemElm2.findAll('td')
-            if '주행' == unicode(itemList[2].string).encode('utf-8'):
-                print itemList
-    return -1
-
-
 
 def get_budam(meet, date, rcno, name):
     fname = '../txt/%d/chulmapyo/chulmapyo_%d_%d_%d.txt' % (meet, meet, date, rcno)
@@ -469,6 +409,107 @@ def get_distance_record(meet, name, rcno, date, course):
             return [2, 0, 16.7, 1497, 1512, 1529]
 
 
+def get_hrno(meet, date, rcno, name):
+    fname = '../txt/%d/chulmapyo/chulmapyo_%d_%d_%d.txt' % (meet, meet, date, rcno)
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoChulmapyo.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if name == itemList[1].string.encode('utf-8'):
+                return re.search(r'\d{6}', unicode(itemList[1])).group()
+    return -1
+
+
+
+def get_hr_testrecord(meet, hrno):
+    base_url = "http://race.kra.co.kr/racehorse/profileTrainCheck.do?Act=02&Sub=1&"
+    url = base_url + "meet=%d&hrNo=%06d" % (meet, hrno)
+    response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    for itemElm in xml_text.findAll('tbody')[1:]:
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if '주행' == unicode(itemList[2].string).encode('utf-8'):
+                print itemList
+    return -1
+
+
+def norm_racescore(meet, course, humidity, value):
+    div_data = {1000: [0.985, 1.003, 1.003, 1.001, 0.999, 1.002, 0.999, 1.002, 1.002, 1.001, 1.003, 1.002, 1.001, 0.995, 1.004, 0.999, 0.998, 0.994, 0.995, 0.992],
+                1100: [0.979, 1.015, 0.999, 1.002, 0.996, 0.997, 1.004, 1.012, 0.999, 1.009, 1.003, 1.000, 1.000, 0.999, 1.006, 0.997, 0.994, 0.995, 0.991, 0.993],
+                1200: [0.991, 0.995, 1.004, 1.001, 1.002, 1.000, 0.997, 0.999, 1.004, 1.004, 1.005, 1.001, 1.003, 0.999, 1.002, 0.993, 0.996, 0.995, 0.996, 0.992],
+                1300: [0.993, 0.992, 1.005, 1.001, 0.999, 1.000, 0.998, 1.001, 1.005, 1.006, 1.002, 1.003, 1.000, 0.996, 1.003, 0.992, 0.997, 0.998, 0.997, 0.991],
+                1400: [0.993, 0.995, 1.003, 1.001, 1.002, 1.001, 1.000, 1.000, 1.005, 1.007, 1.005, 1.000, 0.997, 1.001, 0.996, 0.993, 0.997, 0.993, 0.995, 0.990],
+                1700: [0.978, 0.995, 1.003, 1.001, 1.002, 1.002, 1.000, 1.002, 1.001, 1.005, 1.006, 1.002, 1.001, 1.002, 0.992, 0.997, 0.994, 0.990, 0.989, 0.992],
+                1800: [0.984, 0.993, 1.002, 1.001, 1.002, 1.001, 1.000, 1.002, 1.004, 1.004, 1.003, 1.002, 1.004, 1.002, 0.995, 0.998, 0.997, 0.995, 0.991, 0.989],
+                1900: [0.979, 0.997, 1.005, 1.001, 1.002, 1.001, 1.000, 1.002, 1.006, 1.013, 1.007, 1.003, 1.001, 1.001, 0.987, 0.995, 0.985, 0.995, 0.989, 0.986],
+                2000: [0.979, 0.997, 1.004, 1.001, 1.000, 1.001, 1.002, 1.002, 1.007, 1.006, 1.003, 1.008, 1.015, 0.982, 0.988, 0.998, 0.992, 0.991, 0.983, 0.993],
+                2300: [0.979, 0.995, 1.009, 1.016, 1.024, 0.999, 1.016, 1.003, 1.003, 0.996, 0.985, 1.000, 0.997, 0.997, 0.999, 0.995, 0.987, 0.995, 0.983, 0.984]}
+    if humidity >= 20:
+        humidity = 20
+    return (value / div_data[course][humidity-1])
+
+
+def get_hr_racescore(meet, hrno, _date):
+    result = [-1, -1, -1, -1, -1, -1] # 주, 1000, 1200, 1300, 1400, 1700
+    race_sum = [[], [], [], [], [], []]
+    fname = '../txt/%d/racescore/racescore_%d_%06d.txt' % (meet, meet, hrno)
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/racehorse/profileRaceScore.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&hrNo=%06d" % (meet, hrno)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr')[2:]:
+            itemList = itemElm2.findAll('td')
+            #print(itemList)
+            date = re.search(r'\d{4}/\d{2}/\d{2}', unicode(itemList[1])).group()
+            date = int("%s%s%s" % (date[:4], date[5:7], date[8:]))
+            if date > _date:
+                continue
+            racekind = unicode(itemList[3].string).strip().encode('utf-8')
+            try:
+                distance = int(unicode(itemList[4].string).strip().encode('utf-8'))
+            except:
+                distance = 1000
+            record = unicode(itemList[10].string).strip().encode('utf-8')
+            #print(unicode(itemList[12].string).strip())
+            humidity = int(re.search(r'\d+', unicode(itemList[12].string)).group())
+            try:
+                record = int(record[0])*600 + int(record[2:4])*10 + int(record[5])
+            except:
+                record = -1
+            #print("주, 일, %s" % racekind)
+            record = norm_racescore(1, distance, humidity, record)
+            if racekind == '주':
+                race_sum[0].append(record)
+            elif racekind == '일':
+                if distance == 1000:
+                    race_sum[1].append(record)
+                elif distance == 1200:
+                    race_sum[2].append(record)
+                elif distance == 1300:
+                    race_sum[3].append(record)
+                elif distance == 1400:
+                    race_sum[4].append(record)
+                elif distance == 1700:
+                    race_sum[5].append(record)
+            #print("%d, %s, %s, %d" % (date, racekind, distance, record))
+    for i in range(len(race_sum)):
+        if len(race_sum[i]) == 0:
+            result[i] = -1
+        else:
+            result[i] = np.mean(race_sum[i])
+    return result
+
 
 if __name__ == '__main__':
-    print(get_distance_record(1, "비드타운", 5, datetime.date(2016, 11, 26), 1000))
+    print(get_hr_racescore(1,20464, 20161130))

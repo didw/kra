@@ -88,9 +88,13 @@ def parse_txt_race(filename):
             drweight = gdd.get_drweight(1, date, int(rcno), hrname)
             lastday = gdd.get_lastday(1, date, int(rcno), hrname)
             train_state = gdd.get_train_state(1, date, int(rcno), hrname)
+            hr_no = gdd.get_hrno(1, date, int(rcno), hrname)
+            race_score = gdd.get_hr_racescore(1, hr_no, date)
+
             assert len(words) >= 10
             adata = [course, humidity, kind, dbudam, drweight, lastday]
             adata.extend(train_state)
+            adata.extend(race_score)
             for i in range(10):
                 adata.append(words[i])
             data.append(adata)
@@ -423,6 +427,7 @@ def get_distance_record(meet, name, rcno, date, course):
             itemList = itemElm2.findAll('td')
             if name in itemList[1].string.encode('utf-8'):
                 if int(unicode(itemList[2].string)[0]) == 0:
+                    #return [0, -1, -1, -1, -1, -1]
                     if int(course) == 1000:
                         return [0, 0, 0, 636, 642, 648]
                     elif int(course) == 1100:
@@ -446,7 +451,8 @@ def get_distance_record(meet, name, rcno, date, course):
                 if DEBUG:
                     print("%s, %s, %s, %s, %s, %s" % (unicode(itemList[2].string), unicode(itemList[3].string), unicode(itemList[4].string), unicode(itemList[5].string), unicode(itemList[6].string), unicode(itemList[7].string)))
                 try:
-                    res.append(int(unicode(itemList[2].string)[0]))
+                    cnt = re.search(r'\d+', unicode(itemList[2].string)).group()
+                    res.append(int(cnt))
                     res.append(float(unicode(itemList[3].string)))
                     res.append(float(unicode(itemList[4].string)))
                     t = unicode(itemList[5].string)
@@ -461,6 +467,7 @@ def get_distance_record(meet, name, rcno, date, course):
         return res
     else:
         print("can not find %s in %s" % (name, fname))
+        return [-1, -1, -1, -1, -1, -1]
         if int(course) == 1000:
             return [2, 0, 0, 636, 642, 648]
         elif int(course) == 1100:
@@ -494,7 +501,8 @@ def parse_txt_horse(date, rcno, name, course):
         if not line:
             break
         line = unicode(line, 'euc-kr').encode('utf-8')
-        if re.search(unicode(name, 'utf-8').encode('utf-8'), line) is not None:
+        hrname = re.search(r'[가-힣]+', line).group()
+        if name == hrname:
             data = []
             birth = re.search(unicode(r'\d{4}/\d{2}/\d{2}', 'utf-8').encode('utf-8'), line).group()
             data.append((date - datetime.date(int(birth[:4]), int(birth[5:7]), int(birth[8:]))).days)
@@ -523,6 +531,7 @@ def parse_txt_horse(date, rcno, name, course):
             assert len(data) == 17
             return data
     print("can not find %s in %s" % (name, filename))
+    return [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1] # 17
     if int(course) == 1000:
         return [1348, 10, 1, 1, 4, 5, 8, 0, 0, 0, 0, 2, 0, 0, 636, 642, 648]
     elif int(course) == 1100:
@@ -583,6 +592,7 @@ def parse_txt_jockey(date, name):
 
             return data
     print("can not find %s in %s" % (name, filename))
+    return [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
     return [1606, 120, 128, 7, 8, 270, 19, 21, 7, 8]  # 10
 
 
@@ -625,7 +635,8 @@ def parse_txt_trainer(date, name):
 
             return data
     print("can not find %s in %s" % (name, filename))
-    return [2846, 257, 261, 9, 9, 255, 21, 22, 8, 8]
+    return [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+    return [2846, 257, 261, 9, 9, 255, 21, 22, 8, 8]  # 10
 
 
 def get_data(filename):
@@ -636,17 +647,19 @@ def get_data(filename):
     for i in range(len(data)):
         #print("race file: %s" % filename)
         #print("%s %s %s" % (data[i][5], data[i][10], data[i][11]))
-        data[i].extend(parse_txt_horse(date, int(data[i][29]), data[i][14], data[i][0]))
-        data[i].extend(parse_txt_jockey(date, data[i][19]))
-        data[i].extend(parse_txt_trainer(date, data[i][20]))
+        data[i].extend(parse_txt_horse(date, int(data[i][36]), data[i][21], data[i][0]))
+        data[i].extend(parse_txt_jockey(date, data[i][26]))
+        data[i].extend(parse_txt_trainer(date, data[i][27]))
         data[i].extend([date_i])
     df = pd.DataFrame(data)
-    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 20
-                  'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'month', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'samssang', # 16
+    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
+                  'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', # 7
+                  'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 9
+                  'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'month', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'samssang', # 18
                   'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
                   'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
                   'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
-                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2', 'date'] # 10
+                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2', 'date'] # 11
     return df
 
 
@@ -673,8 +686,9 @@ def get_data2(filename, _date, _rcno):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/1/rcresult/rcresult_1_20070127.txt'
+    filename = '../txt/1/rcresult/rcresult_1_20101218.txt'
     data = get_data(filename)
+    data.to_csv(filename.replace('.txt', '.csv'))
     print(data)
 
 

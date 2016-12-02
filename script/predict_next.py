@@ -101,12 +101,16 @@ def print_bet(rcdata):
 def predict_next(estimator, meet, date, rcno):
     data_pre = xe.parse_xml_entry(meet, date, rcno)
     data = normalize_data(data_pre)
+    print(len(data.columns))
     X_data = data.copy()
+    print(len(X_data.columns))
     del X_data['name']
     del X_data['jockey']
     del X_data['trainer']
     del X_data['owner']
     del X_data['index']
+    print(X_data.columns)
+    print(len(X_data.columns))
     pred = pd.DataFrame(estimator.predict(X_data))
     pred.columns = ['predict']
     __DEBUG__ = True
@@ -130,20 +134,22 @@ def predict_next(estimator, meet, date, rcno):
             print_bet(rcdata)
             rcdata = []
             prev_rc = row['rcno']
+            if idx+1 != len(data):
+                rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
         else:
             rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
+    print(X_data.columns)
+    print(estimator.feature_importances_)
 
 
 if __name__ == '__main__':
     meet = 1
     date = 20161127
-    rcno = 11
+    rcno = 0
     #import get_api
     #get_api.get_data(meet, date/100)
     #import get_txt
     #get_txt.download_txt(datetime.date.today(), datetime.date.today(), 1)
-    estimator1 = tr.training(datetime.date(2016, 11, 26) + datetime.timedelta(days=-365*4), datetime.date(2016, 11, 26))
+    estimator1 = tr.training(datetime.date(2016, 11, 25) + datetime.timedelta(days=-365*2), datetime.date(2016, 11, 25))
 
     predict_next(estimator1, meet, date, rcno)
-
-

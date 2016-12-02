@@ -129,7 +129,7 @@ def training(train_bd, train_ed, course=0):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-    model_name = "../model/%d_%d_%s.pkl" % (train_bd_i, train_ed_i, course)
+    model_name = "e:/study/kra/model_v1.6/%d_%d/model_%d.pkl" % (train_bd_i, train_ed_i, course)
 
     from sklearn.externals import joblib
     if os.path.exists(model_name):
@@ -137,7 +137,7 @@ def training(train_bd, train_ed, course=0):
         estimator = joblib.load(model_name)
     else:
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016.csv', course)
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.6.csv', course)
         print("%d data is fully loaded" % len(X_train))
 
         estimator = RandomForestRegressor(random_state=0, n_estimators=100)
@@ -182,18 +182,18 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         test_ed_s = "%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day)
         if not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_bd_s) and not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_ed_s):
             continue
-        remove_outlier = False
+        remove_outlier = True
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "e:/study/kra/model/%d_%d/model_%d.pkl" % (train_bd_i, train_ed_i, course)
+        model_name = "e:/study/kra/model100_v1.3/%d_%d/model_%d.pkl" % (train_bd_i, train_ed_i, course)
 
         if os.path.exists(model_name):
             print("model exist. try to loading..")
             estimator = joblib.load(model_name)
         else:
             print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016.csv', course)
+            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.3.csv', course)
             print("%d data is fully loaded" % len(X_train))
             if len(X_train) < 10:
                 res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
@@ -201,51 +201,53 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
                 if remove_outlier:
                     X_train, Y_train = delete_lack_data(X_train, Y_train)
                 print("Start train model")
-                estimator = RandomForestRegressor(random_state=0, n_estimators=100)
+                estimator = RandomForestRegressor(random_state=0, n_estimators=100, min_samples_split=5)
                 estimator.fit(X_train, Y_train)
-                os.system('mkdir e:\\study\\kra\\model\\%d_%d' % (train_bd_i, train_ed_i))
+                os.system('mkdir e:\\study\\kra\\model100_v1.3\\%d_%d' % (train_bd_i, train_ed_i))
                 joblib.dump(estimator, model_name)
                 print("Finish train model")
                 print("important factor")
                 #print(X_train.columns)
                 #print(estimator.feature_importances_)
-                score = estimator.score(X_train, Y_train)
-                print("Score with the entire training dataset = %.2f" % score)
+                score_train = estimator.score(X_train, Y_train)
+                print("Score with the entire training dataset = %.2f" % score_train)
 
         test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
         test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
 
         print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
-        X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016.csv', course)
+        X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.3.csv', course)
         print("%d data is fully loaded" % (len(X_test)))
-        if len(X_test) == 0 or len(X_train) < 10:
-            res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
-        else:
+        res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        if len(X_test) != 0:
             DEBUG = False
             if DEBUG:
                 X_test.to_csv('../log/2016_7_9.csv', index=False)
-            score = estimator.score(X_test, Y_test)
-            print("Score with the entire test dataset = %.2f" % score)
+            score_test = estimator.score(X_test, Y_test)
+            print("Score with the entire test dataset = %.2f" % score_test)
             pred = estimator.predict(X_test)
 
             res1 = sim.simulation1(pred, R_test)
             res2 = sim.simulation2(pred, R_test)
             res3 = sim.simulation3(pred, R_test)
-            res4, res5, res6 = 0, 0, 0
-            #res4 = sim.simulation4(pred, R_test)
-            #res5 = sim.simulation5(pred, R_test)
-            #res6 = sim.simulation6(pred, R_test)
+            res4 = sim.simulation4(pred, R_test)
+            res5 = sim.simulation5(pred, R_test)
+            res6 = sim.simulation6(pred, R_test)
+            res7 = sim.simulation7(pred, R_test)
 
         print("train data: %s - %s" % (str(train_bd), str(train_ed)))
         print("test data: %s - %s" % (str(test_bd), str(test_ed)))
         print("course: %d(0: all)" % course)
-        print("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok")
-        print("result: %.0f,\t%.0f,\t%.0f,\t%.0f,\t%.0f,\t%.0f\n" % (res1, res2, res3, res4, res5, res6))
+        print("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok\tsamssang")
+        print(
+            "result: %.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f\n" % (
+                res1, res2, res3, res4, res5, res6, res7))
         f_result = open(fname_result, 'a')
-        f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
-        f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
-        f_result.write("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok")
-        f_result.write("result: %.0f, %.0f, %.0f, %.0f, %.0f, %.0f\n" % (res1, res2, res3, res4, res5, res6))
+        f_result.write("train data: %s - %s, score_train: %f\n" % (str(train_bd), str(train_ed), score_train))
+        f_result.write("test data: %s - %s, score_test: %f\n" % (str(test_bd), str(test_ed), score_test))
+        f_result.write("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok\tsamssang")
+        f_result.write("result: %.0f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f\n" % (
+            res1, res2, res3, res4, res5, res6, res7))
         f_result.close()
 
 
@@ -269,14 +271,14 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "e:/study/kra/model/%d_%d/model.pkl" % (train_bd_i, train_ed_i)
+        model_name = "e:/study/kra/model_v1.6/%d_%d/model.pkl" % (train_bd_i, train_ed_i)
 
         if os.path.exists(model_name):
             print("model exist. try to loading.. %s - %s" % (str(train_bd), str(train_ed)))
             estimator = joblib.load(model_name)
         else:
             print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016.csv', 0)
+            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.6.csv', 0)
             print("%d data is fully loaded" % len(X_train))
             if len(X_train) < 10:
                 res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
@@ -284,7 +286,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 print("Start train model")
                 estimator = RandomForestRegressor(random_state=0, n_estimators=100)
                 estimator.fit(X_train, Y_train)
-                os.system('mkdir e:\\study\\kra\\model\\%d_%d' % (train_bd_i, train_ed_i))
+                os.system('mkdir e:\\study\\kra\\model_v1.6\\%d_%d' % (train_bd_i, train_ed_i))
                 joblib.dump(estimator, model_name)
                 print("Finish train model")
                 score = estimator.score(X_train, Y_train)
@@ -294,9 +296,9 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
 
         for course in courses:
-            fname_result = '../data/weekly_result_train0_m1_y%d_c%d.txt' % (delta_year, course)
+            fname_result = '../data/weekly_result_train0_m1_v1.6_y%d_c%d.txt' % (delta_year, course)
             print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
-            X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016.csv', course)
+            X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.6.csv', course)
             print("%d data is fully loaded" % (len(X_test)))
             res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
             if len(X_test) == 0:
@@ -304,9 +306,9 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
             else:
                 DEBUG = False
                 if DEBUG:
-                    X_test.to_csv('../log/2016_7_9.csv', index=False)
+                    X_test.to_csv('../log/weekly_train0_%s.csv' % today, index=False)
                 score = estimator.score(X_test, Y_test)
-                print("Score with the entire test dataset = %.2f" % score)
+                print("Score with the entire test dataset = %.5f" % score)
                 pred = estimator.predict(X_test)
 
                 res1 = sim.simulation1(pred, R_test)
@@ -316,20 +318,23 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 res5 = sim.simulation5(pred, R_test)
                 res6 = sim.simulation6(pred, R_test)
                 res7 = sim.simulation7(pred, R_test)
+                res8 = sim.simulation3(pred, R_test,[1,2])
+                res9 = sim.simulation6(pred, R_test,[[1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5]])
+                res10 = sim.simulation7(pred, R_test,[1,2,3,4])
 
             print("train data: %s - %s" % (str(train_bd), str(train_ed)))
             print("test data: %s - %s" % (str(test_bd), str(test_ed)))
             print("course: %d(0: all)" % course)
-            print("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok\tsamssang")
+            print("\tscore,\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok\tsamssang")
             print(
-                "result: %.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f\n" % (
-                    res1, res2, res3, res4, res5, res6, res7))
+                "result: %.5f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f, \t%.0f\n" % (
+                    score, res1, res2, res3, res4, res5, res6, res7, res8, res9, res10))
             f_result = open(fname_result, 'a')
             f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
             f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
-            f_result.write("\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok\tsamssang")
-            f_result.write("result: %.0f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f\n" % (
-                res1, res2, res3, res4, res5, res6, res7))
+            f_result.write("\tscore,\tsingle,\tonein2,\tboksik,\tbokyeon,\tssang,\tsambok\tsamssang")
+            f_result.write("result: %.5f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f, %.0f\n" % (
+                score, res1, res2, res3, res4, res5, res6, res7, res8, res9, res10))
             f_result.close()
 
 
@@ -338,10 +343,10 @@ if __name__ == '__main__':
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2015, 5, 5)
-    test_ed = datetime.date(2015, 11, 20)
-    for delta_year in [6]:
+    test_bd = datetime.date(2014, 12, 1)
+    test_ed = datetime.date(2016, 12, 1)
+    for delta_year in [1,2,4,8]:
         simulation_weekly_train0(test_bd, test_ed, 0, delta_year, [0])#, 1000, 1200, 1300, 1400, 1700, 1800, 1900, 2000, 2300])
-        #for c in [1000, 1200, 1300, 1400, 1700, 1800, 1900, 2000, 2300]:
-        #    outfile = '../data/weekly_result_m1_y%d_c%d.txt' % (delta_year, c)
+        #for c in [0]:
+        #    outfile = '../data/weekly_result_m1_v1.3_y%d_c%d.txt' % (delta_year, c)
         #    simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c)

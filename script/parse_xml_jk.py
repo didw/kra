@@ -15,6 +15,19 @@ def parse_xml_jk(meet):
     xml_text = BeautifulSoup(response_body, 'html.parser')
     for itemElm in xml_text.findAll('item'):
         #print itemElm
+        if unicode(itemElm.jkname.string) == '벨리':
+            print(unicode(itemElm.birth.string),
+                         unicode(itemElm.cntt.string),
+                         unicode(itemElm.cnty.string),
+                         unicode(itemElm.jkname.string),
+                         unicode(itemElm.ord1t.string),
+                         unicode(itemElm.ord1y.string),
+                         unicode(itemElm.ord2t.string),
+                         unicode(itemElm.ord2y.string),
+                         unicode(itemElm.part.string),
+                         unicode(itemElm.stdate.string),
+                         unicode(itemElm.wgother.string),
+                         unicode(itemElm.wgpart.string))
         try:
             data.append([unicode(itemElm.birth.string),
                          unicode(itemElm.cntt.string),

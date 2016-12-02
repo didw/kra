@@ -164,7 +164,6 @@ def get_game_info(date, rcno):
     return [-1, -1]
 
 
-
 def parse_xml_entry(meet, date, number):
     # get other data
     data_hr = xh.parse_xml_hr(meet)
@@ -202,6 +201,8 @@ def parse_xml_entry(meet, date, number):
         drweight = gdd.get_drweight(1, date, int(rcno), hrname)
         lastday = gdd.get_lastday(1, date, int(rcno), hrname)
         train_state = gdd.get_train_state(1, date, int(rcno), hrname)
+        hr_no = gdd.get_hrno(1, date, int(rcno), hrname)
+        race_score = gdd.get_hr_racescore(1, hr_no, date, 'url')
 
         adata = [itemElm.rcdist.string,
                  humidity,
@@ -215,6 +216,15 @@ def parse_xml_entry(meet, date, number):
                  train_state[2],
                  train_state[3],
                  train_state[4],
+                 train_state[5],
+
+                 race_score[0],
+                 race_score[1],
+                 race_score[2],
+                 race_score[3],
+                 race_score[4],
+                 race_score[5],
+                 race_score[6],
 
                  itemElm.chulno.string,
                  itemElm.hrname.string,
@@ -277,19 +287,21 @@ def parse_xml_entry(meet, date, number):
         data.append(adata)
 
     df = pd.DataFrame(data)
-    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5',
-                  'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', 'owner', # 20
-                  'weight', 'dweight', 'cnt', 'rcno', 'month', 'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1',
-                  'hr_ny2', 'hr_y1', 'hr_y2', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl',
-                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1',
-                  'jk_ny2', 'jk_y1', 'jk_y2', 'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1',
-                  'tr_ny2', 'tr_y1', 'tr_y2']
+    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', #12
+                  'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7',  # 7
+                  'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', 'owner', # 9
+                  'weight', 'dweight', 'cnt', 'rcno', 'month', 'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', # 13
+                  'hr_ny2', 'hr_y1', 'hr_y2', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 9
+                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', # 7
+                  'jk_ny2', 'jk_y1', 'jk_y2', 'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', # 10
+                  'tr_ny2', 'tr_y1', 'tr_y2'] # 3
     return df
-
+# 73 - 4 = 59
 
 if __name__ == '__main__':
     meet = 1
-    rcno = 8
-    date = 20161112
+    rcno = 10
+    date = 20161127
     data = parse_xml_entry(meet, date, rcno)
+    data.to_csv('../log/xml_%d_%d.csv' % (date, rcno))
     print data
