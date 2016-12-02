@@ -10,6 +10,7 @@ import numpy as np
 DEBUG = False
 
 def get_budam(meet, date, rcno, name):
+    name = name.replace('★', '')
     fname = '../txt/%d/chulmapyo/chulmapyo_%d_%d_%d.txt' % (meet, meet, date, rcno)
     if os.path.exists(fname):
         response_body = open(fname).read()
@@ -28,6 +29,7 @@ def get_budam(meet, date, rcno, name):
 
 
 def get_dbudam(meet, date, rcno, name):
+    name = name.replace('★', '')
     fname = '../txt/%d/chulmapyo/chulmapyo_%d_%d_%d.txt' % (meet, meet, date, rcno)
     if os.path.exists(fname):
         response_body = open(fname).read()

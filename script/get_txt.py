@@ -56,6 +56,7 @@ def download_txt(bd, ed, meet, overwrite=False):
                 print "[%s] data is downloaded" % request
             except:
                 print '[%s] data downloading failed' % request
+                print 'or fail to save %s' % fname
     print "job has completed"
 
 

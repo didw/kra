@@ -42,7 +42,7 @@ def simulation1(pred, ans, target=2):
             i += 1
         a = price*0.8 / r1[0]
         r1[0] = (price+100000)*0.8 / (a+100000)
-        if r1[0]*bet > 2000:
+        if r1[0]*bet > 200:
             r1[0] *= 0.8
         # if rack_data or total < total_player:
         #     continue
@@ -132,7 +132,7 @@ def simulation3(pred, ans, target=[2,3]):
         if i >= len(pred):
             break
         sim_data = [pred[i]]
-        r3 = float(ans['r3'][i]) - 1
+        r3 = float(ans['r3'][i])
         rcno = int(ans['rcno'][i])
         cache[int(ans['rank'][i])] = 1
         price = int(ans['price'][i])
@@ -153,14 +153,14 @@ def simulation3(pred, ans, target=[2,3]):
         price *= 10
         a = price*0.7 / r3
         r3 = (price+100000)*0.7 / (a+100000)
-        if r3*bet > 2000:
+        if r3*bet > 200:
             r3 *= 0.8
         sim_data = pd.Series(sim_data)
         top = sim_data.rank()
         if total < 2:
             continue
         if (top[0] in target) and (top[1] in target):
-            res1 += bet * r3
+            res1 += bet * (r3-1)
             if r3 > 40:
                 print("\nrcno[%d] boksik = %f\n" % (rcno, r3))
         else:
@@ -176,7 +176,7 @@ def get_num(line, bet):
         a = num_circle_list.find(line[:3]) / 3 + 1
         b = num_circle_list.find(line[3:6]) / 3 + 1
         r = float(re.search(r'[\d.]+', line[6:]).group()) -1
-        if r * bet > 20000:
+        if r * bet > 200:
             r *= 0.8
         return [a, b, r]
     except ValueError:
@@ -330,7 +330,7 @@ def simulation6(pred, ans, targets=[[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5],
         a = price*0.7 / r6
         r6 = (price+bet)*0.7 / (a+bet)
 
-        if r6 * bet > 2000:
+        if r6 * bet > 200:
             r6 *= 0.8
         # if rack_data or total < total_player:
         #     continue
@@ -351,7 +351,7 @@ def simulation6(pred, ans, targets=[[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5],
     return res1
 
 # 3 straight win
-def simulation7(pred, ans, targets=[1,2,3,4,5]):
+def simulation7(pred, ans, targets=[1,2,3,4]):
     bet = 10.0 / (len(targets) * (len(targets)-1) * (len(targets)-2))
     i = 0
     res1 = 0
