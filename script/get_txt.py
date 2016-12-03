@@ -68,20 +68,20 @@ def download_txt(bd, ed, meet, overwrite=False):
 def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
     data = [# seoul http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=1&rcNo=3&rcDate=20070415
         #      http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=1&rcNo=5&rcDate=20070714
-            [["DistanceRecord.do?Act=02&Sub=1", "dist_rec", [5, 6]],
-             ["Chulmapyo.do?Act=02&Sub=1", "chulmapyo", [5, 6]],
-             ["Weight.do?Act=02&Sub=1", "weight", [5, 6]],
-             ["TrainState.do?Act=02&Sub=1", "train_state", [5, 6]]
+            [["DistanceRecord.do?Act=02&Sub=1", "dist_rec", [5, 6], 31700],
+             ["Chulmapyo.do?Act=02&Sub=1", "chulmapyo", [5, 6], 33400],
+             ["Weight.do?Act=02&Sub=1", "weight", [5, 6], 31400],
+             ["TrainState.do?Act=02&Sub=1", "train_state", [5, 6], 32000]
              ],
-            [["DistanceRecord.do?Act=02&Sub=1", "dist_rec", [4, 5]],
-             ["Chulmapyo.do?Act=02&Sub=1", "chulmapyo", [4, 5]],
-             ["Weight.do?Act=02&Sub=1", "weight", [4, 5]],
-             ["TrainState.do?Act=02&Sub=1", "train_state", [4, 5]],
+            [["DistanceRecord.do?Act=02&Sub=1", "dist_rec", [4, 5], 31700],
+             ["Chulmapyo.do?Act=02&Sub=1", "chulmapyo", [4, 5], 33400],
+             ["Weight.do?Act=02&Sub=1", "weight", [4, 5], 31400],
+             ["TrainState.do?Act=02&Sub=1", "train_state", [4, 5], 32000],
              ],
-            [["DistanceRecord.do?Act=02&Sub=1", "dist_rec", [4, 6]],
-             ["Chulmapyo.do?Act=02&Sub=1", "chulmapyo", [4, 6]],
-             ["Weight.do?Act=02&Sub=1", "weight", [4, 6]],
-             ["TrainState.do?Act=02&Sub=1", "train_state", [4, 6]],
+            [["DistanceRecord.do?Act=02&Sub=1", "dist_rec", [4, 6], 31700],
+             ["Chulmapyo.do?Act=02&Sub=1", "chulmapyo", [4, 6], 33400],
+             ["Weight.do?Act=02&Sub=1", "weight", [4, 6], 31400],
+             ["TrainState.do?Act=02&Sub=1", "train_state", [4, 6], 32000],
              ],
     ]
     for line in data[meet-1]:
@@ -103,7 +103,7 @@ def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
                     fout = open(fname, 'w')
                     fout.write(response_body)
                     fout.close()
-                    if os.path.getsize(fname) < 5000:
+                    if os.path.getsize(fname) < line[3]:
                         os.remove(fname)
                     print("[%s] data is downloaded" % request)
                 except:
@@ -142,7 +142,7 @@ def download_racehorse(hrno_b, hrno_e, meet, overwrite=False):
 
 if __name__ == '__main__':
     for i in range(1, 2):
-        download_racehorse(30101, 30200, 1, False)
-        #download_chulmaDetailInfo(datetime.date(2016, 11, 22), datetime.date.today(), i, True)
-        #download_txt(datetime.date(2016, 11, 22), datetime.date.today(), i, True)
+        #download_racehorse(18301, 18400, i, False)
+        download_chulmaDetailInfo(datetime.date(2007, 1, 21), datetime.date(2007, 1, 21), i, False)
+        #download_txt(datetime.date(2006, 12, 1), datetime.date(2007, 1, 1), i, False)
 
