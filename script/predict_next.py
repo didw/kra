@@ -68,34 +68,33 @@ def get_chulma_fname(date):
     return "../txt/1/chulma/chulma_1_%4d%02d%02d.txt" % (date_.year, date_.month, date_.day)
 
 def print_bet(rcdata):
+    print("yeon")
+    print("%s" % (rcdata['idx'][0]))
     print("bok")
-    print("%s,%s" % (rcdata['idx'][1], rcdata['idx'][2]))
+    print("%s,%s" % (rcdata['idx'][0], rcdata['idx'][1]))
+    print("bokyeon")
+    print("%s,%s" % (rcdata['idx'][0], rcdata['idx'][1]))
     print("ssang")
     print("%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2]))
     print("sambok")
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,%s" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3]))
-    print("samssang")
     print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][4], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][4], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][3]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][4], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][4], rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][4], rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][3]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][4], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,%s" % (rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
+    print("{%s,%s},%s,%s" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
+    print("samssang")
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][3]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][2]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][3]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][2]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][3]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][3]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][1]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][1]))
 
 
 def predict_next(estimator, meet, date, rcno):
@@ -109,8 +108,8 @@ def predict_next(estimator, meet, date, rcno):
     del X_data['trainer']
     del X_data['owner']
     del X_data['index']
-    print(X_data.columns)
-    print(len(X_data.columns))
+    #print(X_data.columns)
+    #print(len(X_data.columns))
     pred = pd.DataFrame(estimator.predict(X_data))
     pred.columns = ['predict']
     __DEBUG__ = True
@@ -138,18 +137,18 @@ def predict_next(estimator, meet, date, rcno):
                 rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
         else:
             rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
-    print(X_data.columns)
-    print(estimator.feature_importances_)
+    #print(X_data.columns)
+    #print(estimator.feature_importances_)
 
 
 if __name__ == '__main__':
     meet = 1
-    date = 20160910
+    date = 20161203
     rcno = 0
     #import get_api
     #get_api.get_data(meet, date/100)
     #import get_txt
     #get_txt.download_txt(datetime.date.today(), datetime.date.today(), 1)
-    estimator1 = tr.training(datetime.date(2016, 9, 9) + datetime.timedelta(days=-365*2), datetime.date(2016, 9, 9))
+    estimator1 = tr.training(datetime.date(2016, 12, 2) + datetime.timedelta(days=-365*8), datetime.date(2016, 12, 2))
 
     predict_next(estimator1, meet, date, rcno)
