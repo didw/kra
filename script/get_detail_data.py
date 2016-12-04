@@ -102,6 +102,8 @@ def get_drweight(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
+            if len(itemList) < 5:
+                continue
             if name in itemList[1].string.encode('utf-8'):
                 last_date = itemList[4].string
                 if len(last_date) >= 10:
@@ -130,6 +132,8 @@ def get_lastday(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
+            if len(itemList) < 5:
+                continue
             if name in itemList[1].string.encode('utf-8'):
                 last_date = itemList[4].string
                 if len(last_date) >= 10:
@@ -296,7 +300,7 @@ def get_hr_racescore(meet, hrno, _date, mode='File'):
             try:
                 record = int(record[0])*600 + int(record[2:4])*10 + int(record[5])
             except:
-                record = -1
+                continue
             #print("주, 일, %s" % racekind)
             record = norm_racescore(1, distance, humidity, record)
             if racekind == '주':
@@ -317,7 +321,7 @@ def get_hr_racescore(meet, hrno, _date, mode='File'):
     for i in range(len(race_sum)):
         if len(race_sum[i]) == 0:
             result[i] = -1
-            result[i] = race_mean[i]
+            #result[i] = race_mean[i]
         else:
             result[i] = np.mean(race_sum[i])
     result.append(np.mean(result))

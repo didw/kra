@@ -122,7 +122,7 @@ def simulation2(pred, ans, target=1):
     return res1
 
 # 2 win
-def simulation3(pred, ans, target=[2,3]):
+def simulation3(pred, ans, target=[1,2]):
     bet = 10.0
     i = 0
     res1 = 0

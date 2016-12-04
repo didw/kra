@@ -427,7 +427,7 @@ def get_distance_record(meet, name, rcno, date, course):
             itemList = itemElm2.findAll('td')
             if name in itemList[1].string.encode('utf-8'):
                 if int(unicode(itemList[2].string)[0]) == 0:
-                    #return [0, -1, -1, -1, -1, -1]
+                    return [0, -1, -1, -1, -1, -1]
                     if int(course) == 1000:
                         return [0, 0, 0, 636, 642, 648]
                     elif int(course) == 1100:
@@ -687,7 +687,7 @@ def get_data2(filename, _date, _rcno):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/1/rcresult/rcresult_1_20101218.txt'
+    filename = '../txt/1/rcresult/rcresult_1_20070121.txt'
     data = get_data(filename)
     data.to_csv(filename.replace('.txt', '.csv'))
     print(data)
