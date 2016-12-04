@@ -9,6 +9,7 @@ from sklearn.ensemble.forest import RandomForestRegressor
 from sklearn.externals import joblib
 import random
 import simulation as sim
+from mean_data import mean_data
 
 def normalize_data(org_data):
     data = org_data.dropna()
@@ -129,23 +130,28 @@ def training(train_bd, train_ed, course=0):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-    model_name = "e:/study/kra/model_v1.6/%d_%d/model_%d.pkl" % (train_bd_i, train_ed_i, course)
+    model_name = "e:/study/kra/model_v1.8/%d_%d/model_%d.pkl" % (train_bd_i, train_ed_i, course)
+    md_name = "e:/study/kra/model_v1.8/%d_%d/md_%d.pkl" % (train_bd_i, train_ed_i, course)
 
-    from sklearn.externals import joblib
     if os.path.exists(model_name):
         print("model exist. try to loading..")
         estimator = joblib.load(model_name)
+        updated_md = joblib.load(md_name)
     else:
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.6.csv', course)
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.8.csv', course)
         print("%d data is fully loaded" % len(X_train))
 
         estimator = RandomForestRegressor(random_state=0, n_estimators=100)
         estimator.fit(X_train, Y_train)
+        updated_md = mean_data()
+        updated_md.update_data(X_train)
 
+        os.system('mkdir e:\\study\\kra\\model_v1.8\\%d_%d' % (train_bd_i, train_ed_i))
         joblib.dump(estimator, model_name)
+        joblib.dump(updated_md, md_name)
 
-    return estimator
+    return estimator, updated_md
 
 def print_log(data, pred, fname):
     flog = open(fname, 'w')
@@ -271,14 +277,14 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "e:/study/kra/model_v1.6/%d_%d/model.pkl" % (train_bd_i, train_ed_i)
+        model_name = "e:/study/kra/model_v1.8/%d_%d/model.pkl" % (train_bd_i, train_ed_i)
 
         if os.path.exists(model_name):
             print("model exist. try to loading.. %s - %s" % (str(train_bd), str(train_ed)))
             estimator = joblib.load(model_name)
         else:
             print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.6.csv', 0)
+            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.8.csv', 0)
             print("%d data is fully loaded" % len(X_train))
             if len(X_train) < 10:
                 res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
@@ -286,7 +292,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 print("Start train model")
                 estimator = RandomForestRegressor(random_state=0, n_estimators=100)
                 estimator.fit(X_train, Y_train)
-                os.system('mkdir e:\\study\\kra\\model_v1.6\\%d_%d' % (train_bd_i, train_ed_i))
+                os.system('mkdir e:\\study\\kra\\model_v1.8\\%d_%d' % (train_bd_i, train_ed_i))
                 joblib.dump(estimator, model_name)
                 print("Finish train model")
                 score = estimator.score(X_train, Y_train)
@@ -296,9 +302,9 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
 
         for course in courses:
-            fname_result = '../data/weekly_result_train0_m1_v1.6_y%d_c%d.txt' % (delta_year, course)
+            fname_result = '../data/weekly_result_train0_m1_v1.8_y%d_c%d.txt' % (delta_year, course)
             print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
-            X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.6.csv', course)
+            X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.8.csv', course)
             print("%d data is fully loaded" % (len(X_test)))
             res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
             if len(X_test) == 0:
@@ -343,7 +349,7 @@ if __name__ == '__main__':
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2014, 12, 1)
+    test_bd = datetime.date(2016, 11, 1)
     test_ed = datetime.date(2016, 12, 1)
     for delta_year in [1,2,4,8]:
         simulation_weekly_train0(test_bd, test_ed, 0, delta_year, [0])#, 1000, 1200, 1300, 1400, 1700, 1800, 1900, 2000, 2300])

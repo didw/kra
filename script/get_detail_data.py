@@ -6,8 +6,10 @@ from bs4 import BeautifulSoup
 import datetime
 import re
 import numpy as np
+from mean_data import mean_data
 
 DEBUG = False
+
 
 def get_budam(meet, date, rcno, name):
     name = name.replace('★', '')
@@ -64,9 +66,7 @@ def get_weight(meet, date, rcno, name):
                 try:
                     return float(unicode(itemList[2].string))
                 except ValueError:
-                    return -1
                     return 465
-    return -1
     return 465
 
 
@@ -143,12 +143,10 @@ def get_lastday(meet, date, rcno, name):
                 else:
                     if "-R" not in last_date:
                         print("can not parsing get_lastday %s" % fname)
-                        return -1
                         return 29
                     else:
                         return 1000  # first attending
     print("can not find last day %s in %s" % (name, fname))
-    return -1
     return 29
 
 
@@ -204,6 +202,55 @@ def get_train_info(hridx):
     return -1
 
 
+def get_distance_record(meet, name, rcno, date, course, md=mean_data()):
+    name = name.replace('★', '')
+    date_i = int("%d%02d%02d" % (date.year, date.month, date.day))
+    fname = '../txt/%d/dist_rec/dist_rec_%d_%d_%d.txt' % (meet, meet, date_i, rcno)
+    res = []
+    cand = "조보후승기"
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date_i)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if name in itemList[1].string.encode('utf-8'):
+                if int(unicode(itemList[2].string)[0]) == 0:
+                    try:
+                        return [0, 0, 0] + md.dist_rec[course][3:]
+                    except KeyError:
+                        print("there is no course %d" % course)
+                        return [0, 0, 0, 0, 0, 0]
+                if DEBUG:
+                    print("%s, %s, %s, %s, %s, %s" % (unicode(itemList[2].string), unicode(itemList[3].string), unicode(itemList[4].string), unicode(itemList[5].string), unicode(itemList[6].string), unicode(itemList[7].string)))
+                try:
+                    cnt = re.search(r'\d+', unicode(itemList[2].string)).group()
+                    res.append(int(cnt))
+                    res.append(float(unicode(itemList[3].string)))
+                    res.append(float(unicode(itemList[4].string)))
+                    t = unicode(itemList[5].string)
+                    res.append(int(t.split(':')[0]) * 600 + int(t.split(':')[1].split('.')[0]) * 10 + int(t.split('.')[1][0]))
+                    t = unicode(itemList[6].string)
+                    res.append(int(t.split(':')[0]) * 600 + int(t.split(':')[1].split('.')[0]) * 10 + int(t.split('.')[1][0]))
+                    t = unicode(itemList[7].string)
+                    res.append(int(t.split(':')[0]) * 600 + int(t.split(':')[1].split('.')[0]) * 10 + int(t.split('.')[1][0]))
+                except:
+                    break
+    if len(res) == 6:
+        return res
+    else:
+        print("can not find %s in %s" % (name, fname))
+        try:
+            return md.dist_rec[course]
+        except KeyError:
+            print("there is no course %d" % course)
+            return [0, 0, 0, 0, 0, 0]
+
+
 def get_hrno(meet, date, rcno, name):
     name = name.replace('★', '')
     fname = '../txt/%d/chulmapyo/chulmapyo_%d_%d_%d.txt' % (meet, meet, date, rcno)
@@ -229,7 +276,7 @@ def get_hrno(meet, date, rcno, name):
 
 
 
-def norm_racescore(meet, course, humidity, value):
+def norm_racescore(meet, course, humidity, value, md=mean_data()):
     div_data = {1000: [0.985, 1.003, 1.003, 1.001, 0.999, 1.002, 0.999, 1.002, 1.002, 1.001, 1.003, 1.002, 1.001, 0.995, 1.004, 0.999, 0.998, 0.994, 0.995, 0.992],
                 1100: [0.979, 1.015, 0.999, 1.002, 0.996, 0.997, 1.004, 1.012, 0.999, 1.009, 1.003, 1.000, 1.000, 0.999, 1.006, 0.997, 0.994, 0.995, 0.991, 0.993],
                 1200: [0.991, 0.995, 1.004, 1.001, 1.002, 1.000, 0.997, 0.999, 1.004, 1.004, 1.005, 1.001, 1.003, 0.999, 1.002, 0.993, 0.996, 0.995, 0.996, 0.992],
@@ -243,19 +290,18 @@ def norm_racescore(meet, course, humidity, value):
     if humidity >= 20:
         humidity = 20
     try:
-        return (value / div_data[course][humidity-1])
+        return value / md.race_score[course][humidity-1] * md.race_score[course][20]
     except KeyError:
-        return 1
+        return value
 
 
-def get_hr_racescore(meet, hrno, _date, mode='File'):
-    race_mean = [638.4116297, 638.4116297, 775.2310909, 843.1374421, 903.3792085, 1142.496707]
+def get_hr_racescore(meet, hrno, _date, mode='File', md=mean_data()):
     result = [-1, -1, -1, -1, -1, -1] # 주, 1000, 1200, 1300, 1400, 1700
+    default_res = [md.race_score[1000][20], md.race_score[1000][20], md.race_score[1200][20], md.race_score[1300][20], md.race_score[1400][20], md.race_score[1700][20]]
+    default_res.append(np.mean(default_res))
     race_sum = [[], [], [], [], [], []]
     if hrno == -1:
-        return [-1, -1, -1, -1, -1, -1, -1]
-        race_mean.append(np.mean(race_mean))
-        return race_mean
+        return default_res
     fname = '../txt/%d/racehorse/racehorse_%d_%06d.txt' % (meet, meet, hrno)
     #print("racehorse: %s" % fname)
     if os.path.exists(fname) and mode == 'File':
@@ -269,9 +315,7 @@ def get_hr_racescore(meet, hrno, _date, mode='File'):
         xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
     except UnicodeDecodeError:
         print("decode error: %s", fname)
-        return [-1, -1, -1, -1, -1, -1, -1]
-        race_mean.append(np.mean(race_mean))
-        return race_mean
+        return default_res
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr')[2:]:
             itemList = itemElm2.findAll('td')
@@ -282,6 +326,8 @@ def get_hr_racescore(meet, hrno, _date, mode='File'):
                 continue
             date = int("%s%s%s" % (date[:4], date[5:7], date[8:]))
             if date > _date:
+                continue
+            if datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=365*3) < datetime.date(_date/10000, _date/100%100, _date%100):
                 continue
             racekind = unicode(itemList[3].string).strip().encode('utf-8')
             try:
@@ -301,8 +347,10 @@ def get_hr_racescore(meet, hrno, _date, mode='File'):
                 record = int(record[0])*600 + int(record[2:4])*10 + int(record[5])
             except:
                 continue
+            if record == 0:
+                continue
             #print("주, 일, %s" % racekind)
-            record = norm_racescore(1, distance, humidity, record)
+            record = norm_racescore(1, distance, humidity, record, md)
             if racekind == '주':
                 race_sum[0].append(record)
             elif racekind == '일':
@@ -320,8 +368,8 @@ def get_hr_racescore(meet, hrno, _date, mode='File'):
 
     for i in range(len(race_sum)):
         if len(race_sum[i]) == 0:
-            result[i] = -1
-            #result[i] = race_mean[i]
+            #result[i] = -1
+            result[i] = default_res[i]
         else:
             result[i] = np.mean(race_sum[i])
     result.append(np.mean(result))

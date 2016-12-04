@@ -97,8 +97,8 @@ def print_bet(rcdata):
     print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][1]))
 
 
-def predict_next(estimator, meet, date, rcno):
-    data_pre = xe.parse_xml_entry(meet, date, rcno)
+def predict_next(estimator, md, meet, date, rcno):
+    data_pre = xe.parse_xml_entry(meet, date, rcno, md)
     data = normalize_data(data_pre)
     print(len(data.columns))
     X_data = data.copy()
@@ -137,8 +137,8 @@ def predict_next(estimator, meet, date, rcno):
                 rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
         else:
             rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
-    #print(X_data.columns)
-    #print(estimator.feature_importances_)
+    print(X_data.columns)
+    print(estimator.feature_importances_)
 
 
 if __name__ == '__main__':
@@ -149,6 +149,6 @@ if __name__ == '__main__':
     #get_api.get_data(meet, date/100)
     #import get_txt
     #get_txt.download_txt(datetime.date.today(), datetime.date.today(), 1)
-    estimator1 = tr.training(datetime.date(2016, 12, 2) + datetime.timedelta(days=-365*8), datetime.date(2016, 12, 2))
+    estimator, md = tr.training(datetime.date(2016, 12, 2) + datetime.timedelta(days=-365*8), datetime.date(2016, 12, 2))
 
-    predict_next(estimator1, meet, date, rcno)
+    predict_next(estimator, md, meet, date, rcno)

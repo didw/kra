@@ -5,7 +5,7 @@ import parse_txt_race as pr
 import datetime
 import pandas as pd
 import os.path
-
+from mean_data import mean_data
 
 def get_data(begin_date, end_date, fname_csv):
     train_bd = begin_date
@@ -14,6 +14,7 @@ def get_data(begin_date, end_date, fname_csv):
     data = pd.DataFrame()
     first = True
     date += datetime.timedelta(days=-1)
+    md = mean_data()
     while date < train_ed:
         date += datetime.timedelta(days=1)
         if date.weekday() != 5 and date.weekday() != 6:
@@ -22,10 +23,14 @@ def get_data(begin_date, end_date, fname_csv):
         if not os.path.isfile(filename):
             continue
         if first:
-            data = pr.get_data(filename)
+            adata = pr.get_data(filename, md)
+            md.update_data(adata)
+            data = adata
             first = False
         else:
-            data = data.append(pr.get_data(filename), ignore_index=True)
+            adata = pr.get_data(filename, md)
+            md.update_data(adata)
+            data = data.append(adata, ignore_index=True)
     data.to_csv(fname_csv, index=False)
     return data
 
@@ -49,7 +54,7 @@ def update_data(end_date, fname_csv):
 
 
 if __name__ == '__main__':
-    begin_date = datetime.date(2015, 2, 28)
+    begin_date = datetime.date(2016, 11, 1)
     end_date = datetime.date.today()
     fname_csv = '../data/1_2007_2016_v1.8.csv'
     get_data(begin_date, end_date, fname_csv)

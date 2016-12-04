@@ -8,6 +8,7 @@ import datetime
 import os
 from bs4 import BeautifulSoup
 import numpy as np
+from sklearn.externals import joblib
 
 def get_humidity():
     url = "http://race.kra.co.kr/chulmainfo/trackView.do?Act=02&Sub=10&meet=1"
@@ -502,14 +503,23 @@ def get_hr_racescore(meet, hrno, _date):
                     race_sum[4].append(record)
                 elif distance == 1700:
                     race_sum[5].append(record)
-            #print("%d, %s, %s, %d" % (date, racekind, distance, record))
+            print("%d, %s, %s, %d" % (date, racekind, distance, record))
     for i in range(len(race_sum)):
         if len(race_sum[i]) == 0:
             result[i] = -1
         else:
             result[i] = np.mean(race_sum[i])
     return result
+    # hrno = get_hrno(1, 20161106, 11, "구만석")
+    # print(get_hr_racescore(1,int(hrno), 20161106))
 
+
+def dump_data(data, fname):
+    joblib.dump(data, fname)
+
+
+def simple_list_concat():
+    return [0] + [1,2,3,4][2:]
 
 if __name__ == '__main__':
-    print(get_hr_racescore(1,20464, 20161130))
+    print(simple_list_concat())

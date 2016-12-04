@@ -13,6 +13,7 @@ import datetime
 import sys
 import os
 import get_detail_data as gdd
+from mean_data import mean_data
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -46,19 +47,25 @@ def get_hr_data(data, name):
     return (-1, -1)
 
 
-def get_hr_win(tt, t1, t2, yt, y1, y2):
+def get_hr_win(tt, t1, t2, yt, y1, y2, course, md=mean_data()):
     res = [-1, -1, -1, -1]
     if int(tt) != 0:
         res[0] = int(t1) * 100 / int(tt)
         res[1] = int(t2) * 100 / int(tt)
+    else:
+        res[0] = md.hr_history_total[course][3]
+        res[1] = md.hr_history_total[course][4]
     if int(yt) != 0:
         res[2] = int(y1) * 100 / int(yt)
         res[3] = int(y2) * 100 / int(yt)
+    else:
+        res[2] = md.hr_history_year[course][3]
+        res[3] = md.hr_history_year[course][4]
     return res
 
 
-def get_jk_win(data, name):
-    res = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+def get_jk_win(data, name, course, md=mean_data()):
+    res = md.jk_history_total[course] + md.jk_history_year[course]
     for idx, line in data.iterrows():
         if line['jkName'] == name:
             res[0] = tt = int(line['cntT'])
@@ -70,16 +77,22 @@ def get_jk_win(data, name):
             if int(tt) != 0:
                 res[3] = int(t1) * 100 / int(tt)
                 res[4] = int(t2) * 100 / int(tt)
+            else:
+                res[3] = md.jk_history_total[course][3]
+                res[4] = md.jk_history_total[course][4]
             if int(yt) != 0:
                 res[8] = int(y1) * 100 / int(yt)
                 res[9] = int(y2) * 100 / int(yt)
+            else:
+                res[8] = md.jk_history_year[course][3]
+                res[9] = md.jk_history_year[course][4]
             return res
     print("can not find jockey %s" % (name,))
     return res
 
 
-def get_tr_win(data, name):
-    res = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+def get_tr_win(data, name, course, md=mean_data()):
+    res = md.tr_history_total[course] + md.tr_history_year[course]
     for idx, line in data.iterrows():
         if line['trName'] == name:
             res[0] = tt = int(line['cntT'])
@@ -91,39 +104,19 @@ def get_tr_win(data, name):
             if int(tt) != 0:
                 res[3] = int(t1) * 100 / int(tt)
                 res[4] = int(t2) * 100 / int(tt)
+            else:
+                res[3] = md.tr_history_total[course][3]
+                res[4] = md.tr_history_total[course][4]
             if int(yt) != 0:
                 res[8] = int(y1) * 100 / int(yt)
                 res[9] = int(y2) * 100 / int(yt)
+            else:
+                res[8] = md.tr_history_year[course][3]
+                res[9] = md.tr_history_year[course][4]
             return res
     print("can not find trainer %s" % (name,))
     return res
 
-
-def get_distance_record_url(hrname, rcno, date):
-    hrname = hrname.replace('★', '')
-    #print("name: %s, rcno: %d, date: %d" % (hrname, rcno, date))
-    url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=1&rcNo=%d&rcDate=%d" % (rcno, date)
-    response_body = urlopen(url).read()
-    line = unicode(response_body, 'euc-kr').encode('utf-8')
-    #print("%s" % line)
-    exp = '%s.+\s+.+\s+<td>\d+[.]\d+</td>\s+<td>\d+[.]\d+</td>\s+<td>\d+[:]\d+[.]\d+.+</td>\s+<td>\d+[:]\d+[.]\d+.+</td>\s+<td>\d+[:]\d+[.]\d+.+</td>' % hrname.encode("utf-8")
-    #print("exp: %s" % exp)
-    pl = re.search(r'%s'%exp, line)
-    res = [-1, -1, -1, -1, -1, -1]
-    if pl is not None:
-        pls = pl.group().split()
-        res[0] = re.search(unicode(r'\d+(?=\()', 'utf-8').encode('utf-8'), pls[2]).group()
-        res[1] = re.search(unicode(r'\d+[.]\d+', 'utf-8').encode('utf-8'), pls[3]).group()
-        res[2] = re.search(unicode(r'\d+[.]\d+', 'utf-8').encode('utf-8'), pls[4]).group()
-        t = re.search(unicode(r'\d+[:]\d+[.]\d+', 'utf-8').encode('utf-8'), pls[5]).group()
-        res[3] = int(t.split(':')[0])*600 + int(t.split(':')[1].split('.')[0])*10 + int(t.split('.')[1])
-        t = re.search(unicode(r'\d+[:]\d+[.]\d+', 'utf-8').encode('utf-8'), pls[6]).group()
-        res[4] = int(t.split(':')[0])*600 + int(t.split(':')[1].split('.')[0])*10 + int(t.split('.')[1])
-        t = re.search(unicode(r'\d+[:]\d+[.]\d+', 'utf-8').encode('utf-8'), pls[7]).group()
-        res[5] = int(t.split(':')[0])*600 + int(t.split(':')[1].split('.')[0])*10 + int(t.split('.')[1])
-    else:
-        print("can not find distance record %s in %s" % (hrname, url))
-    return res
 
 def get_game_info(date, rcno):
     if date.weekday() == 5:
@@ -164,7 +157,7 @@ def get_game_info(date, rcno):
     return [-1, -1]
 
 
-def parse_xml_entry(meet, date, number):
+def parse_xml_entry(meet, date, number, md=mean_data()):
     # get other data
     data_hr = xh.parse_xml_hr(meet)
     data_jk = xj.parse_xml_jk(meet)
@@ -179,6 +172,7 @@ def parse_xml_entry(meet, date, number):
     humidity = get_humidity()
     for itemElm in xml_text.findAll('item'):
         #print itemElm
+        course = int(unicode(itemElm.rcdist.string))
         rcdate = int("%s%s%s" % (itemElm.rcdate.string[:4], itemElm.rcdate.string[5:7], itemElm.rcdate.string[8:10]))
         rcno = int("%s" % (itemElm.rcno.string))
         if date != rcdate:
@@ -189,12 +183,12 @@ def parse_xml_entry(meet, date, number):
         #hr_weight, hr_dweight = get_hr_weight(meet, itemElm.rcdate.string, itemElm.rcno.string, itemElm.hrname.string)
         hr_weight = gdd.get_weight(meet, date, int(itemElm.rcno.string), itemElm.hrname.string)
         hr_dweight = gdd.get_dweight(meet, date, int(itemElm.rcno.string), itemElm.hrname.string)
-        hr_dist_rec = get_distance_record_url(itemElm.hrname.string, int(itemElm.rcno.string), date)
+        hr_dist_rec = gdd.get_distance_record(meet, itemElm.hrname.string, int(itemElm.rcno.string), date, course, md)
         cnt, kind = get_game_info(datetime.date(date/10000, date/100%100, date%100), int(itemElm.rcno.string))
         hr_win = get_hr_win(itemElm.cntt.string, itemElm.ord1t.string, itemElm.ord2t.string, itemElm.cnty.string,
-                           itemElm.ord1y.string, itemElm.ord2y.string)
-        jk_win = get_jk_win(data_jk, itemElm.jkname.string)
-        tr_win = get_tr_win(data_tr, itemElm.trname.string)
+                           itemElm.ord1y.string, itemElm.ord2y.string, course, md)
+        jk_win = get_jk_win(data_jk, itemElm.jkname.string, course, md)
+        tr_win = get_tr_win(data_tr, itemElm.trname.string, course, md)
 		
         hrname = itemElm.hrname.string
         dbudam = gdd.get_dbudam(1, date, int(rcno), hrname)
@@ -202,9 +196,9 @@ def parse_xml_entry(meet, date, number):
         lastday = gdd.get_lastday(1, date, int(rcno), hrname)
         train_state = gdd.get_train_state(1, date, int(rcno), hrname)
         hr_no = gdd.get_hrno(1, date, int(rcno), hrname)
-        race_score = gdd.get_hr_racescore(1, hr_no, date, 'url')
+        race_score = gdd.get_hr_racescore(1, hr_no, date, 'url', md)
 
-        adata = [itemElm.rcdist.string,
+        adata = [unicode(itemElm.rcdist.string),
                  humidity,
                  kind,
 				 
