@@ -143,12 +143,12 @@ def predict_next(estimator, md, meet, date, rcno):
 
 if __name__ == '__main__':
     meet = 1
-    date = 20161203
+    date = 20161204
     rcno = 0
     #import get_api
     #get_api.get_data(meet, date/100)
     #import get_txt
     #get_txt.download_txt(datetime.date.today(), datetime.date.today(), 1)
-    estimator, md = tr.training(datetime.date(2016, 12, 2) + datetime.timedelta(days=-365*8), datetime.date(2016, 12, 2))
+    estimator, md, umd = tr.training(datetime.date(2016, 12, 2) + datetime.timedelta(days=-365*2), datetime.date(2016, 12, 2))
 
     predict_next(estimator, md, meet, date, rcno)

@@ -157,12 +157,13 @@ def get_game_info(date, rcno):
     return [-1, -1]
 
 
-def parse_xml_entry(meet, date, number, md=mean_data()):
+def parse_xml_entry(meet, date_i, number, md=mean_data()):
     # get other data
     data_hr = xh.parse_xml_hr(meet)
     data_jk = xj.parse_xml_jk(meet)
     data_tr = xt.parse_xml_tr(meet)
-    date_m = date / 100
+    date_m = date_i / 100
+    date = datetime.date(date_i/10000, date_i/100%100, date_i%100)
     data = []
     filename = '../xml/entry/get_entry_%d_%d.xml' % (meet, date_m)
     file_input = open(filename)
@@ -175,33 +176,33 @@ def parse_xml_entry(meet, date, number, md=mean_data()):
         course = int(unicode(itemElm.rcdist.string))
         rcdate = int("%s%s%s" % (itemElm.rcdate.string[:4], itemElm.rcdate.string[5:7], itemElm.rcdate.string[8:10]))
         rcno = int("%s" % (itemElm.rcno.string))
-        if date != rcdate:
+        if date_i != rcdate:
             continue
         if number > 0 and number != rcno:
             continue
         hr_gender, hr_days = get_hr_data(data_hr, itemElm.hrname.string)
         #hr_weight, hr_dweight = get_hr_weight(meet, itemElm.rcdate.string, itemElm.rcno.string, itemElm.hrname.string)
-        hr_weight = gdd.get_weight(meet, date, int(itemElm.rcno.string), itemElm.hrname.string)
-        hr_dweight = gdd.get_dweight(meet, date, int(itemElm.rcno.string), itemElm.hrname.string)
+        hr_weight = gdd.get_weight(meet, date_i, int(itemElm.rcno.string), itemElm.hrname.string)
+        hr_dweight = gdd.get_dweight(meet, date_i, int(itemElm.rcno.string), itemElm.hrname.string)
         hr_dist_rec = gdd.get_distance_record(meet, itemElm.hrname.string, int(itemElm.rcno.string), date, course, md)
-        cnt, kind = get_game_info(datetime.date(date/10000, date/100%100, date%100), int(itemElm.rcno.string))
+        cnt, kind = get_game_info(datetime.date(date_i / 10000, date_i / 100 % 100, date_i % 100), int(itemElm.rcno.string))
         hr_win = get_hr_win(itemElm.cntt.string, itemElm.ord1t.string, itemElm.ord2t.string, itemElm.cnty.string,
                            itemElm.ord1y.string, itemElm.ord2y.string, course, md)
         jk_win = get_jk_win(data_jk, itemElm.jkname.string, course, md)
         tr_win = get_tr_win(data_tr, itemElm.trname.string, course, md)
 		
         hrname = itemElm.hrname.string
-        dbudam = gdd.get_dbudam(1, date, int(rcno), hrname)
-        drweight = gdd.get_drweight(1, date, int(rcno), hrname)
-        lastday = gdd.get_lastday(1, date, int(rcno), hrname)
-        train_state = gdd.get_train_state(1, date, int(rcno), hrname)
-        hr_no = gdd.get_hrno(1, date, int(rcno), hrname)
-        race_score = gdd.get_hr_racescore(1, hr_no, date, 'url', md)
+        dbudam = gdd.get_dbudam(1, date_i, int(rcno), hrname)
+        drweight = gdd.get_drweight(1, date_i, int(rcno), hrname)
+        lastday = gdd.get_lastday(1, date_i, int(rcno), hrname)
+        train_state = gdd.get_train_state(1, date_i, int(rcno), hrname)
+        hr_no = gdd.get_hrno(1, date_i, int(rcno), hrname)
+        race_score = gdd.get_hr_racescore(1, hr_no, date_i, course, 'url', md)
 
         adata = [unicode(itemElm.rcdist.string),
                  humidity,
                  kind,
-				 
+
                  dbudam,
                  drweight,
                  lastday,
@@ -219,6 +220,9 @@ def parse_xml_entry(meet, date, number, md=mean_data()):
                  race_score[4],
                  race_score[5],
                  race_score[6],
+                 race_score[7],
+                 race_score[8],
+                 race_score[9],
 
                  itemElm.chulno.string,
                  itemElm.hrname.string,
@@ -234,7 +238,7 @@ def parse_xml_entry(meet, date, number, md=mean_data()):
                  hr_dweight,
                  cnt,
                  itemElm.rcno.string,
-                 date/100%100,
+                 date_i / 100 % 100,
                  hr_days,
 
                  itemElm.cntt.string,
@@ -276,13 +280,13 @@ def parse_xml_entry(meet, date, number, md=mean_data()):
                  tr_win[7],
                  tr_win[8],
                  tr_win[9],
-                ]
+                 ]
         #print(adata)
         data.append(adata)
 
     df = pd.DataFrame(data)
     df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', #12
-                  'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7',  # 7
+                  'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10',  # 7
                   'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', 'owner', # 9
                   'weight', 'dweight', 'cnt', 'rcno', 'month', 'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', # 13
                   'hr_ny2', 'hr_y1', 'hr_y2', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 9

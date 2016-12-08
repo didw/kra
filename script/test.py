@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+from __future__ import print_function
 
 import re
 import pandas as pd
@@ -9,6 +10,7 @@ import os
 from bs4 import BeautifulSoup
 import numpy as np
 from sklearn.externals import joblib
+from mean_data import mean_data
 
 def get_humidity():
     url = "http://race.kra.co.kr/chulmainfo/trackView.do?Act=02&Sub=10&meet=1"
@@ -46,15 +48,6 @@ def test():
     df.columns = ['a', 'b', 'c']
     for idx, rows in df.iterrows():
         print(rows['a'])
-
-
-def test_rank():
-    data = pd.Series([1,4,3,2])
-    top = data.rank()
-    print top[0] in [1, 2]
-    print top[1] in [1, 2]
-    print top[2] in [1, 2]
-    print top[3] in [1, 2]
 
 
 def df_concat():
@@ -437,7 +430,7 @@ def get_hr_testrecord(meet, hrno):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
             if '주행' == unicode(itemList[2].string).encode('utf-8'):
-                print itemList
+                print(itemList)
     return -1
 
 
@@ -521,5 +514,43 @@ def dump_data(data, fname):
 def simple_list_concat():
     return [0] + [1,2,3,4][2:]
 
+
+def update_md(fname):
+    data = pd.read_csv(fname)
+    md = mean_data()
+    md.update_data(data)
+    md = joblib.load(fname)
+    md = joblib.load(fname)
+
+
+def check_average_mean(fname, md=mean_data()):
+    data = pd.read_csv(fname)
+    prev_date = data['date'][0]
+    for idx, row in data.iterrows():
+        course = int(row['course'])
+        humidity = int(row['humidity'])
+        if course not in [1000, 1200, 1300, 1400, 1700]:
+            continue
+        try:
+            #md.update_race_score(course, humidity, row)
+            if prev_date != row['date']:
+                for i in range(21):
+                    print("%.4f" % md.race_score[1000][i], end=' ')
+                print()
+                prev_date = row['date']
+            humidity = min(humidity, 20) - 1
+            record = row['rctime'] / md.race_score[course][humidity] * md.race_score[course][20]
+            #if record < md.race_score[course][20]*0.8 or record > md.race_score[course][20]*1.2:
+            #    continue
+            md.race_score[course][humidity] += 0.1 * (row['rctime'] - md.race_score[course][humidity])
+            md.race_score[course][20] = np.mean(md.race_score[course])
+            #print("value: %f, %f, %f, %f, %f" % (md.race_score[1000][20], md.race_score[1200][20], md.race_score[1300][20], md.race_score[1400][20], md.race_score[1700][20]))
+            #print("value: %f, %f, %f, %f, %f" % (md.race_score[1000][20], md.race_score[1200][20], md.race_score[1300][20], md.race_score[1400][20], md.race_score[1700][20]))
+            #print("value: %f" % (md.race_score[course][20]))
+        except:
+            print("humidity: %d, racetime: %f" % (humidity, row['rctime']))
+
+
 if __name__ == '__main__':
-    print(simple_list_concat())
+    md = mean_data()
+    check_average_mean('../data/1_2007_2016_v1.9.csv', md)

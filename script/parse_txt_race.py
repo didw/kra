@@ -89,7 +89,7 @@ def parse_txt_race(filename, md=mean_data()):
             lastday = gdd.get_lastday(1, date, int(rcno), hrname)
             train_state = gdd.get_train_state(1, date, int(rcno), hrname)
             hr_no = gdd.get_hrno(1, date, int(rcno), hrname)
-            race_score = gdd.get_hr_racescore(1, hr_no, date, 'File', md)
+            race_score = gdd.get_hr_racescore(1, hr_no, date, course, 'File', md)
 
             assert len(words) >= 10
             adata = [course, humidity, kind, dbudam, drweight, lastday]
@@ -548,13 +548,13 @@ def get_data(filename, md=mean_data()):
     for i in range(len(data)):
         #print("race file: %s" % filename)
         #print("%s %s %s" % (data[i][5], data[i][10], data[i][11]))
-        data[i].extend(parse_txt_horse(date, int(data[i][36]), data[i][21], data[i][0], md))
-        data[i].extend(parse_txt_jockey(date, data[i][26], data[i][0], md))
-        data[i].extend(parse_txt_trainer(date, data[i][27], data[i][0], md))
+        data[i].extend(parse_txt_horse(date, int(data[i][39]), data[i][24], data[i][0], md))
+        data[i].extend(parse_txt_jockey(date, data[i][29], data[i][0], md))
+        data[i].extend(parse_txt_trainer(date, data[i][30], data[i][0], md))
         data[i].extend([date_i])
     df = pd.DataFrame(data)
     df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
-                  'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', # 7
+                  'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10', # 10
                   'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 9
                   'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'month', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'samssang', # 18
                   'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
@@ -587,9 +587,29 @@ def get_data2(filename, _date, _rcno):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/1/rcresult/rcresult_1_20070121.txt'
+    filename = '../txt/1/rcresult/rcresult_1_20161203.txt'
     data = get_data(filename)
-    data.to_csv(filename.replace('.txt', '.csv'))
+    data.to_csv(filename.replace('.txt', '.csv'), index=False)
+    del data['name']
+    del data['jockey']
+    del data['trainer']
+    del data['owner']
+    del data['rctime']
+    del data['rank']
+    del data['r3']
+    del data['r2']
+    del data['r1']
+    del data['date']
+    del data['price']
+    del data['bokyeon1']
+    del data['bokyeon2']
+    del data['bokyeon3']
+    del data['boksik']
+    del data['ssang']
+    del data['sambok']
+    del data['samssang']
+    data.to_csv(filename.replace('.txt', '_x.csv'), index=False)
+
     print(data)
 
 

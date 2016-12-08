@@ -11,7 +11,7 @@ import numpy as np
 import re
 
 # 1 win
-def simulation1(pred, ans, target=2):
+def simulation1(pred, ans, target=1):
     #print(ans)
     i = 0
     res1 = 0
@@ -244,7 +244,7 @@ def simulation4(pred, ans, target=[1,2]):
 
 
 # 2 straight win
-def simulation5(pred, ans, targets=[[2,1],[2,3]]):
+def simulation5(pred, ans, targets=[[1,2],[1,3],[2,1],[2,3]]):
     bet = 10.0 / len(targets)
     i = 0
     res1 = 0
@@ -352,7 +352,7 @@ def simulation6(pred, ans, targets=[[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5],
 
 # 3 straight win
 def simulation7(pred, ans, targets=[1,2,3,4]):
-    bet = 10.0 / (len(targets) * (len(targets)-1) * (len(targets)-2))
+    bet = 10.0 / (len(targets)*(len(targets)-1) * (len(targets)-2))
     i = 0
     res1 = 0
     assert len(pred) == len(ans)
@@ -407,10 +407,8 @@ def simulation7(pred, ans, targets=[1,2,3,4]):
                         res1 += bet * r7
                     else:
                         res1 -= bet
-
         #print("sambok: %f" % (res1))
     return res1
-
 
 if __name__ == '__main__':
     pass
