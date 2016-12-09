@@ -68,33 +68,27 @@ def get_chulma_fname(date):
     return "../txt/1/chulma/chulma_1_%4d%02d%02d.txt" % (date_.year, date_.month, date_.day)
 
 def print_bet(rcdata):
-    print("yeon")
+    print("dan")
     print("%s" % (rcdata['idx'][0]))
     print("bok")
     print("%s,%s" % (rcdata['idx'][0], rcdata['idx'][1]))
     print("bokyeon")
     print("%s,%s" % (rcdata['idx'][0], rcdata['idx'][1]))
     print("ssang")
+    print("%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2]))
     print("%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2]))
     print("sambok")
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,%s" % (rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-    print("{%s,%s},%s,%s" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-    print("samssang")
     print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][3]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][2]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][3]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][2]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][3]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][3]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][1]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][1]))
+    print("samssang")
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][4]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][4]))
 
 
 def predict_next(estimator, md, meet, date, rcno):
@@ -143,12 +137,12 @@ def predict_next(estimator, md, meet, date, rcno):
 
 if __name__ == '__main__':
     meet = 1
-    date = 20161204
+    date = 20161210
     rcno = 0
     #import get_api
     #get_api.get_data(meet, date/100)
     #import get_txt
     #get_txt.download_txt(datetime.date.today(), datetime.date.today(), 1)
-    estimator, md, umd = tr.training(datetime.date(2016, 12, 2) + datetime.timedelta(days=-365*2), datetime.date(2016, 12, 2))
+    estimator, md, umd = tr.training(datetime.date(2016, 12, 9) + datetime.timedelta(days=-365*2), datetime.date(2016, 12, 9))
 
     predict_next(estimator, md, meet, date, rcno)

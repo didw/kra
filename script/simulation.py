@@ -294,7 +294,7 @@ def simulation5(pred, ans, targets=[[1,2],[1,3],[2,1],[2,3]]):
 
 
 # 3 straight win
-def simulation6(pred, ans, targets=[[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5]]):
+def simulation6(pred, ans, targets=[[1,2,3], [1,2,4]]):
     bet = 10.0 / len(targets)
     i = 0
     res1 = 0
