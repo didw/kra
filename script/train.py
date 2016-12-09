@@ -235,13 +235,13 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
             print("Score with the entire test dataset = %.2f" % score_test)
             pred = estimator.predict(X_test)
 
-            res1 = sim.simulation1(pred, R_test)
-            res2 = sim.simulation2(pred, R_test)
-            res3 = sim.simulation3(pred, R_test)
-            res4 = sim.simulation4(pred, R_test)
-            res5 = sim.simulation5(pred, R_test)
-            res6 = sim.simulation6(pred, R_test)
-            res7 = sim.simulation7(pred, R_test)
+            res1 = sim.simulation7(pred, R_test, [1,2,3])
+            res2 = sim.simulation7(pred, R_test, [1,2,3,4])
+            res3 = sim.simulation7(pred, R_test, [1,2,3,4,5])
+            res4 = sim.simulation8(pred, R_test, [[1,2,3],[1,2,3,4],[1,2,3,4,5]])
+            res5 = sim.simulation8(pred, R_test, [[1,2,3],[2,3,4],[3,4,5]])
+            res6 = sim.simulation8(pred, R_test, [[1,2,3],[1,2,3,4],[2,3,4,5]])
+            res7 = sim.simulation8(pred, R_test, [[1,2,3,4],[1,2,3,4],[2,3,4,5]])
 
         print("train data: %s - %s" % (str(train_bd), str(train_ed)))
         print("test data: %s - %s" % (str(test_bd), str(test_ed)))
@@ -303,7 +303,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
 
         for course in courses:
-            fname_result = '../data/weekly_result_train0_m1_v1.9_y%d_c%d.txt' % (delta_year, course)
+            fname_result = '../data/weekly_result_train0_m1_ss_v1.9_y%d_c%d.txt' % (delta_year, course)
             print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
             X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.9.csv', course)
             print("%d data is fully loaded" % (len(X_test)))
@@ -319,13 +319,13 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 print("Score with the entire test dataset = %.5f" % score)
                 pred = estimator.predict(X_test)
 
-                res1 = sim.simulation1(pred, R_test)
-                res2 = sim.simulation2(pred, R_test)
-                res3 = sim.simulation3(pred, R_test)
-                res4 = sim.simulation4(pred, R_test)
-                res5 = sim.simulation5(pred, R_test)
-                res6 = sim.simulation6(pred, R_test)
-                res7 = sim.simulation7(pred, R_test)
+                res1 = sim.simulation7(pred, R_test, [1,2,3])
+                res2 = sim.simulation7(pred, R_test, [1,2,3,4])
+                res3 = sim.simulation7(pred, R_test, [1,2,3,4,5])
+                res4 = sim.simulation8(pred, R_test, [[1],[2],[3]])
+                res5 = sim.simulation8(pred, R_test, [[1,2],[2,3],[3,4]])
+                res6 = sim.simulation8(pred, R_test, [[1,2],[1,2,3],[2,3,4]])
+                res7 = sim.simulation8(pred, R_test, [[1,2,3],[1,2,3,4],[2,3,4,5]])
 
             print("train data: %s - %s" % (str(train_bd), str(train_ed)))
             print("test data: %s - %s" % (str(test_bd), str(test_ed)))
@@ -347,10 +347,10 @@ if __name__ == '__main__':
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2014, 12, 1)
-    test_ed = datetime.date(2015, 12, 1)
-    for delta_year in [1,2,4]:
+    test_bd = datetime.date(2016, 6, 1)
+    test_ed = datetime.date(2016, 12, 1)
+    for delta_year in [2]:
         simulation_weekly_train0(test_bd, test_ed, 0, delta_year, [0])#, 1000, 1200, 1300, 1400, 1700, 1800, 1900, 2000, 2300])
-        for c in [1000, 1200, 1300, 1400, 1700]:
-            outfile = '../data/weekly_result_m1_v1.9_y%d_c%d.txt' % (delta_year, c)
-            simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c)
+        #for c in [1700]:
+        #    outfile = '../data/weekly_result_m1_v1.9_y%d_c%d.txt' % (delta_year, c)
+        #    simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c)

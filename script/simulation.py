@@ -351,8 +351,14 @@ def simulation6(pred, ans, targets=[[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5],
     return res1
 
 # 3 straight win
-def simulation7(pred, ans, targets=[1,2,3,4]):
-    bet = 10.0 / (len(targets)*(len(targets)-1) * (len(targets)-2))
+def simulation7(pred, ans, targets=[[1,2,3],[1,2,3,4],[2,3,4,5]]):
+    cnt = 0
+    for x in targets[0]:
+        for y in targets[1]:
+            for z in targets[2]:
+                if x != y and x != z and y != z:
+                    cnt+=1
+    bet = 10.0 / cnt
     i = 0
     res1 = 0
     assert len(pred) == len(ans)
@@ -395,10 +401,9 @@ def simulation7(pred, ans, targets=[1,2,3,4]):
         top = sim_data.rank()
         if total < 5 or r7 < 0:
             continue
-
-        for x in targets:
-            for y in targets:
-                for z in targets:
+        for x in targets[0]:
+            for y in targets[1]:
+                for z in targets[2]:
                     if x == y or x == z or y == z:
                         continue
                     if top[0] == x and top[1] == y and top[2] == z:
