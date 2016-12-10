@@ -303,6 +303,11 @@ def get_hr_racescore(meet, hrno, _date, course, mode='File', md=mean_data()):
         base_url = "http://race.kra.co.kr/racehorse/profileRaceScore.do?Act=02&Sub=1&"
         url = base_url + "meet=%d&hrNo=%06d" % (meet, hrno)
         response_body = urlopen(url).read()
+        fout = open(fname, 'w')
+        fout.write(response_body)
+        fout.close()
+        if os.path.getsize(fname) < 31100:
+            os.remove(fname)
         print("open url %d" % hrno)
     try:
         xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
