@@ -122,8 +122,8 @@ def simulation2(pred, ans, target=1):
     return res1
 
 # 2 win
-def simulation3(pred, ans, target=[1,2]):
-    bet = 10.0
+def simulation3(pred, ans, targets=[[1,2],[1,3],[2,3]]):
+    bet = 10.0 / len(targets)
     i = 0
     res1 = 0
     assert len(pred) == len(ans)
@@ -159,12 +159,13 @@ def simulation3(pred, ans, target=[1,2]):
         top = sim_data.rank()
         if total < 2:
             continue
-        if (top[0] in target) and (top[1] in target):
-            res1 += bet * (r3-1)
-            if r3 > 40:
-                print("\nrcno[%d] boksik = %f\n" % (rcno, r3))
-        else:
-            res1 -= bet
+        for target in targets:
+            if (top[0] in target) and (top[1] in target):
+                res1 += bet * (r3-1)
+                if r3 > 40:
+                    print("\nrcno[%d] boksik = %f\n" % (rcno, r3))
+            else:
+                res1 -= bet
 
         #print("복승식: %f" % (res1))
     return res1
@@ -294,7 +295,7 @@ def simulation5(pred, ans, targets=[[1,2],[1,3],[2,1],[2,3]]):
 
 
 # 3 straight win
-def simulation6(pred, ans, targets=[[1,2,3], [1,2,4]]):
+def simulation6(pred, ans, targets=[[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5]]):
     bet = 10.0 / len(targets)
     i = 0
     res1 = 0

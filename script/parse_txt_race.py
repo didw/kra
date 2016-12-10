@@ -588,8 +588,8 @@ def get_data2(filename, _date, _rcno):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/1/rcresult/rcresult_1_20161210.txt'
-    md = joblib.load('../data/1_2007_2016_v1.9_md_2016-12-10.pkl')
+    filename = '../txt/1/rcresult/rcresult_1_20160326.txt'
+    md = joblib.load('../data/1_2007_2016_v1.9_md.pkl')
     data = get_data(filename, md)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)
     del data['name']

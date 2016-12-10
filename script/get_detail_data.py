@@ -325,6 +325,7 @@ def get_hr_racescore(meet, hrno, _date, course, mode='File', md=mean_data()):
             date = int("%s%s%s" % (date[:4], date[5:7], date[8:]))
             if date >= _date:
                 continue
+
             if datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=365*3) < datetime.date(_date/10000, _date/100%100, _date%100):
                 continue
             racekind = unicode(itemList[3].string).strip().encode('utf-8')
