@@ -8,6 +8,7 @@ from urllib2 import urlopen
 import get_detail_data as gdd
 from bs4 import BeautifulSoup
 from mean_data import mean_data
+from sklearn.externals import joblib
 
 NEXT = re.compile(unicode(r'마 체 중|단승식|복승식|매출액', 'utf-8').encode('utf-8'))
 WORD = re.compile(r"[^\s]+")
@@ -587,8 +588,9 @@ def get_data2(filename, _date, _rcno):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/1/rcresult/rcresult_1_20161203.txt'
-    data = get_data(filename)
+    filename = '../txt/1/rcresult/rcresult_1_20161210.txt'
+    md = joblib.load('../data/1_2007_2016_v1.9_md_2016-12-10.pkl')
+    data = get_data(filename, md)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)
     del data['name']
     del data['jockey']

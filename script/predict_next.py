@@ -138,7 +138,7 @@ def predict_next(estimator, md, meet, date, rcno):
 if __name__ == '__main__':
     meet = 1
     date = 20161210
-    rcno = 12
-    course = 1300
+    rcno = 0
+    course = 0
     estimator, md, umd = tr.training(datetime.date(2016, 12, 9) + datetime.timedelta(days=-365*2), datetime.date(2016, 12, 9), course)
     predict_next(estimator, md, meet, date, rcno)

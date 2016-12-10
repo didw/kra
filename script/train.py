@@ -130,8 +130,8 @@ def training(train_bd, train_ed, course=0):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-    model_name = "c:/study/kra/model_v1.9/%d_%d/model_%d.pkl" % (train_bd_i, train_ed_i, course)
-    md_name = "c:/study/kra/model_v1.9/%d_%d/md_%d.pkl" % (train_bd_i, train_ed_i, course)
+    model_name = "e:/study/kra/model_v1.9/%d_%d/model_%d.pkl" % (train_bd_i, train_ed_i, course)
+    md_name = "e:/study/kra/model_v1.9/%d_%d/md_%d.pkl" % (train_bd_i, train_ed_i, course)
 
     if os.path.exists(model_name):
         print("model exist. try to loading..")
@@ -147,10 +147,10 @@ def training(train_bd, train_ed, course=0):
         updated_md = mean_data()
         updated_md.update_data(X_train)
 
-        os.system('mkdir c:\\study\\kra\\model_v1.9\\%d_%d' % (train_bd_i, train_ed_i))
+        os.system('mkdir e:\\study\\kra\\model_v1.9\\%d_%d' % (train_bd_i, train_ed_i))
         joblib.dump(estimator, model_name)
         joblib.dump(updated_md, md_name)
-    md = joblib.load('../data/1_2007_2016_v1.9_md.pkl')
+    md = joblib.load('../data/1_2007_2016_v1.9_md_2016-12-10.pkl')
     return estimator, md, updated_md
 
 def print_log(data, pred, fname):
@@ -192,7 +192,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "c:/study/kra/model100_v1.9/%d_%d/model_%d.pkl" % (train_bd_i, train_ed_i, course)
+        model_name = "e:/study/kra/model100_v1.9/%d_%d/model_%d.pkl" % (train_bd_i, train_ed_i, course)
 
         if os.path.exists(model_name):
             print("model exist. try to loading..")
@@ -209,7 +209,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
                 print("Start train model")
                 estimator = RandomForestRegressor(random_state=0, n_estimators=100, min_samples_split=5)
                 estimator.fit(X_train, Y_train)
-                os.system('mkdir c:\\study\\kra\\model100_v1.9\\%d_%d' % (train_bd_i, train_ed_i))
+                os.system('mkdir e:\\study\\kra\\model100_v1.9\\%d_%d' % (train_bd_i, train_ed_i))
                 joblib.dump(estimator, model_name)
                 print("Finish train model")
                 print("important factor")
@@ -278,7 +278,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "c:/study/kra/model_v1.9/%d_%d/model.pkl" % (train_bd_i, train_ed_i)
+        model_name = "e:/study/kra/model_v1.9/%d_%d/model.pkl" % (train_bd_i, train_ed_i)
 
         if os.path.exists(model_name):
             print("model exist. try to loading.. %s - %s" % (str(train_bd), str(train_ed)))
@@ -293,7 +293,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 print("Start train model")
                 estimator = RandomForestRegressor(random_state=0, n_estimators=100)
                 estimator.fit(X_train, Y_train)
-                os.system('mkdir c:\\study\\kra\\model_v1.9\\%d_%d' % (train_bd_i, train_ed_i))
+                os.system('mkdir e:\\study\\kra\\model_v1.9\\%d_%d' % (train_bd_i, train_ed_i))
                 joblib.dump(estimator, model_name)
                 print("Finish train model")
                 score = estimator.score(X_train, Y_train)
@@ -347,10 +347,10 @@ if __name__ == '__main__':
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2015, 12, 1)
-    test_ed = datetime.date(2016, 12, 1)
-    for delta_year in [1,2,4]:
+    test_bd = datetime.date(2016, 12, 4)
+    test_ed = datetime.date(2016, 12, 11)
+    for delta_year in [4]:
         #simulation_weekly_train0(test_bd, test_ed, 0, delta_year, [0])#, 1000, 1200, 1300, 1400, 1700, 1800, 1900, 2000, 2300])
-        for c in [1400, 1700]:
+        for c in [1200]:
             outfile = '../data/weekly_result_m1_v1.9_y%d_c%d.txt' % (delta_year, c)
             simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c)

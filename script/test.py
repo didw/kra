@@ -551,6 +551,14 @@ def check_average_mean(fname, md=mean_data()):
             print("humidity: %d, racetime: %f" % (humidity, row['rctime']))
 
 
+def check_md():
+    md = joblib.load('../data/1_2007_2016_v1.9_md_2016-12-10.pkl')
+    print(md.race_score[900][20])
+    print(md.race_score[1000][20])
+    print(md.race_score[1200][20])
+    print(md.race_score[1300][20])
+    print(md.race_score[1400][20])
+    print(md.race_score[1700][20])
+
 if __name__ == '__main__':
-    md = mean_data()
-    check_average_mean('../data/1_2007_2016_v1.9.csv', md)
+    check_md()
