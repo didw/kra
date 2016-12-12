@@ -131,13 +131,13 @@ def predict_next(estimator, md, meet, date, rcno):
                 rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
         else:
             rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
-    #print(X_data.columns)
-    #print(estimator.feature_importances_)
+    print(X_data.columns)
+    print(estimator.feature_importances_)
 
 
 if __name__ == '__main__':
     meet = 1
-    date = 20161210
+    date = 20161211
     rcno = 0
     course = 0
     estimator, md, umd = tr.training(datetime.date(2016, 12, 9) + datetime.timedelta(days=-365*2), datetime.date(2016, 12, 9), course)

@@ -20,7 +20,7 @@ def get_data(begin_date, end_date, fname_csv):
         date += datetime.timedelta(days=1)
         if date.weekday() != 5 and date.weekday() != 6:
             continue
-        for i in [900, 1000, 1200, 1300, 1400, 1700]:
+        for i in [900, 1000, 1200, 1300, 1400, 1700, 0]:
             print("%f" % md.race_score[i][20], end=' ')
         print()
         #print("value: %f, %f, %f, %f, %f" % (md.race_score[1000][20], md.race_score[1200][20], md.race_score[1300][20], md.race_score[1400][20], md.race_score[1700][20]))
@@ -53,6 +53,9 @@ def update_data(end_date, fname_csv):
         date += datetime.timedelta(days=1)
         if date.weekday() != 5 and date.weekday() != 6:
             continue
+        for i in [900, 1000, 1200, 1300, 1400, 1700, 0]:
+            print("%f" % md.race_score[i][20], end=' ')
+        print()
         filename = "../txt/1/rcresult/rcresult_1_%02d%02d%02d.txt" % (date.year, date.month, date.day)
         if not os.path.isfile(filename):
             continue
@@ -75,9 +78,9 @@ def update_md(fname):
 
 if __name__ == '__main__':
     DEBUG = True
-    fname_csv = '../data/1_2007_2016_v1.9.csv'
-    bdate = datetime.date(2007, 1, 1)
+    fname_csv = '../data/1_2007_2016.csv'
+    bdate = datetime.date(2015, 6, 1)
     edate = datetime.date.today()
-    #get_data(bdate, edate, fname_csv)
-    update_data(datetime.date.today(), fname_csv)
+    get_data(bdate, edate, fname_csv)
+    #update_data(datetime.date.today(), fname_csv)
 

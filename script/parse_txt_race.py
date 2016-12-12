@@ -282,7 +282,7 @@ def parse_txt_race2(filename, _date=0, _rcno=0):
         read_done = False
         hr_num = [0, 0]
         rcno = -1
-        course = ''
+        course = 0
         kind = ''
         hrname = ''
         month = 0
@@ -319,7 +319,7 @@ def parse_txt_race2(filename, _date=0, _rcno=0):
                                 continue
             if re.search(unicode(r'출발', 'utf-8').encode('utf-8'), line) is not None:
                 if DEBUG: print("%s" % line)
-                course = re.search(unicode(r'[\d ]+(?=M)', 'utf-8').encode('utf-8'), line).group()
+                course = int(re.search(unicode(r'[\d ]+(?=M)', 'utf-8').encode('utf-8'), line).group())
                 kind = re.search(unicode(r'\d(?=등급)', 'utf-8').encode('utf-8'), line)
                 if kind is None:
                     kind = 0
@@ -348,7 +348,7 @@ def parse_txt_race2(filename, _date=0, _rcno=0):
             budam = gdd.get_budam(1, date, int(rcno), hrname)
             dbudam = gdd.get_dbudam(1, date, int(rcno), hrname)
             drweight = gdd.get_drweight(1, date, int(rcno), hrname)
-            weight = gdd.get_weight(1, date, int(rcno), hrname)
+            weight = gdd.get_weight(1, date, int(rcno), hrname, course)
             dweight = gdd.get_dweight(1, date, int(rcno), hrname)
             lastday = gdd.get_lastday(1, date, int(rcno), hrname)
             train_state = gdd.get_train_state(1, date, int(rcno), hrname)
@@ -432,28 +432,31 @@ def parse_txt_horse(date, rcno, name, course, md=mean_data()):
             dist_rec = gdd.get_distance_record(1, name, rcno, date, course)
             #print(participates)
             if int(participates[0]) == 0:
+                #data.extend([0, -1, -1, -1, -1])
                 data.extend([0] + md.hr_history_total[course][1:])
             else:
                 data.append(int(participates[0]))
                 data.append(int(participates[1]))
                 data.append(int(participates[2]))
-                data.append(int(participates[1])*100/int(participates[0]))
-                data.append(int(participates[2])*100/int(participates[0]))
+                data.append(int(int(participates[1])*100/int(participates[0])))
+                data.append(int(int(participates[2])*100/int(participates[0])))
 
             if int(participates[3]) == 0:
+                #data.extend([0, -1, -1, -1, -1])
                 data.extend([0] + md.hr_history_year[course][1:])
             else:
                 data.append(int(participates[3]))
                 data.append(int(participates[4]))
                 data.append(int(participates[5]))
-                data.append(int(participates[4])*100/int(participates[3]))
-                data.append(int(participates[5])*100/int(participates[3]))
+                data.append(int(int(participates[4])*100/int(participates[3])))
+                data.append(int(int(participates[5])*100/int(participates[3])))
 
             data.extend(dist_rec)
             assert len(data) == 17
             return data
     print("can not find %s in %s" % (name, filename))
-    return [md.hr_days[course]] + md.hr_history_total[course] + md.hr_history_year[course] + md.dist_rec[course]
+    #return [-1] + [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1, -1]
+    return map(lambda x: int(x), [md.hr_days[course]] + md.hr_history_total[course] + md.hr_history_year[course] + md.dist_rec[course])
 
 
 # 이름  소속 생일        데뷔일  총경기수, 총1, 총2, 1년, 1년1, 1년2
@@ -495,7 +498,8 @@ def parse_txt_jockey(date, name, course, md=mean_data()):
 
             return data
     print("can not find %s in %s" % (name, filename))
-    return md.jk_history_total[course] + md.jk_history_year[course]
+    #return [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1]
+    return map(lambda x: int(x), md.jk_history_total[course] + md.jk_history_year[course])
 
 
 # 이름  소속 생일        데뷔일  총경기수, 총1, 총2, 1년, 1년1, 1년2
@@ -538,7 +542,8 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
 
             return data
     print("can not find %s in %s" % (name, filename))
-    return md.tr_history_total[course] + md.tr_history_year[course]
+    #return [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1]
+    return map(lambda x: int(x), md.tr_history_total[course] + md.tr_history_year[course])
 
 
 def get_data(filename, md=mean_data()):
