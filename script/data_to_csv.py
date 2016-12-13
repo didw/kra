@@ -79,7 +79,7 @@ def update_md(fname):
 if __name__ == '__main__':
     DEBUG = True
     fname_csv = '../data/1_2007_2016.csv'
-    bdate = datetime.date(2015, 6, 1)
+    bdate = datetime.date(2007, 1, 1)
     edate = datetime.date.today()
     get_data(bdate, edate, fname_csv)
     #update_data(datetime.date.today(), fname_csv)

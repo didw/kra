@@ -10,6 +10,25 @@ from sklearn.externals import joblib
 import random
 import simulation as sim
 from mean_data import mean_data
+import numpy as np
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.wrappers.scikit_learn import KerasRegressor
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import KFold
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+import pickle
+
+def baseline_model():
+    # create model
+    model = Sequential()
+    model.add(Dense(64, input_dim=69, init='normal', activation='relu'))
+    model.add(Dense(1, init='normal'))
+    # Compile model
+    model.compile(loss='mean_squared_error', optimizer='adam')
+    return model
+
 
 def normalize_data(org_data):
     data = org_data.dropna()
@@ -278,11 +297,13 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "e:/study/kra/model/%d_%d/model.pkl" % (train_bd_i, train_ed_i)
+        model_name = "e:/study/kra/model_keras/%d_%d/model.h5" % (train_bd_i, train_ed_i)
 
         if os.path.exists(model_name):
             print("model exist. try to loading.. %s - %s" % (str(train_bd), str(train_ed)))
-            estimator = joblib.load(model_name)
+            from keras.models import load_model
+            estimator = load_model(model_name)
+            #estimator = joblib.load(model_name)
         else:
             print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
             X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016.csv', 0)
@@ -291,19 +312,28 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
             else:
                 print("Start train model")
-                estimator = RandomForestRegressor(random_state=0, n_estimators=100)
+                # fix random seed for reproducibility
+                X_train = np.array(X_train)
+                Y_train = np.array(Y_train)
+                seed = 7
+                np.random.seed(seed)
+                # evaluate model with standardized dataset
+                estimator = KerasRegressor(build_fn=baseline_model, nb_epoch=5, batch_size=32, verbose=1)
                 estimator.fit(X_train, Y_train)
-                os.system('mkdir e:\\study\\kra\\model\\%d_%d' % (train_bd_i, train_ed_i))
-                joblib.dump(estimator, model_name)
-                print("Finish train model")
-                score = estimator.score(X_train, Y_train)
-                print("Score with the entire training dataset = %.2f" % score)
+                os.system('mkdir e:\\study\\kra\\model_keras\\%d_%d' % (train_bd_i, train_ed_i))
+                kfold = KFold(n_splits=10, random_state=seed)
+
+                #pickle.dump(estimator, open(model_name, 'wb'))
+                #estimator.save(model_name)
+
+                #results = cross_val_score(estimator, X_train, Y_train, cv=kfold)
+                #print("Results: %.2f (%.2f) MSE" % (results.mean(), results.std()))
 
         test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
         test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
 
         for course in courses:
-            fname_result = '../data/weekly_result_train0_m1_y%d_c%d.txt' % (delta_year, course)
+            fname_result = '../data/weekly_result_train0_m1_keras_y%d_c%d.txt' % (delta_year, course)
             print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
             X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016.csv', course)
             print("%d data is fully loaded" % (len(X_test)))
@@ -315,10 +345,13 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 DEBUG = False
                 if DEBUG:
                     X_test.to_csv('../log/weekly_train0_%s.csv' % today, index=False)
-                score = estimator.score(X_test, Y_test)
-                print("Score with the entire test dataset = %.5f" % score)
+                X_test = np.array(X_test)
+                Y_test = np.array(Y_test)
                 pred = estimator.predict(X_test)
+                score = 0
 
+                #results = cross_val_score(estimator, X_test, Y_test, cv=kfold)
+                #print("Results: %.2f (%.2f) MSE" % (results.mean(), results.std()))
                 res1 = sim.simulation1(pred, R_test)
                 res2 = sim.simulation2(pred, R_test)
                 res3 = sim.simulation3(pred, R_test)
@@ -349,8 +382,8 @@ if __name__ == '__main__':
     train_ed = datetime.date(2016, 10, 31)
     test_bd = datetime.date(2015, 12, 1)
     test_ed = datetime.date(2016, 12, 11)
-    for delta_year in [1,2,4]:
-        #simulation_weekly_train0(test_bd, test_ed, 0, delta_year, [0])#, 1000, 1200, 1300, 1400, 1700, 1800, 1900, 2000, 2300])
-        for c in [1000,1200,1300,1400,1700]:
-            outfile = '../data/weekly_result_m1_y%d_c%d.txt' % (delta_year, c)
-            simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c)
+    for delta_year in [1,2]:
+        simulation_weekly_train0(test_bd, test_ed, 0, delta_year, [0])#, 1000, 1200, 1300, 1400, 1700, 1800, 1900, 2000, 2300])
+        #for c in [1000,1200,1300,1400,1700]:
+        #    outfile = '../data/weekly_result_m1_y%d_c%d.txt' % (delta_year, c)
+        #    simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c)
