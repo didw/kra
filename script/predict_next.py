@@ -8,6 +8,7 @@ import parse_xml_entry as xe
 import datetime
 import train as tr
 
+
 def normalize_data(org_data):
     data = org_data.dropna()
     data = data.reset_index()
@@ -31,6 +32,30 @@ def normalize_data(org_data):
     data.loc[data['cntry'] == '인', 'cntry'] = 14
     data.loc[data['cntry'] == '아', 'cntry'] = 15
     data.loc[data['cntry'] == '프', 'cntry'] = 16
+
+    del data['ts1']
+    del data['ts2']
+    del data['ts3']
+    del data['ts4']
+    del data['ts5']
+    del data['ts6']
+    del data['score1']
+    del data['score2']
+    del data['score3']
+    del data['score4']
+    del data['score5']
+    del data['score6']
+    del data['score7']
+    del data['score8']
+    del data['score9']
+    del data['score10']
+    del data['hr_dt']
+    del data['hr_d1']
+    del data['hr_d2']
+    del data['hr_rh']
+    del data['hr_rm']
+    del data['hr_rl']
+
     return data
 
 
@@ -67,7 +92,7 @@ def get_chulma_fname(date):
         date_ = date + datetime.timedelta(days=-3)
     return "../txt/1/chulma/chulma_1_%4d%02d%02d.txt" % (date_.year, date_.month, date_.day)
 
-def print_bet(rcdata):
+def print_bet(rcdata, course=0):
     print("dan")
     print("%s" % (rcdata['idx'][0]))
     print("bok")
@@ -80,18 +105,50 @@ def print_bet(rcdata):
     print("sambok")
     print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3]))
     print("samssang")
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][4]))
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][4]))
+    if course in [0, 1400, 1700]:
+        print("%s,%s,%s" % (rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
+        print("%s,%s,%s" % (rcdata['idx'][3], rcdata['idx'][5], rcdata['idx'][4]))
+        print("%s,%s,%s" % (rcdata['idx'][4], rcdata['idx'][3], rcdata['idx'][5]))
+        print("%s,%s,%s" % (rcdata['idx'][4], rcdata['idx'][5], rcdata['idx'][3]))
+        print("%s,%s,%s" % (rcdata['idx'][5], rcdata['idx'][3], rcdata['idx'][4]))
+        print("%s,%s,%s" % (rcdata['idx'][5], rcdata['idx'][4], rcdata['idx'][3]))
+    elif course in [1300]:
+        print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3]))
+        print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][3]))
+        print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][2]))
+        print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3]))
+        print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][3]))
+        print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][2]))
+        print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][3]))
+        print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][3]))
+        print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][1]))
+        print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2]))
+        print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2]))
+        print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][1]))
+    elif course in [1200]: # [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]]
+        print("%s,%s,{%s,%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
+        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
+        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][5]))
+        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][4], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][5]))
+        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][5], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
+        print("%s,%s,{%s,%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
+        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
+        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][5]))
+        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][4], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][5]))
+        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][5], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
+        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
+        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
+        print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
+        print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][3], rcdata['idx'][5]))
+        print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][5], rcdata['idx'][3], rcdata['idx'][4]))
+        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][5]))
+        print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][4], rcdata['idx'][5]))
+        print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][5]))
+        print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][2], rcdata['idx'][5]))
+        print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][5], rcdata['idx'][2], rcdata['idx'][4]))
 
 
-def predict_next(estimator, md, meet, date, rcno):
+def predict_next(estimator, md, meet, date, rcno, course=0):
     data_pre = xe.parse_xml_entry(meet, date, rcno, md)
     data = normalize_data(data_pre)
     print(len(data.columns))
@@ -124,7 +181,7 @@ def predict_next(estimator, md, meet, date, rcno):
             rcdata = rcdata.reset_index(drop=True)
             print("=========== %s ==========" % prev_rc)
             print(rcdata)
-            print_bet(rcdata)
+            print_bet(rcdata, course)
             rcdata = []
             prev_rc = row['rcno']
             if idx+1 != len(data):
@@ -137,8 +194,8 @@ def predict_next(estimator, md, meet, date, rcno):
 
 if __name__ == '__main__':
     meet = 1
-    date = 20161211
-    rcno = 0
-    course = 0
-    estimator, md, umd = tr.training(datetime.date(2016, 12, 9) + datetime.timedelta(days=-365*2), datetime.date(2016, 12, 9), course)
-    predict_next(estimator, md, meet, date, rcno)
+    date = 20161217
+    rcno = 3
+    course = 1200
+    estimator, md, umd = tr.training(datetime.date(2016, 12, 16) + datetime.timedelta(days=-365*2), datetime.date(2016, 12, 16), course)
+    predict_next(estimator, md, meet, date, rcno, course)
