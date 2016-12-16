@@ -271,6 +271,7 @@ def get_hrno(meet, date, rcno, name):
             except:
                 continue
             if name == hrname:
+                print("hrname: %s, %d" % (name, int(re.search(r'\d{6}', unicode(itemList[1])).group())))
                 return int(re.search(r'\d{6}', unicode(itemList[1])).group())
     print("can not find %s in fname %s" % (name, fname))
     return -1

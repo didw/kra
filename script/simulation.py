@@ -30,6 +30,7 @@ def simulation1(pred, ans, target=1):
         total = 1
         rack_data = False
         total_player = 0
+        price = 0
         while i < len(pred) and int(ans['rcno'][i]) == rcno and int(ans['rank'][i]) != 1:
             cache[int(ans['rank'][i])] = 1
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
@@ -81,6 +82,7 @@ def simulation2(pred, ans, target=1):
         total = 1
         rack_data = False
         total_player = 0
+        price = 0
         while i < len(pred) and int(ans['rcno'][i]) == rc_no and int(ans['rank'][i]) != 1:
             cache[int(ans['rank'][i])] = 1
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
@@ -140,6 +142,7 @@ def simulation3(pred, ans, targets=[[1,2],[1,3],[2,3]]):
         total = 1
         rack_data = False
         total_player = 0
+        price = 0
         while i < len(pred) and int(ans['rcno'][i]) == rcno and int(ans['rank'][i]) != 1:
             cache[int(ans['rank'][i])] = 1
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
@@ -208,6 +211,7 @@ def simulation4(pred, ans, target=[1,2]):
         total = 1
         rack_data = False
         total_player = 0
+        price = 0
         while i < len(pred) and int(ans['rcno'][i]) == rcno and int(ans['rank'][i]) != 1:
             cache[int(ans['rank'][i])] = 1
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
@@ -262,6 +266,7 @@ def simulation5(pred, ans, targets=[[1,2],[1,3],[2,1],[2,3]]):
         total = 1
         rack_data = False
         total_player = 0
+        price = 0
         while i < len(pred) and int(ans['rcno'][i]) == rcno and int(ans['rank'][i]) != 1:
             cache[int(ans['rank'][i])] = 1
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
@@ -317,6 +322,7 @@ def simulation6(pred, ans, targets=[[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5],
         total = 1
         rack_data = False
         total_player = 0
+        price = 0
         while i < len(pred) and int(ans['rcno'][i]) == rcno and int(ans['rank'][i]) != 1:
             cache[int(ans['rank'][i])] = 1
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
@@ -380,6 +386,7 @@ def simulation7(pred, ans, targets=[[1,2,3],[1,2,3,4],[2,3,4,5]]):
         total = 1
         rack_data = False
         total_player = 0
+        price = 0
         while i < len(pred) and int(ans['rcno'][i]) == rcno and int(ans['rank'][i]) != 1:
             cache[int(ans['rank'][i])] = 1
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
