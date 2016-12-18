@@ -560,5 +560,20 @@ def check_md():
     print(md.race_score[1400][20])
     print(md.race_score[1700][20])
 
+
+def print_all():
+    cand = [[5], [3,16,1,13,7,12], [3,16,1,13,7,12]]
+    cnt = 0
+    for x in cand[0]:
+        for y in cand[1]:
+            for z in cand[2]:
+                if x == y or x == z or y == z:
+                    continue
+                cnt += 1
+    bet = 100 / cnt
+    print("bet: %f" % bet)
+
+
+
 if __name__ == '__main__':
-    check_md()
+    print_all()

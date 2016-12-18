@@ -219,7 +219,9 @@ def get_distance_record(meet, name, rcno, date, course, md=mean_data()):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
+            #print("name: %s, %s" % (name, itemList[1].string.encode('utf-8')))
             if name in itemList[1].string.encode('utf-8'):
+                #print("find name: %s, %s" % (name, itemList[1].string.encode('utf-8')))
                 if int(unicode(itemList[2].string)[0]) == 0:
                     try:
                         return [0, 0, 0] + map(lambda x: int(x), md.dist_rec[course][3:])
@@ -231,15 +233,17 @@ def get_distance_record(meet, name, rcno, date, course, md=mean_data()):
                 try:
                     cnt = re.search(r'\d+', unicode(itemList[2].string)).group()
                     res.append(int(cnt))
-                    res.append(int(unicode(itemList[3].string)))
-                    res.append(int(unicode(itemList[4].string)))
+                    res.append(int(float(unicode(itemList[3].string))))
+                    res.append(int(float(unicode(itemList[4].string))))
                     t = unicode(itemList[5].string)
                     res.append(int(t.split(':')[0]) * 600 + int(t.split(':')[1].split('.')[0]) * 10 + int(t.split('.')[1][0]))
                     t = unicode(itemList[6].string)
                     res.append(int(t.split(':')[0]) * 600 + int(t.split(':')[1].split('.')[0]) * 10 + int(t.split('.')[1][0]))
                     t = unicode(itemList[7].string)
                     res.append(int(t.split(':')[0]) * 600 + int(t.split(':')[1].split('.')[0]) * 10 + int(t.split('.')[1][0]))
+                    break
                 except:
+                    print("parsing error")
                     break
     if len(res) == 6:
         return res
@@ -322,6 +326,7 @@ def get_hr_racescore(meet, hrno, _date, course, mode='File', md=mean_data()):
             try:
                 date = re.search(r'\d{4}/\d{2}/\d{2}', unicode(itemList[1])).group()
             except:
+                print("regular expression error")
                 continue
             date = int("%s%s%s" % (date[:4], date[5:7], date[8:]))
             if date >= _date:
@@ -340,6 +345,7 @@ def get_hr_racescore(meet, hrno, _date, course, mode='File', md=mean_data()):
             try:
                 record = unicode(itemList[10].string).strip().encode('utf-8')
             except:
+                print("unicode error")
                 continue
             #print(unicode(itemList[12].string).strip())
             try:
@@ -349,6 +355,7 @@ def get_hr_racescore(meet, hrno, _date, course, mode='File', md=mean_data()):
             try:
                 record = int(record[0])*600 + int(record[2:4])*10 + int(record[5])
             except:
+                print("int type error")
                 continue
             if record == 0:
                 continue
