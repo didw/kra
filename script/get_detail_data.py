@@ -65,7 +65,7 @@ def get_weight(meet, date, rcno, name, course):
             itemList = itemElm2.findAll('td')
             if name in itemList[1].string.encode('utf-8'):
                 try:
-                    return int(unicode(itemList[2].string))
+                    return int(float(unicode(itemList[2].string)))
                 except ValueError:
                     return {1000: 461, 1100: 460, 1200: 463, 1300: 464, 1400: 466, 1700: 466, 1800: 471, 1900: 475, 2000: 482, 2300: 492}[course]
     return {1000: 461, 1100: 460, 1200: 463, 1300: 464, 1400: 466, 1700: 466, 1800: 471, 1900: 475, 2000: 482, 2300: 492}[course]
@@ -275,7 +275,7 @@ def get_hrno(meet, date, rcno, name):
             except:
                 continue
             if name == hrname:
-                print("hrname: %s, %d" % (name, int(re.search(r'\d{6}', unicode(itemList[1])).group())))
+                #print("hrname: %s, %d" % (name, int(re.search(r'\d{6}', unicode(itemList[1])).group())))
                 return int(re.search(r'\d{6}', unicode(itemList[1])).group())
     print("can not find %s in fname %s" % (name, fname))
     return -1
@@ -355,7 +355,6 @@ def get_hr_racescore(meet, hrno, _date, course, mode='File', md=mean_data()):
             try:
                 record = int(record[0])*600 + int(record[2:4])*10 + int(record[5])
             except:
-                print("int type error")
                 continue
             if record == 0:
                 continue

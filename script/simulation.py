@@ -410,8 +410,14 @@ def simulation7(pred, ans, targets=[[1,2,3],[1,2,3,4],[2,3,4,5]]):
         if total < 5 or r7 < 0:
             continue
         for x in targets[0]:
+            if x > len(top):
+                continue
             for y in targets[1]:
+                if y > len(top):
+                    continue
                 for z in targets[2]:
+                    if z > len(top):
+                        continue
                     if x == y or x == z or y == z:
                         continue
                     if top[0] == x and top[1] == y and top[2] == z:

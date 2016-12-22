@@ -385,12 +385,7 @@ def parse_txt_race2(filename, _date=0, _rcno=0):
 
 def get_fname(date, job):
     while True:
-        if date.weekday() == 5:
-            date = date + datetime.timedelta(days=-2)
-        elif date.weekday() == 6:
-            date = date + datetime.timedelta(days=-3)
-        elif date.weekday() == 3:
-            date = date + datetime.timedelta(days=-4)
+        date = date + datetime.timedelta(days=-1)
         date_s = int("%d%02d%02d" % (date.year, date.month, date.day))
         filename = '../txt/1/%s/%s_1_%s.txt' % (job, job, date_s)
         if os.path.isfile(filename):
@@ -403,10 +398,7 @@ def get_fname_dist(date, rcno):
         filename = '../txt/1/dist_rec/dist_rec_1_%s_%d.txt' % (date_s, rcno)
         if os.path.isfile(filename):
             return filename
-        if date.weekday() == 5:
-            date = date + datetime.timedelta(days=-6)
-        elif date.weekday() == 6:
-            date = date + datetime.timedelta(days=-1)
+        date = date + datetime.timedelta(days=-1)
     return -1
 
 
@@ -593,7 +585,7 @@ def get_data2(filename, _date, _rcno):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/1/rcresult/rcresult_1_20120520.txt'
+    filename = '../txt/1/rcresult/rcresult_1_20070106.txt'
     md = joblib.load('../data/1_2007_2016_md.pkl')
     data = get_data(filename, md)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)

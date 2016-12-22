@@ -61,6 +61,8 @@ def download_txt(bd, ed, meet, overwrite=False):
 
 
 # 해당거리 전적:    http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=1&rcNo=3&rcDate=20070415
+#                   http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=2&rcNo=1&rcDate=20161119
+#                   http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=2&rcNo=2&rcDate=20161119
 # 출전표:           http://race.kra.co.kr/chulmainfo/chulmaDetailInfoChulmapyo.do?Act=02&Sub=1&meet=1&rcNo=1&rcDate=20161113
 # 체중, 최종출전일: http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&meet=1&rcNo=1&rcDate=20161113
 # 훈련현황:         http://race.kra.co.kr/chulmainfo/chulmaDetailInfoTrainState.do?Act=02&Sub=1&meet=1&rcNo=1&rcDate=20161113

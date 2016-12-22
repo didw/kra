@@ -191,7 +191,7 @@ def parse_xml_entry(meet, date_i, number, md=mean_data()):
         jk_win = get_jk_win(data_jk, itemElm.jkname.string, course, md)
         tr_win = get_tr_win(data_tr, itemElm.trname.string, course, md)
 		
-        hrname = itemElm.hrname.string
+        hrname = unicode(itemElm.hrname.string)
         dbudam = gdd.get_dbudam(1, date_i, int(rcno), hrname)
         drweight = gdd.get_drweight(1, date_i, int(rcno), hrname)
         lastday = gdd.get_lastday(1, date_i, int(rcno), hrname)

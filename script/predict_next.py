@@ -92,7 +92,104 @@ def get_chulma_fname(date):
         date_ = date + datetime.timedelta(days=-3)
     return "../txt/1/chulma/chulma_1_%4d%02d%02d.txt" % (date_.year, date_.month, date_.day)
 
-def print_bet(rcdata, course=0, year=4, nData=47):
+
+# 300*48 + 2000*6*4 + 14000 + 300*55 = 
+def print_detail(players, cand, fresult):
+    if cand == [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]]:
+        print("bet: 400") # 14200 / 48 = 295
+        print("%s,%s,{%s,%s,%s,%s}" % (players[0], players[1], players[2], players[3], players[4], players[5]))
+        print("%s,%s,{%s,%s,%s,%s}" % (players[0], players[2], players[1], players[3], players[4], players[5]))
+        print("%s,%s,{%s,%s,%s,%s}" % (players[0], players[3], players[1], players[2], players[4], players[5]))
+        print("%s,%s,{%s,%s,%s,%s}" % (players[0], players[4], players[1], players[2], players[3], players[5]))
+        print("%s,%s,{%s,%s,%s,%s}" % (players[1], players[0], players[2], players[3], players[4], players[5]))
+        print("%s,%s,{%s,%s,%s,%s}" % (players[1], players[2], players[0], players[3], players[4], players[5]))
+        print("%s,%s,{%s,%s,%s,%s}" % (players[1], players[3], players[0], players[2], players[4], players[5]))
+        print("%s,%s,{%s,%s,%s,%s}" % (players[1], players[4], players[0], players[2], players[3], players[5]))
+        print("%s,%s,{%s,%s,%s,%s}" % (players[2], players[0], players[1], players[3], players[4], players[5]))
+        print("%s,%s,{%s,%s,%s,%s}" % (players[2], players[1], players[0], players[3], players[4], players[5]))
+        print("%s,%s,{%s,%s,%s,%s}" % (players[2], players[3], players[0], players[1], players[4], players[5]))
+        print("%s,%s,{%s,%s,%s,%s}" % (players[2], players[4], players[0], players[1], players[3], players[5]))
+        fresult.write("\n\nbet: 400") # 14200 / 48 = 295
+        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[0], players[1], players[2], players[3], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[0], players[2], players[1], players[3], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[0], players[3], players[1], players[2], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[0], players[4], players[1], players[2], players[3], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[1], players[0], players[2], players[3], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[1], players[2], players[0], players[3], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[1], players[3], players[0], players[2], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[1], players[4], players[0], players[2], players[3], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[2], players[0], players[1], players[3], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[2], players[1], players[0], players[3], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[2], players[3], players[0], players[1], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[2], players[4], players[0], players[1], players[3], players[5]))
+    elif cand == [[4,5,6],[4,5,6],[4,5,6]]:
+        print("bet: 2000")  # 14200 / 6 = 2366
+        print("%s,%s,%s" % (players[3], players[4], players[5]))
+        print("%s,%s,%s" % (players[3], players[5], players[4]))
+        print("%s,%s,%s" % (players[4], players[3], players[5]))
+        print("%s,%s,%s" % (players[4], players[5], players[3]))
+        print("%s,%s,%s" % (players[5], players[3], players[4]))
+        print("%s,%s,%s" % (players[5], players[4], players[3]))
+
+        fresult.write("\n\nbet: 2000")  # 14200 / 6 = 2366
+        fresult.write("\n%s,%s,%s" % (players[3], players[4], players[5]))
+        fresult.write("\n%s,%s,%s" % (players[3], players[5], players[4]))
+        fresult.write("\n%s,%s,%s" % (players[4], players[3], players[5]))
+        fresult.write("\n%s,%s,%s" % (players[4], players[5], players[3]))
+        fresult.write("\n%s,%s,%s" % (players[5], players[3], players[4]))
+        fresult.write("\n%s,%s,%s" % (players[5], players[4], players[3]))
+    elif cand == [[1],[2],[3]]:
+        print("bet: 14000")  # 14200
+        print("%s,%s,%s" % (players[0], players[1], players[2]))
+        fresult.write("\n\nbet: 14000")  # 14200
+        fresult.write("\n%s,%s,%s" % (players[0], players[1], players[2]))
+    elif cand == [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]]:
+        print("bet: 300") # 14200 / 55 = 258
+        print("%s,%s,{%s,%s,%s,%s}" % (players[0], players[1], players[2], players[3], players[4], players[5]))
+        print("%s,%s,{%s,%s,%s}" % (players[0], players[2], players[3], players[4], players[5]))
+        print("%s,%s,{%s,%s,%s}" % (players[0], players[3], players[2], players[4], players[5]))
+        print("%s,%s,{%s,%s,%s}" % (players[0], players[4], players[2], players[3], players[5]))
+        print("%s,%s,{%s,%s,%s}" % (players[0], players[5], players[2], players[3], players[4]))
+        print("%s,%s,{%s,%s,%s,%s}" % (players[1], players[0], players[2], players[3], players[4], players[5]))
+        print("%s,%s,{%s,%s,%s}" % (players[1], players[2], players[3], players[4], players[5]))
+        print("%s,%s,{%s,%s,%s}" % (players[1], players[3], players[2], players[4], players[5]))
+        print("%s,%s,{%s,%s,%s}" % (players[1], players[4], players[2], players[3], players[5]))
+        print("%s,%s,{%s,%s,%s}" % (players[1], players[5], players[2], players[3], players[4]))
+        print("%s,%s,{%s,%s,%s}" % (players[2], players[0], players[3], players[4], players[5]))
+        print("%s,%s,{%s,%s,%s}" % (players[2], players[1], players[3], players[4], players[5]))
+        print("%s,%s,{%s,%s}" % (players[2], players[3], players[4], players[5]))
+        print("%s,%s,{%s,%s}" % (players[2], players[4], players[3], players[5]))
+        print("%s,%s,{%s,%s}" % (players[2], players[5], players[3], players[4]))
+        print("%s,%s,{%s,%s,%s}" % (players[3], players[0], players[2], players[4], players[5]))
+        print("%s,%s,{%s,%s}" % (players[3], players[1], players[4], players[5]))
+        print("%s,%s,{%s,%s}" % (players[3], players[2], players[4], players[5]))
+        print("%s,%s,{%s,%s}" % (players[3], players[4], players[2], players[5]))
+        print("%s,%s,{%s,%s}" % (players[3], players[5], players[2], players[4]))
+
+        fresult.write("\n\nbet: 300")  # 14200 / 55 = 258
+        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[0], players[1], players[2], players[3], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[0], players[2], players[3], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[0], players[3], players[2], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[0], players[4], players[2], players[3], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[0], players[5], players[2], players[3], players[4]))
+        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[1], players[0], players[2], players[3], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[1], players[2], players[3], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[1], players[3], players[2], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[1], players[4], players[2], players[3], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[1], players[5], players[2], players[3], players[4]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[2], players[0], players[3], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[2], players[1], players[3], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s}" % (players[2], players[3], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s}" % (players[2], players[4], players[3], players[5]))
+        fresult.write("\n%s,%s,{%s,%s}" % (players[2], players[5], players[3], players[4]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[3], players[0], players[2], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s}" % (players[3], players[1], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s}" % (players[3], players[2], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s}" % (players[3], players[4], players[2], players[5]))
+        fresult.write("\n%s,%s,{%s,%s}" % (players[3], players[5], players[2], players[4]))
+
+
+def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
     print("dan")
     print("%s" % (rcdata['idx'][0]))
     print("bok")
@@ -121,101 +218,26 @@ def print_bet(rcdata, course=0, year=4, nData=47):
     print("samssang")
     global fname
     fresult = open(fname, 'a')
-    if nData == 47 and year == 4:
-        print("bet: 400") # 400 * 55 = 22000
-        print("%s,%s,{%s,%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][5]))
-        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][4], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][5]))
-        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][5], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-        print("%s,%s,{%s,%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][5]))
-        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][4], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][5]))
-        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][5], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-        print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-        print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][3], rcdata['idx'][5]))
-        print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][5], rcdata['idx'][3], rcdata['idx'][4]))
-        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][5]))
-        print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][4], rcdata['idx'][5]))
-        print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][5]))
-        print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][2], rcdata['idx'][5]))
-        print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][5], rcdata['idx'][2], rcdata['idx'][4]))
+    if train_course == 0:
+        if nData == 47 and year == 2:
+            print_detail(rcdata['idx'], [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]], fresult)
+            print_detail(rcdata['idx'], [[4,5,6],[4,5,6],[4,5,6]], fresult)
+        elif nData == 69 and year == 1:
+            print_detail(rcdata['idx'], [[4,5,6],[4,5,6],[4,5,6]], fresult)
+    else:
+        if nData == 47 and year == 2:
+            print_detail(rcdata['idx'], [[4,5,6],[4,5,6],[4,5,6]], fresult)
+        elif nData == 47 and year == 4:
+            print_detail(rcdata['idx'], [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]], fresult)
+        elif nData == 69 and year == 2:
+            print_detail(rcdata['idx'], [[4,5,6],[4,5,6],[4,5,6]], fresult)
+        elif nData == 69 and year == 4:
+            print_detail(rcdata['idx'], [[1],[2],[3]], fresult)
 
-        fresult.write("\nbet: 400")  # 400 * 55 = 22000
-        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][4], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][5], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][4], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (rcdata['idx'][1], rcdata['idx'][5], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][3], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][5], rcdata['idx'][3], rcdata['idx'][4]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (rcdata['idx'][3], rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][1], rcdata['idx'][4], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][2], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][5], rcdata['idx'][2], rcdata['idx'][4]))
-    elif nData == 47 and year == 2:  # [[1,2,3],[2,3,4],[3,4,5]], [[4,5,6],[4,5,6],[4,5,6]]
-        print("bet: 1400")  # 1400 * 14 = 19600
-        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-        print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-        print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][4]))
-        print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-        print("%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][2], rcdata['idx'][4]))
-        print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][4]))
-        print("%s,%s,%s" % (rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-        print("bet: 3000")  # 3000 * 6 = 18000
-        print("%s,%s,%s" % (rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-        print("%s,%s,%s" % (rcdata['idx'][3], rcdata['idx'][5], rcdata['idx'][4]))
-        print("%s,%s,%s" % (rcdata['idx'][4], rcdata['idx'][3], rcdata['idx'][5]))
-        print("%s,%s,%s" % (rcdata['idx'][4], rcdata['idx'][5], rcdata['idx'][3]))
-        print("%s,%s,%s" % (rcdata['idx'][5], rcdata['idx'][3], rcdata['idx'][4]))
-        print("%s,%s,%s" % (rcdata['idx'][5], rcdata['idx'][4], rcdata['idx'][3]))
-
-        fresult.write("\nbet: 1400")  # 1400 * 14 = 19600
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-        fresult.write("\n%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-        fresult.write("\n%s,%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-        fresult.write("\n%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][4]))
-        fresult.write("\n{%s,%s},%s,%s" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][3], rcdata['idx'][2]))
-        fresult.write("\n{%s,%s,%s},%s,%s" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-        fresult.write("\nbet: 3000")  # 3000 * 6 = 18000
-        fresult.write("\n%s,%s,%s" % (rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,%s" % (rcdata['idx'][3], rcdata['idx'][5], rcdata['idx'][4]))
-        fresult.write("\n%s,%s,%s" % (rcdata['idx'][4], rcdata['idx'][3], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,%s" % (rcdata['idx'][4], rcdata['idx'][5], rcdata['idx'][3]))
-        fresult.write("\n%s,%s,%s" % (rcdata['idx'][5], rcdata['idx'][3], rcdata['idx'][4]))
-        fresult.write("\n%s,%s,%s" % (rcdata['idx'][5], rcdata['idx'][4], rcdata['idx'][3]))
-    elif nData == 69 and year in [1,2]:  # [[5,6,7],[5,6,7],[5,6,7]]
-        print("bet: 3000")  # 3000 * 6 = 18000
-        print("%s,%s,%s" % (rcdata['idx'][4], rcdata['idx'][5], rcdata['idx'][6]))
-        print("%s,%s,%s" % (rcdata['idx'][4], rcdata['idx'][6], rcdata['idx'][5]))
-        print("%s,%s,%s" % (rcdata['idx'][5], rcdata['idx'][4], rcdata['idx'][6]))
-        print("%s,%s,%s" % (rcdata['idx'][5], rcdata['idx'][6], rcdata['idx'][4]))
-        print("%s,%s,%s" % (rcdata['idx'][6], rcdata['idx'][4], rcdata['idx'][5]))
-        print("%s,%s,%s" % (rcdata['idx'][6], rcdata['idx'][5], rcdata['idx'][4]))
-
-        fresult.write("\nbet: 3000")  # 3000 * 6 = 18000
-        fresult.write("\n%s,%s,%s" % (rcdata['idx'][4], rcdata['idx'][5], rcdata['idx'][6]))
-        fresult.write("\n%s,%s,%s" % (rcdata['idx'][4], rcdata['idx'][6], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,%s" % (rcdata['idx'][5], rcdata['idx'][4], rcdata['idx'][6]))
-        fresult.write("\n%s,%s,%s" % (rcdata['idx'][5], rcdata['idx'][6], rcdata['idx'][4]))
-        fresult.write("\n%s,%s,%s" % (rcdata['idx'][6], rcdata['idx'][4], rcdata['idx'][5]))
-        fresult.write("\n%s,%s,%s" % (rcdata['idx'][6], rcdata['idx'][5], rcdata['idx'][4]))
     fresult.close()
 
 
-def predict_next(estimator, md, meet, date, rcno, course=0, nData=47, year=4):
+def predict_next(estimator, md, meet, date, rcno, course=0, nData=47, year=4, train_course=0):
     data_pre = xe.parse_xml_entry(meet, date, rcno, md)
     data = normalize_data(data_pre, nData=nData)
     print(len(data.columns))
@@ -248,7 +270,7 @@ def predict_next(estimator, md, meet, date, rcno, course=0, nData=47, year=4):
             rcdata = rcdata.reset_index(drop=True)
             print("=========== %s ==========" % prev_rc)
             print(rcdata)
-            print_bet(rcdata, course, nData=nData, year=year)
+            print_bet(rcdata, course, nData=nData, year=year, train_course=train_course)
             rcdata = []
             prev_rc = row['rcno']
             if idx+1 != len(data):
@@ -261,17 +283,16 @@ def predict_next(estimator, md, meet, date, rcno, course=0, nData=47, year=4):
 
 if __name__ == '__main__':
     meet = 1
-    date = 20161218
-    rcno = 11
+    date = 20161203
+    rcno = 12
     train_course = 0
-    test_course = 1400
-    nData = 69
-    fname = '../result/1612/18_%d.txt' % rcno
-    for year in [1,2]:
-        estimator, md, umd = tr.training(datetime.date(2016, 12, 17) + datetime.timedelta(days=-365*year), datetime.date(2016, 12, 17), train_course, nData)
-        predict_next(estimator, md, meet, date, rcno, test_course, nData, year)
-    train_course = 1400
-    nData = 47
-    for year in [2,4]:
-        estimator, md, umd = tr.training(datetime.date(2016, 12, 17) + datetime.timedelta(days=-365*year), datetime.date(2016, 12, 17), train_course, nData)
-        predict_next(estimator, md, meet, date, rcno, test_course, nData, year)
+    test_course = 1200
+    fname = '../result/1612/3_%d.txt' % rcno
+    for nData, year in zip([47, 69], [2,1]):
+        estimator, md, umd = tr.training(datetime.date(2016, 12, 2) + datetime.timedelta(days=-365*year), datetime.date(2016, 12, 2), train_course, nData)
+        predict_next(estimator, md, meet, date, rcno, test_course, nData, year, train_course)
+    train_course = 1200
+    for nData in [47, 69]:
+        for year in [2,4]:
+            estimator, md, umd = tr.training(datetime.date(2016, 12, 2) + datetime.timedelta(days=-365*year), datetime.date(2016, 12, 2), train_course, nData)
+            predict_next(estimator, md, meet, date, rcno, test_course, nData, year, train_course)

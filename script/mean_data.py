@@ -209,5 +209,5 @@ def update_md(fname):
 
 if __name__ == '__main__':
     DEBUG = True
-    fname_csv = '../data/1_2007_2016_v1.8.csv'
+    fname_csv = '../data/1_2007_2016.csv'
     update_md(fname_csv)
