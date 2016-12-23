@@ -62,8 +62,8 @@ def update_data(end_date, fname_csv):
         adata = pr.get_data(filename, md)
         md.update_data(adata)
         data = data.append(adata, ignore_index=True)
-    os.system("rename \"%s\" \"%s\"" % (fname_csv, fname_csv.replace('.csv', '_%s.csv'%end_date)))
-    os.system("rename \"%s\" \"%s\"" % (fname_md, fname_md.replace('.pkl', '_%s.pkl'%end_date)))
+    os.system("rename \"%s\" \"%s\"" % (fname_csv, fname_csv.replace('.csv', '_%s.csv'%train_bd)))
+    os.system("rename \"%s\" \"%s\"" % (fname_md, fname_md.replace('.pkl', '_%s.pkl'%train_bd)))
     data.to_csv(fname_csv, index=False)
     joblib.dump(md, fname_md)
     return data
@@ -81,6 +81,6 @@ if __name__ == '__main__':
     fname_csv = '../data/1_2007_2016.csv'
     bdate = datetime.date(2007, 1, 1)
     edate = datetime.date(2016, 12, 1)
-    get_data(bdate, edate, fname_csv)
-    #update_data(datetime.date.today(), fname_csv)
+    #get_data(bdate, edate, fname_csv)
+    update_data(datetime.date.today(), fname_csv)
 

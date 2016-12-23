@@ -438,12 +438,12 @@ if __name__ == '__main__':
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2016, 6, 7)
-    test_ed = datetime.date(2016, 12, 1)
+    test_bd = datetime.date(2016, 12, 1)
+    test_ed = datetime.date(2016, 12, 20)
     for delta_year in [1,2,4]:
         for nData in [47, 69]:
             simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[1000, 1200, 1300, 1400, 1700, 0], nData=nData)
-            #for c in [1000, 1200, 1300, 1400, 1700]:
-            #    for k in [0]:
-            #        outfile = '../data/weekly_result_m1_nd%d_y%d_c%d_0_k%d.txt' % (nData, delta_year, c, k)
-            #        simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c, k, nData=nData)
+            for c in [1000, 1200, 1300, 1400, 1700]:
+                for k in [0]:
+                    outfile = '../data/weekly_result_m1_nd%d_y%d_c%d_0_k%d.txt' % (nData, delta_year, c, k)
+                    simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c, k, nData=nData)
