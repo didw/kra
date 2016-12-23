@@ -55,14 +55,14 @@ def update_data(end_date, fname_csv):
         for i in [300, 400, 800, 900, 1000, 1200, 0]:
             print("%f" % md.race_score[i][20], end=' ')
         print()
-        filename = "../txt/1/rcresult/rcresult_1_%02d%02d%02d.txt" % (date.year, date.month, date.day)
+        filename = "../txt/2/rcresult/rcresult_2_%02d%02d%02d.txt" % (date.year, date.month, date.day)
         if not os.path.isfile(filename):
             continue
         adata = pr.get_data(filename, md)
         md.update_data(adata)
         data = data.append(adata, ignore_index=True)
-    os.system("rename \"%s\" \"%s\"" % (fname_csv, fname_csv.replace('.csv', '_%s.csv'%end_date)))
-    os.system("rename \"%s\" \"%s\"" % (fname_md, fname_md.replace('.pkl', '_%s.pkl'%end_date)))
+    os.system("rename \"%s\" \"%s\"" % (fname_csv, fname_csv.replace('.csv', '_%s.csv'%train_bd)))
+    os.system("rename \"%s\" \"%s\"" % (fname_md, fname_md.replace('.pkl', '_%s.pkl'%train_bd)))
     data.to_csv(fname_csv, index=False)
     joblib.dump(md, fname_md)
     return data
@@ -76,7 +76,7 @@ def update_md(fname):
 if __name__ == '__main__':
     DEBUG = True
     fname_csv = '../data/2_2007_2016.csv'
-    bdate = datetime.date(2007, 1, 1)
-    edate = datetime.date(2016, 12, 1)
-    get_data(bdate, edate, fname_csv)
-    #update_data(datetime.date.today(), fname_csv)
+    bdate = datetime.date(2015, 6, 20)
+    edate = datetime.date(2015,12,31)
+    #get_data(bdate, edate, fname_csv)
+    update_data(datetime.date(2015,12,31), fname_csv)
