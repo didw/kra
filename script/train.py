@@ -148,8 +148,8 @@ def training(train_bd, train_ed, course=0, nData=47):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-    model_name = "e:/study/kra/model%d/%d_%d/model_%d.pkl" % (nData, train_bd_i, train_ed_i, course)
-    md_name = "e:/study/kra/model%d/%d_%d/md_%d.pkl" % (nData, train_bd_i, train_ed_i, course)
+    model_name = "d:/study/kra/model%d/%d_%d/model_%d.pkl" % (nData, train_bd_i, train_ed_i, course)
+    md_name = "d:/study/kra/model%d/%d_%d/md_%d.pkl" % (nData, train_bd_i, train_ed_i, course)
 
     if os.path.exists(model_name):
         print("model exist. try to loading..")
@@ -166,7 +166,7 @@ def training(train_bd, train_ed, course=0, nData=47):
         updated_md = mean_data()
         #updated_md.update_data(X_train)
 
-        os.system('mkdir e:\\study\\kra\\model%d\\%d_%d' % (nData, train_bd_i, train_ed_i))
+        os.system('mkdir d:\\study\\kra\\model%d\\%d_%d' % (nData, train_bd_i, train_ed_i))
         joblib.dump(estimator, model_name)
         joblib.dump(updated_md, md_name)
     md = joblib.load('../data/1_2007_2016_md.pkl')
@@ -212,7 +212,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "e:/study/kra/model%d/%d_%d/model_%d_%d.pkl" % (nData, train_bd_i, train_ed_i, course, 0)
+        model_name = "d:/study/kra/model%d/%d_%d/model_%d_%d.pkl" % (nData, train_bd_i, train_ed_i, course, 0)
 
         if os.path.exists(model_name):
             print("model exist. try to loading..")
@@ -229,7 +229,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
                 print("Start train model")
                 estimator = RandomForestRegressor(random_state=0, n_estimators=100)
                 estimator.fit(X_train, Y_train)
-                os.system('mkdir e:\\study\\kra\\model%d\\%d_%d' % (nData, train_bd_i, train_ed_i))
+                os.system('mkdir d:\\study\\kra\\model%d\\%d_%d' % (nData, train_bd_i, train_ed_i))
                 joblib.dump(estimator, model_name)
                 print("Finish train model")
                 print("important factor")
@@ -326,7 +326,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "e:/study/kra/model%d/%d_%d/model.pkl" % (nData, train_bd_i, train_ed_i)
+        model_name = "d:/study/kra/model%d/%d_%d/model.pkl" % (nData, train_bd_i, train_ed_i)
 
         if os.path.exists(model_name):
             print("model exist. try to loading.. %s - %s" % (str(train_bd), str(train_ed)))
@@ -343,7 +343,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 print("Start train model")
                 estimator = RandomForestRegressor(random_state=0, n_estimators=100)
                 estimator.fit(X_train, Y_train)
-                os.system('mkdir e:\\study\\kra\\model%d\\%d_%d' % (nData, train_bd_i, train_ed_i))
+                os.system('mkdir d:\\study\\kra\\model%d\\%d_%d' % (nData, train_bd_i, train_ed_i))
                 joblib.dump(estimator, model_name)
                 print("Finish train model")
                 score = estimator.score(X_train, Y_train)

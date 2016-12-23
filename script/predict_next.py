@@ -283,16 +283,18 @@ def predict_next(estimator, md, meet, date, rcno, course=0, nData=47, year=4, tr
 
 if __name__ == '__main__':
     meet = 1
-    date = 20161217
-    rcno = 1
+    date = 20161224
     train_course = 0
-    test_course = 1000
-    fname = '../result/1612/17_%d.txt' % rcno
-    for nData, year in zip([47, 69], [2,1]):
-        estimator, md, umd = tr.training(datetime.date(2016, 12, 16) + datetime.timedelta(days=-365*year), datetime.date(2016, 12, 16), train_course, nData)
-        predict_next(estimator, md, meet, date, rcno, test_course, nData, year, train_course)
-    train_course = 1000
-    for nData in [47, 69]:
-        for year in [2,4]:
-            estimator, md, umd = tr.training(datetime.date(2016, 12, 16) + datetime.timedelta(days=-365*year), datetime.date(2016, 12, 16), train_course, nData)
+    courses = [1000, 1000, 1300, 1000, 1300, 1300, 1300, 1300, 1200, 1300, 1700, 1700, 1200, 1400, 1200]
+    for rcno in range(1,16):
+        course = courses[rcno-1]
+        test_course = course
+        fname = '../result/1612/%d_%d.txt' % (date%100, rcno)
+        for nData, year in zip([47, 69], [2,1]):
+            estimator, md, umd = tr.training(datetime.date(2016, 12, 23) + datetime.timedelta(days=-365*year), datetime.date(2016, 12, 23), train_course, nData)
             predict_next(estimator, md, meet, date, rcno, test_course, nData, year, train_course)
+        train_course = course
+        for nData in [47, 69]:
+            for year in [2,4]:
+                estimator, md, umd = tr.training(datetime.date(2016, 12, 23) + datetime.timedelta(days=-365*year), datetime.date(2016, 12, 23), train_course, nData)
+                predict_next(estimator, md, meet, date, rcno, test_course, nData, year, train_course)

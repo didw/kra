@@ -299,7 +299,7 @@ def parse_xml_entry(meet, date_i, number, md=mean_data()):
 if __name__ == '__main__':
     meet = 1
     rcno = 10
-    date = 20161127
+    date = 20161224
     data = parse_xml_entry(meet, date, rcno)
     data.to_csv('../log/xml_%d_%d.csv' % (date, rcno))
     print data
