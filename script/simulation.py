@@ -358,7 +358,7 @@ def simulation6(pred, ans, targets=[[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5],
     return res1
 
 # 3 straight win
-def simulation7(pred, ans, targets=[[1,2,3],[1,2,3,4],[2,3,4,5]]):
+def simulation7(pred, ans, targets=[[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]]):
     cnt = 0
     for x in targets[0]:
         for y in targets[1]:
