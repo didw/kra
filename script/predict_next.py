@@ -286,7 +286,7 @@ if __name__ == '__main__':
     date = 20161224
     train_course = 0
     courses = [1000, 1000, 1300, 1000, 1300, 1300, 1300, 1300, 1200, 1300, 1700, 1700, 1200, 1400, 1200]
-    rcno = 15
+    rcno = 14
     course = courses[rcno-1]
     test_course = course
     fname = '../result/1612/%d_%d.txt' % (date%100, rcno)
