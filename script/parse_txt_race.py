@@ -319,7 +319,10 @@ def parse_txt_horse(date, rcno, name, course, md=mean_data()):
         if not line:
             break
         line = unicode(line, 'euc-kr').encode('utf-8')
-        hrname = re.search(r'[가-힣]+', line).group()
+        try:
+            hrname = re.search(r'[가-힣]+', line).group()
+        except:
+            continue
         if name == hrname:
             data = []
             birth = re.search(unicode(r'\d{4}/\d{2}/\d{2}', 'utf-8').encode('utf-8'), line).group()
@@ -469,7 +472,7 @@ def get_data(filename, md=mean_data()):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/2/rcresult/rcresult_2_20151205.txt'
+    filename = '../txt/2/rcresult/rcresult_2_20161125.txt'
     data = get_data(filename)
     print(data)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)

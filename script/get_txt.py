@@ -144,7 +144,7 @@ def download_racehorse(hrno_b, hrno_e, meet, overwrite=False):
 
 if __name__ == '__main__':
     for i in range(2, 3):
-        download_racehorse(1, 30200, 2, False)
-        download_chulmaDetailInfo(datetime.date(2016, 11, 20), datetime.date.today(), i, False)
-        download_txt(datetime.date(2016, 11, 20), datetime.date.today(), i)
+        #download_racehorse(1, 30200, 2, False)
+        download_chulmaDetailInfo(datetime.date(2016, 11, 20), datetime.date(2016, 11, 27), i, False)
+        download_txt(datetime.date(2016, 11, 20), datetime.date(2016, 11, 27), i)
 
