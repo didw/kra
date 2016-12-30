@@ -138,6 +138,50 @@ def print_detail(players, cand, fresult):
         fresult.write("\n%s,%s,%s" % (players[4], players[5], players[3]))
         fresult.write("\n%s,%s,%s" % (players[5], players[3], players[4]))
         fresult.write("\n%s,%s,%s" % (players[5], players[4], players[3]))
+    elif cand == [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]]:
+        print("bet: 100")  # 14200 / 60 = 200
+        print("%s,%s,{%s,%s,%s}" % (players[3], players[4], players[5], players[6], players[7]))
+        print("%s,%s,{%s,%s,%s}" % (players[3], players[5], players[4], players[6], players[7]))
+        print("%s,%s,{%s,%s,%s}" % (players[3], players[6], players[4], players[5], players[7]))
+        print("%s,%s,{%s,%s,%s}" % (players[3], players[7], players[4], players[5], players[6]))
+        print("%s,%s,{%s,%s,%s}" % (players[4], players[3], players[5], players[6], players[7]))
+        print("%s,%s,{%s,%s,%s}" % (players[4], players[5], players[3], players[6], players[7]))
+        print("%s,%s,{%s,%s,%s}" % (players[4], players[6], players[3], players[5], players[7]))
+        print("%s,%s,{%s,%s,%s}" % (players[4], players[7], players[3], players[5], players[6]))
+        print("%s,%s,{%s,%s,%s}" % (players[5], players[3], players[4], players[6], players[7]))
+        print("%s,%s,{%s,%s,%s}" % (players[5], players[4], players[3], players[6], players[7]))
+        print("%s,%s,{%s,%s,%s}" % (players[5], players[6], players[3], players[4], players[7]))
+        print("%s,%s,{%s,%s,%s}" % (players[5], players[7], players[3], players[4], players[6]))
+        print("%s,%s,{%s,%s,%s}" % (players[6], players[3], players[4], players[5], players[7]))
+        print("%s,%s,{%s,%s,%s}" % (players[6], players[4], players[3], players[5], players[7]))
+        print("%s,%s,{%s,%s,%s}" % (players[6], players[5], players[3], players[4], players[7]))
+        print("%s,%s,{%s,%s,%s}" % (players[6], players[7], players[3], players[4], players[5]))
+        print("%s,%s,{%s,%s,%s}" % (players[7], players[3], players[4], players[5], players[6]))
+        print("%s,%s,{%s,%s,%s}" % (players[7], players[4], players[3], players[5], players[6]))
+        print("%s,%s,{%s,%s,%s}" % (players[7], players[5], players[3], players[4], players[6]))
+        print("%s,%s,{%s,%s,%s}" % (players[7], players[6], players[3], players[4], players[5]))
+
+        fresult.write("\n\nbet: 100")  # 14200 / 60 = 200
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[3], players[4], players[5], players[6], players[7]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[3], players[5], players[4], players[6], players[7]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[3], players[6], players[4], players[5], players[7]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[3], players[7], players[4], players[5], players[6]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[4], players[3], players[5], players[6], players[7]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[4], players[5], players[3], players[6], players[7]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[4], players[6], players[3], players[5], players[7]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[4], players[7], players[3], players[5], players[6]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[5], players[3], players[4], players[6], players[7]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[5], players[4], players[3], players[6], players[7]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[5], players[6], players[3], players[4], players[7]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[5], players[7], players[3], players[4], players[6]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[6], players[3], players[4], players[5], players[7]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[6], players[4], players[3], players[5], players[7]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[6], players[5], players[3], players[4], players[7]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[6], players[7], players[3], players[4], players[5]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[7], players[3], players[4], players[5], players[6]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[7], players[4], players[3], players[5], players[6]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[7], players[5], players[3], players[4], players[6]))
+        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[7], players[6], players[3], players[4], players[5]))
     elif cand == [[1],[2],[3]]:
         print("bet: 4000")  # 14200
         print("%s,%s,%s" % (players[0], players[1], players[2]))
@@ -225,12 +269,8 @@ def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
         elif nData == 69 and year == 1:
             print_detail(rcdata['idx'], [[4,5,6],[4,5,6],[4,5,6]], fresult)
     else:
-        if nData == 47 and year == 2:
-            print_detail(rcdata['idx'], [[4,5,6],[4,5,6],[4,5,6]], fresult)
-        elif nData == 47 and year == 4:
-            print_detail(rcdata['idx'], [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]], fresult)
-        elif nData == 69 and year == 2:
-            print_detail(rcdata['idx'], [[4,5,6],[4,5,6],[4,5,6]], fresult)
+        if nData == 69 and year == 1:
+            print_detail(rcdata['idx'], [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]], fresult)
         elif nData == 69 and year == 4:
             print_detail(rcdata['idx'], [[1],[2],[3]], fresult)
 
