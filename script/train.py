@@ -194,6 +194,7 @@ def print_log(data, pred, fname):
 
 def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_year=0, course=0, kind=0, nData=47):
     today = begin_date
+    sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     while today <= end_date:
         while today.weekday() != 2:
             today = today + datetime.timedelta(days=1)
@@ -254,14 +255,14 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
             score = estimator.score(X_test, Y_test)
             print("Score with the entire test dataset = %.2f" % score)
             pred = estimator.predict(X_test)
-            """
+            
             res1 = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]])
-            res2 = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4],[1,2,3,4]])
+            res2 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
             res3 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6]])
             res4 = sim.simulation7(pred, R_test, [[1],[2],[3]])
-            res5 = sim.simulation7(pred, R_test, [[1,2],[1,2,3],[2,3,4]])
-            res6 = sim.simulation7(pred, R_test, [[1,2,3],[2,3,4],[3,4,5]])
-            res7 = sim.simulation7(pred, R_test, [[5,6,7],[5,6,7],[5,6,7]])
+            res5 = sim.simulation7(pred, R_test, [[1,2],[1,2,3],[1,2,3]])
+            res6 = sim.simulation7(pred, R_test, [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]])
+            res7 = sim.simulation7(pred, R_test, [[5,6,7,8,9,10],[5,6,7,8,9,10],[5,6,7,8,9,10]])
             """
             res1 = sim.simulation6(pred, R_test, [[1,2,3]])
             res2 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,3,4], [2,3,4]])
@@ -276,6 +277,17 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
             res6 = sim.simulation6(pred, R_test, [[2,3,4], [2,3,5], [2,4,5], [3,4,5], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
             res7 = sim.simulation6(pred, R_test, [[3,4,5], [3,4,6], [3,4,7], [3,5,6], [3,5,7], [3,6,7], [4,5,6], [4,5,7], [4,6,7], [5,6,7]])
             
+            res1 = sim.simulation1(pred, R_test,1)
+            res2 = sim.simulation1(pred, R_test,2)
+            res3 = sim.simulation1(pred, R_test,3)
+            res4 = sim.simulation1(pred, R_test,4)
+            res5 = sim.simulation1(pred, R_test,5)
+            res6 = sim.simulation1(pred, R_test,6)
+            res7 = sim.simulation1(pred, R_test,7)
+            res8 = sim.simulation1(pred, R_test,8)
+            res9 = sim.simulation1(pred, R_test,9)
+            res10 = sim.simulation1(pred, R_test,10)
+            """
             sr1 += res1
             sr2 += res2
             sr3 += res3
@@ -307,7 +319,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
 
 def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, courses=[0], kinds=[0], nData=47):
     today = begin_date
-    sr1, sr2, sr3, sr4, sr5, sr6, sr7 = {}, {}, {}, {}, {}, {}, {}
+    sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10 = {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
     while today <= end_date:
         while today.weekday() != 2:
             today = today + datetime.timedelta(days=1)
@@ -368,7 +380,15 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     score = estimator.score(X_test, Y_test)
                     print("Score with the entire test dataset = %.5f" % score)
                     pred = estimator.predict(X_test)
-
+                    
+                    res1 = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]])
+                    res2 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
+                    res3 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6]])
+                    res4 = sim.simulation7(pred, R_test, [[1],[2],[3]])
+                    res5 = sim.simulation7(pred, R_test, [[1,2],[1,2,3],[1,2,3]])
+                    res6 = sim.simulation7(pred, R_test, [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]])
+                    res7 = sim.simulation7(pred, R_test, [[5,6,7,8,9,10],[5,6,7,8,9,10],[5,6,7,8,9,10]])
+                    """
                     res1 = sim.simulation6(pred, R_test, [[1,2,3]])
                     res2 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,3,4], [2,3,4]])
                     res3 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5]])
@@ -382,6 +402,17 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     res6 = sim.simulation6(pred, R_test, [[2,3,4], [2,3,5], [2,4,5], [3,4,5], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
                     res7 = sim.simulation6(pred, R_test, [[3,4,5], [3,4,6], [3,4,7], [3,5,6], [3,5,7], [3,6,7], [4,5,6], [4,5,7], [4,6,7], [5,6,7]])
                     
+                    res1 = sim.simulation2(pred, R_test, 1 )
+                    res2 = sim.simulation2(pred, R_test, 2 )
+                    res3 = sim.simulation2(pred, R_test, 3 )
+                    res4 = sim.simulation2(pred, R_test, 4 )
+                    res5 = sim.simulation2(pred, R_test, 5 )
+                    res6 = sim.simulation2(pred, R_test, 6 )
+                    res7 = sim.simulation2(pred, R_test, 7 )
+                    res8 = sim.simulation2(pred, R_test, 8 )
+                    res9 = sim.simulation2(pred, R_test, 9 )
+                    res10= sim.simulation2(pred, R_test, 10)
+                    """
                     try:
                         sr1[course] += res1
                         sr2[course] += res2

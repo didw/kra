@@ -24,7 +24,7 @@ def get_data(begin_date, end_date, fname_csv):
             print("%f" % md.race_score[i][20], end=' ')
         print()
         #print("value: %f, %f, %f, %f, %f" % (md.race_score[1000][20], md.race_score[1200][20], md.race_score[1300][20], md.race_score[1400][20], md.race_score[1700][20]))
-        filename = "../txt/1/rcresult/rcresult_1_%02d%02d%02d.txt" % (date.year, date.month, date.day)
+        filename = "../txt/3/rcresult/rcresult_3_%02d%02d%02d.txt" % (date.year, date.month, date.day)
         if not os.path.isfile(filename):
             continue
         if first:
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     DEBUG = True
     fname_csv = '../data/3_2007_2016.csv'
     bdate = datetime.date(2007, 1, 1)
-    edate = datetime.date(2016, 12, 1)
+    edate = datetime.date(2016, 12, 30)
     get_data(bdate, edate, fname_csv)
     #update_data(datetime.date.today(), fname_csv)
 

@@ -292,8 +292,8 @@ def norm_racescore(meet, course, humidity, value, md=mean_data()):
 def get_hr_racescore(meet, hrno, _date, course, mode='File', md=mean_data()):
     first_attend = True
     course = int(course)
-    result = [-1, -1, -1, -1, -1, -1, -1] # 주, 1000, 1200, 1300, 1400, 1700, 0
-    default_res = map(lambda x: int(x), [md.race_score[][20], md.race_score[][20], md.race_score[][20], md.race_score[][20], md.race_score[][20], md.race_score[][20], md.race_score[0][20]])
+    result = [-1, -1, -1, -1, -1, -1, -1] # 주, 1000, 1200, 1300, 1400, 1600, 0
+    default_res = map(lambda x: int(x), [md.race_score[900][20], md.race_score[1000][20], md.race_score[1200][20], md.race_score[1300][20], md.race_score[1400][20], md.race_score[1600][20], md.race_score[0][20]])
     default_res.extend(map(lambda x: int(x), md.dist_rec[course][3:]))
     race_sum = [[], [], [], [], [], [], []]
     race_same_dist = []
@@ -391,9 +391,9 @@ def get_hr_racescore(meet, hrno, _date, course, mode='File', md=mean_data()):
 
 
     if len(race_sum[6]) != 0:
-        result[6] = np.mean(race_sum[6])
+        result[6] = int(np.mean(race_sum[6]))
     else:
-        result[6] = md.course_record[6]
+        result[6] = int(md.course_record[6])
     for i in range(len(race_sum)):
         if len(race_sum[i]) == 0:
             result[i] = int(result[6] * md.course_record[i] / md.course_record[6])
