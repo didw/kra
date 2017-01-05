@@ -23,6 +23,10 @@ def make_one_hot(data):
     return res
 
 def parse_hr_clinic(date):
+    if date.weekday() == 5:
+        date += datetime.timedelta(days=-1)
+    elif date.weekday() == 6:
+        date += datetime.timedelta(days=-2)
     date_i = int("%d%02d%02d" % (date.year, date.month, date.day))
     filename = "../txt/1/weekly-jangu/weekly-jangu_1_%d.txt" % date_i
     in_data = open(filename)
