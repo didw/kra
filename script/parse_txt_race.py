@@ -9,6 +9,7 @@ import get_detail_data as gdd
 from bs4 import BeautifulSoup
 from mean_data import mean_data
 from sklearn.externals import joblib
+from get_race_detail import RaceDetail
 
 NEXT = re.compile(unicode(r'마 체 중|단승식|복승식|매출액', 'utf-8').encode('utf-8'))
 WORD = re.compile(r"[^\s]+")
@@ -90,7 +91,7 @@ def parse_txt_race(filename, md=mean_data()):
             lastday = gdd.get_lastday(1, date, int(rcno), hrname)
             train_state = gdd.get_train_state(1, date, int(rcno), hrname)
             hr_no = gdd.get_hrno(1, date, int(rcno), hrname)
-            race_score = gdd.get_hr_racescore(1, hr_no, date, course, 'File', md)
+            race_score = gdd.get_hr_racescore(1, hr_no, date, int(month), course, 'File', md)
 
             assert len(words) >= 10
             adata = [course, humidity, kind, dbudam, drweight, lastday]
@@ -538,7 +539,7 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
     return map(lambda x: int(x), md.tr_history_total[course] + md.tr_history_year[course])
 
 
-def get_data(filename, md=mean_data()):
+def get_data(filename, md=mean_data(), rd=RaceDetail()):
     print("race file: %s" % filename)
     date_i = re.search(unicode(r'\d{8}', 'utf-8').encode('utf-8'), filename).group()
     date = datetime.date(int(date_i[:4]), int(date_i[4:6]), int(date_i[6:]))
@@ -549,6 +550,8 @@ def get_data(filename, md=mean_data()):
         data[i].extend(parse_txt_horse(date, int(data[i][39]), data[i][24], data[i][0], md))
         data[i].extend(parse_txt_jockey(date, data[i][29], data[i][0], md))
         data[i].extend(parse_txt_trainer(date, data[i][30], data[i][0], md))
+        data[i].extend(rd.get_data(data[i][24], date, md))
+        data[i].extend(parse_txt_jangu_clinic(date, data[i][30], data[i][0], md))
         data[i].extend([date_i])
     df = pd.DataFrame(data)
     df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12

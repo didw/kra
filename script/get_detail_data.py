@@ -282,16 +282,17 @@ def get_hrno(meet, date, rcno, name):
 
 
 
-def norm_racescore(meet, course, humidity, value, md=mean_data()):
+def norm_racescore(meet, course, month, humidity, value, md=mean_data()):
     humidity = min(humidity, 20) - 1
     try:
-        return value * md.race_score[0][20] / md.race_score[0][humidity]
+        return value * md.race_score[0][20] / md.race_score[0][month][humidity]
     except KeyError:
         return value
 
 
-def get_hr_racescore(meet, hrno, _date, course, mode='File', md=mean_data()):
+def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data()):
     first_attend = True
+    month = int(month)
     course = int(course)
     result = [-1, -1, -1, -1, -1, -1, -1] # 주, 1000, 1200, 1300, 1400, 1700, 0
     default_res = map(lambda x: int(x), [md.race_score[900][20], md.race_score[1000][20], md.race_score[1200][20], md.race_score[1300][20], md.race_score[1400][20], md.race_score[1700][20], md.race_score[0][20]])
@@ -359,7 +360,7 @@ def get_hr_racescore(meet, hrno, _date, course, mode='File', md=mean_data()):
             if record == 0:
                 continue
             #print("주, 일, %s" % racekind)
-            record = norm_racescore(1, distance, humidity, record, md)
+            record = norm_racescore(1, distance, month, humidity, record, md)
             if distance not in [900, 1000, 1200, 1300, 1400, 1700]:
                 continue
             if record < md.race_score[distance][20]*0.8 or record > md.race_score[distance][20]*1.2:
@@ -393,13 +394,21 @@ def get_hr_racescore(meet, hrno, _date, course, mode='File', md=mean_data()):
 
     if len(race_sum[6]) != 0:
         result[6] = np.mean(race_sum[6])
+        race_sum[6].reverse()
+        for r in race_sum[6]:
+            result[6] += 0.1 * (r - result[6])
+        result[6] = int(race_sum[6])
     else:
         result[6] = md.course_record[6]
     for i in range(len(race_sum)):
         if len(race_sum[i]) == 0:
             result[i] = int(result[6] * md.course_record[i] / md.course_record[6])
         else:
-            result[i] = int(np.mean(race_sum[i]))
+            result[i] = np.mean(race_sum[i])
+            race_sum[i].reverse()
+            for r in race_sum[i]:
+                result[i] += 0.1 * (r - result[i])
+            result[i] = int(result[i])
     if len(race_same_dist) > 0:
         result.append(int(np.min(race_same_dist)))
         result.append(int(np.mean(race_same_dist)))

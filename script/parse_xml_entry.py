@@ -174,6 +174,7 @@ def parse_xml_entry(meet, date_i, number, md=mean_data()):
     for itemElm in xml_text.findAll('item'):
         #print itemElm
         course = int(unicode(itemElm.rcdist.string))
+        month = date_i/100%100
         rcdate = int("%s%s%s" % (itemElm.rcdate.string[:4], itemElm.rcdate.string[5:7], itemElm.rcdate.string[8:10]))
         rcno = int("%s" % (itemElm.rcno.string))
         if date_i != rcdate:
@@ -197,7 +198,7 @@ def parse_xml_entry(meet, date_i, number, md=mean_data()):
         lastday = gdd.get_lastday(1, date_i, int(rcno), hrname)
         train_state = gdd.get_train_state(1, date_i, int(rcno), hrname)
         hr_no = gdd.get_hrno(1, date_i, int(rcno), hrname)
-        race_score = gdd.get_hr_racescore(1, hr_no, date_i, course, 'url', md)
+        race_score = gdd.get_hr_racescore(1, hr_no, date_i, month, course, 'url', md)
 
         adata = [unicode(itemElm.rcdist.string),
                  humidity,
