@@ -285,7 +285,7 @@ def get_hrno(meet, date, rcno, name):
 def norm_racescore(meet, course, month, humidity, value, md=mean_data()):
     humidity = min(humidity, 20) - 1
     try:
-        return value * md.race_score[0][20] / md.race_score[0][month][humidity]
+        return value * md.race_score[0][month][20] / md.race_score[0][month][humidity]
     except KeyError:
         return value
 
@@ -295,7 +295,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
     month = int(month)
     course = int(course)
     result = [-1, -1, -1, -1, -1, -1, -1] # 주, 1000, 1200, 1300, 1400, 1700, 0
-    default_res = map(lambda x: int(x), [md.race_score[900][20], md.race_score[1000][20], md.race_score[1200][20], md.race_score[1300][20], md.race_score[1400][20], md.race_score[1700][20], md.race_score[0][20]])
+    default_res = map(lambda x: int(np.mean(np.array(x)[:,20])), [md.race_score[900], md.race_score[1000], md.race_score[1200], md.race_score[1300], md.race_score[1400], md.race_score[1700], md.race_score[0]])
     default_res.extend(map(lambda x: int(x), md.dist_rec[course][3:]))
     race_sum = [[], [], [], [], [], [], []]
     race_same_dist = []
@@ -360,16 +360,16 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
             if record == 0:
                 continue
             #print("주, 일, %s" % racekind)
-            record = norm_racescore(1, distance, month, humidity, record, md)
+            record = norm_racescore(1, distance, month-1, humidity, record, md)
             if distance not in [900, 1000, 1200, 1300, 1400, 1700]:
                 continue
-            if record < md.race_score[distance][20]*0.8 or record > md.race_score[distance][20]*1.2:
+            if record < md.race_score[distance][month-1][20]*0.8 or record > md.race_score[distance][month-1][20]*1.2:
                 continue
             if racekind == '주' and len(race_sum[0]) == 0:
                 race_sum[0].append(record)
                 race_sum[6].append(record * md.course_record[6] / md.course_record[0])
                 if first_attend:
-                    md.update_race_score_qual(humidity, record)
+                    md.update_race_score_qual(month-1, humidity, record)
                 first_attend = False
             elif racekind == '일':
                 if distance == 1000:
@@ -397,7 +397,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
         race_sum[6].reverse()
         for r in race_sum[6]:
             result[6] += 0.1 * (r - result[6])
-        result[6] = int(race_sum[6])
+        result[6] = int(result[6])
     else:
         result[6] = md.course_record[6]
     for i in range(len(race_sum)):
@@ -417,9 +417,9 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
         #result.extend([-1, -1, -1])
         delta1 = md.dist_rec[course][4] - md.dist_rec[course][3]
         delta2 = md.dist_rec[course][5] - md.dist_rec[course][4]
-        result.append(int(md.race_score[course][20] - delta1))
-        result.append(int(md.race_score[course][20]))
-        result.append(int(md.race_score[course][20] + delta2))
+        result.append(int(md.race_score[course][month-1][20] - delta1))
+        result.append(int(md.race_score[course][month-1][20]))
+        result.append(int(md.race_score[course][month-1][20] + delta2))
     else:
         #result.extend([-1, -1, -1])
         result.append(int(md.dist_rec[course][3]))
