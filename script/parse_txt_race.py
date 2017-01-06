@@ -28,8 +28,8 @@ def parse_txt_race(filename, md=mean_data()):
         course = ''
         kind = ''
         hrname = ''
-        month = 0
         date = int(re.search(r'\d{8}', filename).group())
+        month = date/100%100
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
@@ -38,7 +38,6 @@ def parse_txt_race(filename, md=mean_data()):
                 break
             if re.search(unicode(r'제목', 'utf-8').encode('utf-8'), line) is not None:
                 rcno = re.search(unicode(r'\d+(?=경주)', 'utf-8').encode('utf-8'), line).group()
-                month = re.search(unicode(r'\d+(?=월)', 'utf-8').encode('utf-8'), line).group()
             if re.search(unicode(r'경주명', 'utf-8').encode('utf-8'), line) is not None:
                 if DEBUG: print("%s" % line)
                 course = re.search(unicode(r'\d+(?=M)', 'utf-8').encode('utf-8'), line).group()
@@ -92,7 +91,7 @@ def parse_txt_race(filename, md=mean_data()):
             lastday = gdd.get_lastday(1, date, int(rcno), hrname)
             train_state = gdd.get_train_state(1, date, int(rcno), hrname)
             hr_no = gdd.get_hrno(1, date, int(rcno), hrname)
-            race_score = gdd.get_hr_racescore(1, hr_no, date, int(month), course, 'File', md)
+            race_score = gdd.get_hr_racescore(1, hr_no, date, month, course, 'File', md)
 
             assert len(words) >= 10
             adata = [course, humidity, kind, dbudam, drweight, lastday]
@@ -427,7 +426,7 @@ def parse_txt_horse(date, rcno, name, course, md=mean_data()):
             #print(participates)
             if int(participates[0]) == 0:
                 #data.extend([0, -1, -1, -1, -1])
-                data.extend([0] + md.hr_history_total[course][1:])
+                data.extend([0] + map(lambda x: int(x), md.hr_history_total[course][1:]))
             else:
                 data.append(int(participates[0]))
                 data.append(int(participates[1]))
@@ -437,7 +436,7 @@ def parse_txt_horse(date, rcno, name, course, md=mean_data()):
 
             if int(participates[3]) == 0:
                 #data.extend([0, -1, -1, -1, -1])
-                data.extend([0] + md.hr_history_year[course][1:])
+                data.extend([0] + map(lambda x: int(x), md.hr_history_year[course][1:]))
             else:
                 data.append(int(participates[3]))
                 data.append(int(participates[4]))
@@ -554,8 +553,8 @@ def get_data(filename, md=mean_data(), rd=RaceDetail()):
         data[i].extend(parse_txt_horse(date, int(data[i][39]), data[i][24], data[i][0], md))
         data[i].extend(parse_txt_jockey(date, data[i][29], data[i][0], md))
         data[i].extend(parse_txt_trainer(date, data[i][30], data[i][0], md))
-        data[i].extend(rd.get_data(data[i][24], date, md))
-        data[i].extend(jangu_clinic[data[i][24]])
+        data[i].extend(rd.get_data(data[i][24], date_i, md))
+        data[i].extend(wc.get_jangu_clinic(jangu_clinic, data[i][24]))
         data[i].extend([date_i])
     df = pd.DataFrame(data)
     df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12

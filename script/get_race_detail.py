@@ -28,7 +28,11 @@ class RaceDetail:
             date = int(re.search(r'\d{8}', filename).group())
             if re.search(r'\(서울\)', line) is not None:
                 course = int(re.search(r'\d+00*(?=M)', line).group())
-                #print("course: %d" % course)
+            if re.search(r'경주조건', line) is not None and re.search(r'주로', line) is not None:
+                try:
+                    humidity = int(re.search(r'(?<=\()[\d ]+(?=\%\))', line).group())
+                except:
+                    humidity = 10
             # read name
             if re.search(r'부담중량', line) is not None and re.search(r'산지', line) is not None:
                 name_list = []
@@ -47,7 +51,7 @@ class RaceDetail:
                     except:
                         print("except: in %s : %s" % (filename, line))
                     name_list.append(name)
-                    data[name] = [date, course]
+                    data[name] = [date, course, humidity]
                     if DEBUG:
                         print("name: %s" % unicode(name, 'utf-8'))
 
@@ -66,15 +70,34 @@ class RaceDetail:
                         break
                     words = re.findall(r'\S+', line)
                     if len(words) == 9:
-                        g1f = words[6]
+                        if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (words[3], words[6], words[2]))
+                        try:
+                            g1f = float(re.search(r'\d{2}\.\d', words[6]).group())*10
+                        except:
+                            g1f = 150
                     elif len(words) == 11:
-                        g1f = words[8]
+                        if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (words[3], words[8], words[2]))
+                        try:
+                            g1f = float(re.search(r'\d{2}\.\d', words[8]).group())*10
+                        except:
+                            g1f = 150
                     elif len(words) < 9:
                         #print("unexpected line: %s" % line)
                         continue
-                    s1f = words[3]
-                    g3f = words[2]
-                    if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (s1f, g1f, g3f))
+                    try:
+                        s1f = float(re.search(r'\d{2}\.\d', words[3]).group())*10
+                    except:
+                        s1f = 150
+                    try:
+                        g3f = float(re.search(r'\d{2}\.\d', words[2]).group())*10
+                    except:
+                        g3f = 400
+                    if s1f < 100 or s1f > 200:
+                        s1f = 150
+                    if g1f < 100 or g1f > 200:
+                        g1f = 150
+                    if g3f < 300 or g3f > 500:
+                        g3f = 400
                     data[name_list[i]].extend([s1f, g1f, g3f])
                     i += 1
                     
@@ -85,6 +108,7 @@ class RaceDetail:
                 self.data[k].append(v)
             else:
                 self.data[k] = [v]
+
 
     def parse_ap_rslt(self, filename):
         in_data = open(filename)
@@ -97,6 +121,11 @@ class RaceDetail:
                 break
             # 제목 : 16년12월25일(일)  제15경주
             date = int(re.search(r'\d{8}', filename).group())
+            if re.search(r'주로상태', line) is not None and re.search(r'날.+씨', line) is not None:
+                try:
+                    humidity = int(re.search(r'(?<=\()[\d ]+(?=\%\))', line).group())
+                except:
+                    humidity = 10
             # read name
             if re.search(r'산지', line) is not None and (re.search(r'선수명', line) is not None or re.search(r'기수명', line) is not None):
                 name_list = []
@@ -115,7 +144,7 @@ class RaceDetail:
                     except:
                         print("except: in %s : %s" % (filename, line))
                     name_list.append(name)
-                    data[name] = [date, course]
+                    data[name] = [date, course, humidity]
                     if DEBUG:
                         print("name: %s" % unicode(name, 'utf-8'))
 
@@ -130,16 +159,33 @@ class RaceDetail:
                     line = unicode(line, 'euc-kr').encode('utf-8')
                     if re.search(r'[-─]{10}', line) is not None:
                         res = re.search(r'[-─]{10}', line).group()
-                        #print("result: %s" % res)
+                        if DEBUG: print("break: %s" % res)
                         break
                     words = re.findall(r'\S+', line)
                     if len(words) < 9:
                         #print("unexpected line: %s" % line)
+                        data[name_list[i]].extend([150, 150, 400])  # need to fix to default from mean_data
+                        i += 1
                         continue
-                    s1f = words[3]
-                    g1f = words[6]
-                    g3f = words[2]
-                    if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (s1f, g1f, g3f))
+                    if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (words[3], words[6], words[2]))
+                    try:
+                        s1f = float(re.search(r'\d{2}\.\d', words[3]).group())*10
+                    except:
+                        s1f = 150
+                    try:
+                        g1f = float(re.search(r'\d{2}\.\d', words[6]).group())*10
+                    except:
+                        g1f = 150
+                    try:
+                        g3f = float(re.search(r'\d{2}\.\d', words[2]).group())*10
+                    except:
+                        g3f = 400
+                    if s1f < 100 or s1f > 200:
+                        s1f = 150
+                    if g1f < 100 or g1f > 200:
+                        g1f = 150
+                    if g3f < 300 or g3f > 500:
+                        g3f = 400
                     data[name_list[i]].extend([s1f, g1f, g3f])
                     i += 1
         for k,v in data.iteritems():
@@ -149,16 +195,26 @@ class RaceDetail:
                 self.data[k].append(v)
             else:
                 self.data[k] = [v]
+
+
     def get_data(self, name, date, md=mean_data()):
         res = []
         rs = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]
         course_list = [900, 1000, 1200, 1300, 1400, 1700]
+
         for c in range(len(course_list)):
-            for data in self.data[name]:
-                if data[0] < date and data[1] == c:
-                    rs[3*c+0].append(data[2])
-                    rs[3*c+1].append(data[3])
-                    rs[3*c+2].append(data[4])
+            try:
+                for data in self.data[name]:
+                    if data[0] < date and data[1] == course_list[c]:
+                        humidity = date[2]
+                        s1f = norm_racescore(data[0]/100%100, humidity, data[3], md)
+                        g1f = norm_racescore(data[0]/100%100, humidity, data[4], md)
+                        g3f = norm_racescore(data[0]/100%100, humidity, data[5], md)
+                        rs[3*c+0].append(s1f)
+                        rs[3*c+1].append(g1f)
+                        rs[3*c+2].append(g3f)
+            except:
+                continue
         for i in range(len(rs)):
             if len(rs[i]) == 0:
                 res.append(md.race_detail[course_list[i/3]][i%3])
@@ -167,28 +223,34 @@ class RaceDetail:
         for i in range(len(rs)):
             rs[i].reverse()
             for j in rs[i]:
-                res[i] += 0.1*(rs[i][j] - res[i])
-        return res  # len: 18
+                res[i] += 0.1*(j - res[i])
+        return map(lambda x: int(x), res)  # len: 18
+
+
+def norm_racescore(month, humidity, value, md=mean_data()):
+    humidity = min(humidity, 20) - 1
+    try:
+        return value * np.array(md.race_score[0])[:,20].mean() / md.race_score[0][month][humidity]
+    except KeyError:
+        return value
 
 
 if __name__ == '__main__':
-    DEBUG = False
+    DEBUG = True
     rd = RaceDetail()
-    for year in range(2007,2017):
-        filelist1 = glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_%d*.txt' % year)
-        filelist2 = glob.glob('../txt/1/rcresult/rcresult_1_%d*.txt' % year)
-        for fname in filelist1:
-            print("processed ap %s" % fname)
-            rd.parse_ap_rslt(fname)
-        for fname in filelist2:
-            print("processed rc in %s" % fname)
-            rd.parse_race_detail(fname)
-    #fname1 = '../txt/1/ap-check-rslt/ap-check-rslt_1_20130308.txt'
-    #fname2 = '../txt/1/rcresult/rcresult_1_20110611.txt'
-    #rd.parse_ap_rslt(fname1)
-    #rd.parse_race_detail(fname2)
-    #for k,v in rd.data.iteritems():
-    #    print(unicode(k, 'utf-8'))
-    #    print(v)
-    joblib.dump(rd, '../data/1_2007_2016_rd.pkl')
+    #for year in range(2007,2017):
+    #    filelist1 = glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_%d*.txt' % year)
+    #    filelist2 = glob.glob('../txt/1/rcresult/rcresult_1_%d*.txt' % year)
+    #    for fname in filelist1:
+    #        print("processed ap %s" % fname)
+    #        rd.parse_ap_rslt(fname)
+    #    for fname in filelist2:
+    #        print("processed rc in %s" % fname)
+    #        rd.parse_race_detail(fname)
+    fname1 = '../txt/1/ap-check-rslt/ap-check-rslt_1_20070622.txt'
+    fname2 = '../txt/1/rcresult/rcresult_1_20091213.txt'
+    rd.parse_ap_rslt(fname1)
+    rd.parse_race_detail(fname2)
+    print(rd.get_data("등태산", 20110612))
+    #joblib.dump(rd, '../data/1_2007_2016_rd.pkl')
 

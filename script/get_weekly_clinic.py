@@ -24,11 +24,12 @@ def make_one_hot(data):
 
 def parse_hr_clinic(date):
     if date.weekday() == 5:
-        date += datetime.timedelta(days=-1)
-    elif date.weekday() == 6:
         date += datetime.timedelta(days=-2)
+    elif date.weekday() == 6:
+        date += datetime.timedelta(days=-3)
     date_i = int("%d%02d%02d" % (date.year, date.month, date.day))
     filename = "../txt/1/weekly-jangu/weekly-jangu_1_%d.txt" % date_i
+    if DEBUG: print("open %s" % filename)
     in_data = open(filename)
     data = dict()
     name = ''
@@ -59,6 +60,7 @@ def parse_hr_clinic(date):
                 if re.search(r'\d\s{2}[가-힣]+', line) is not None:
                     if name != '':
                         #data[name] = [jangu, clinic]
+                        name = name.replace('★', '')
                         data[name] = make_one_hot([jangu, clinic])
                     name = re.search(r'(?<=\d\s{2})[가-힣]+', line).group()
                     jangu = []
@@ -69,6 +71,15 @@ def parse_hr_clinic(date):
                     clinic.extend(re.search(r'(?<=\d{4}\.\d{2}\.\d{2})\S+.+', line).group().strip().split(','))
     data[name] = make_one_hot([jangu, clinic])
     return data  # len: 81
+
+def get_jangu_clinic(data, name):
+    try:
+        return data[name]
+    except KeyError:
+        return [0]*81
+    except:
+        print("Unexpected error in jangu clinic of %s" % unicode(name, 'utf-8'))
+
 
 if __name__ == '__main__':
     DEBUG = False

@@ -281,18 +281,16 @@ def get_hrno(meet, date, rcno, name):
     return -1
 
 
-
 def norm_racescore(meet, course, month, humidity, value, md=mean_data()):
     humidity = min(humidity, 20) - 1
     try:
-        return value * md.race_score[0][month][20] / md.race_score[0][month][humidity]
+        return value * np.array(md.race_score[0])[:,20].mean() / md.race_score[0][month][humidity]
     except KeyError:
         return value
 
 
 def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data()):
     first_attend = True
-    month = int(month)
     course = int(course)
     result = [-1, -1, -1, -1, -1, -1, -1] # 주, 1000, 1200, 1300, 1400, 1700, 0
     default_res = map(lambda x: int(np.mean(np.array(x)[:,20])), [md.race_score[900], md.race_score[1000], md.race_score[1200], md.race_score[1300], md.race_score[1400], md.race_score[1700], md.race_score[0]])
@@ -330,6 +328,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
                 print("regular expression error")
                 continue
             date = int("%s%s%s" % (date[:4], date[5:7], date[8:]))
+            month_ = date/100%100
             if date >= _date:
                 continue
 
@@ -360,16 +359,16 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
             if record == 0:
                 continue
             #print("주, 일, %s" % racekind)
-            record = norm_racescore(1, distance, month-1, humidity, record, md)
+            record = norm_racescore(1, distance, month_-1, humidity, record, md)
             if distance not in [900, 1000, 1200, 1300, 1400, 1700]:
                 continue
-            if record < md.race_score[distance][month-1][20]*0.8 or record > md.race_score[distance][month-1][20]*1.2:
+            if record < md.race_score[distance][month_-1][20]*0.8 or record > md.race_score[distance][month_-1][20]*1.2:
                 continue
             if racekind == '주' and len(race_sum[0]) == 0:
                 race_sum[0].append(record)
                 race_sum[6].append(record * md.course_record[6] / md.course_record[0])
                 if first_attend:
-                    md.update_race_score_qual(month-1, humidity, record)
+                    md.update_race_score_qual(month_-1, humidity, record)
                 first_attend = False
             elif racekind == '일':
                 if distance == 1000:
