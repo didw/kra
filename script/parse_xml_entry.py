@@ -442,4 +442,5 @@ if __name__ == '__main__':
     rcno = 8
     date = 20161112
     data = parse_xml_entry(meet, date, rcno)
+    data.to_csv('../log/xml_%d_%d.csv' % (date, rcno))
     print data
