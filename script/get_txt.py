@@ -31,9 +31,9 @@ def download_txt(bd, ed, meet, overwrite=False):
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/jeju/trainer/", "trainer", "cdb3.txt", [2, 5]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/jungbo/chulma/", "chulma", "dacom01.rpt", [2]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/sokbo/daily-train/", "daily-train", "dacom55.rpt", [0,1,2,3,4,5,6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/jungbo/ap-check-rslt/", "ap-check-rslt", "dacom23.rpt", [4]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/sokbo/weekly-clinic/", "weekly-clinic", "dacom72.rpt", [3,6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/sokbo/weekly-jangu/", "weekly-jangu", "dacom71.rpt", [3]]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/jungbo/ap-check-rslt/", "ap-check-rslt", "dacom23.rpt", [3,4]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/sokbo/weekly-clinic/", "weekly-clinic", "dacom72.rpt", [3]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/sokbo/weekly-jangu/", "weekly-jangu", "dacom71.rpt", [2]]],
             # busan
             [["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/rcresult/", "rcresult", "dacom11.rpt", [4, 6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/busan/horse/", "horse", "pdb1.txt", [2, 4, 5, 6]],
@@ -41,9 +41,9 @@ def download_txt(bd, ed, meet, overwrite=False):
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/busan/trainer/", "trainer", "pdb3.txt", [2, 4, 5, 6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/chulma/", "chulma", "dacom01.rpt", [2]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/sokbo/daily-train/", "daily-train", "dacom55.rpt", [0,1,2,3,4,5,6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/ap-check-rslt/", "ap-check-rslt", "dacom23.rpt", [4]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/sokbo/weekly-clinic/", "weekly-clinic", "dacom72.rpt", [3,6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/sokbo/weekly-jangu/", "weekly-jangu", "dacom71.rpt", [3]]]
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/ap-check-rslt/", "ap-check-rslt", "dacom23.rpt", [5]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/sokbo/weekly-clinic/", "weekly-clinic", "dacom72.rpt", [2,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/sokbo/weekly-jangu/", "weekly-jangu", "dacom71.rpt", [2]]]
             ]
 
     for line in data[meet-1]:
