@@ -213,7 +213,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "e:/study/kra/model%d/%d_%d/model_%d_%d.pkl" % (nData, train_bd_i, train_ed_i, course, 0)
+        model_name = "../model%d/%d_%d/model_%d_%d.pkl" % (nData, train_bd_i, train_ed_i, course, 0)
 
         if os.path.exists(model_name):
             print("model exist. try to loading..")
@@ -255,7 +255,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
             score = estimator.score(X_test, Y_test)
             print("Score with the entire test dataset = %.2f" % score)
             pred = estimator.predict(X_test)
-            
+            """
             res1 = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]])
             res2 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
             res3 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6]])
@@ -276,7 +276,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
                                                 ])
             res6 = sim.simulation6(pred, R_test, [[2,3,4], [2,3,5], [2,4,5], [3,4,5], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
             res7 = sim.simulation6(pred, R_test, [[3,4,5], [3,4,6], [3,4,7], [3,5,6], [3,5,7], [3,6,7], [4,5,6], [4,5,7], [4,6,7], [5,6,7]])
-            
+            """
             res1 = sim.simulation1(pred, R_test,1)
             res2 = sim.simulation1(pred, R_test,2)
             res3 = sim.simulation1(pred, R_test,3)
@@ -380,7 +380,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     score = estimator.score(X_test, Y_test)
                     print("Score with the entire test dataset = %.5f" % score)
                     pred = estimator.predict(X_test)
-                    
+                    """
                     res1 = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]])
                     res2 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
                     res3 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6]])
@@ -401,7 +401,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                                                         ])
                     res6 = sim.simulation6(pred, R_test, [[2,3,4], [2,3,5], [2,4,5], [3,4,5], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
                     res7 = sim.simulation6(pred, R_test, [[3,4,5], [3,4,6], [3,4,7], [3,5,6], [3,5,7], [3,6,7], [4,5,6], [4,5,7], [4,6,7], [5,6,7]])
-                    
+                    """
                     res1 = sim.simulation2(pred, R_test, 1 )
                     res2 = sim.simulation2(pred, R_test, 2 )
                     res3 = sim.simulation2(pred, R_test, 3 )
@@ -447,7 +447,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 f_result.close()
     for course in courses:
         for kind in kinds:
-            fname_result = '../data/weekly_result_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+            fname_result = '../data/weekly_result_train0_m3_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
             f_result = open(fname_result, 'a')
             f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
             f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
@@ -464,8 +464,8 @@ if __name__ == '__main__':
     test_ed = datetime.date(2016, 12, 1)
     for delta_year in [1,2,4]:
         for nData in [47, 69]:
-            simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[1000, 1200, 1300, 1400, 1700], nData=nData)
-            #for c in [1000, 1200, 1300, 1400, 1700]:
-            #    for k in [0]:
-            #        outfile = '../data/weekly_result_m3_nd%d_y%d_c%d_0_k%d.txt' % (nData, delta_year, c, k)
-            #        simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c, k, nData=nData)
+            #simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[1000, 1200, 1300, 1400, 1500, 1600, 1800, 1900, 2000, 2200], nData=nData)
+            for c in [1000, 1200, 1300, 1400, 1500, 1600, 1800, 1900, 2000, 2200, 0]:
+                for k in [0]:
+                    outfile = '../data/weekly_result_m3_nd%d_y%d_c%d_0_k%d.txt' % (nData, delta_year, c, k)
+                    simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c, k, nData=nData)
