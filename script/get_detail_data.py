@@ -398,7 +398,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
             result[6] += 0.1 * (r - result[6])
         result[6] = int(result[6])
     else:
-        result[6] = md.course_record[6]
+        result[6] = int(md.course_record[6])
     for i in range(len(race_sum)):
         if len(race_sum[i]) == 0:
             result[i] = int(result[6] * md.course_record[i] / md.course_record[6])

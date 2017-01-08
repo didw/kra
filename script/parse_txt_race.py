@@ -446,6 +446,7 @@ def parse_txt_horse(date, rcno, name, course, md=mean_data()):
 
             data.extend(dist_rec)
             assert len(data) == 17
+            data = map(lambda x: int(x), data)
             return data
     print("can not find %s in %s" % (name, filename))
     #return [-1] + [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1, -1]
@@ -489,6 +490,7 @@ def parse_txt_jockey(date, name, course, md=mean_data()):
                 data.append(int(participates[4])*100/int(participates[3]))
                 data.append(int(participates[5])*100/int(participates[3]))
 
+            data = map(lambda x: int(x), data)
             return data
     print("can not find %s in %s" % (name, filename))
     #return [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1]
@@ -533,6 +535,7 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
                 data.append(int(participates[4])*100/int(participates[3]))
                 data.append(int(participates[5])*100/int(participates[3]))
 
+            data = map(lambda x: int(x), data)
             return data
     print("can not find %s in %s" % (name, filename))
     #return [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1]
