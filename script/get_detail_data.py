@@ -24,7 +24,7 @@ def get_budam(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 return unicode(itemList[6].string)
     print("can not find budam of %s in %s" % (name, fname))
     return 54
@@ -43,7 +43,7 @@ def get_dbudam(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if len(itemList) >= 10 and name in itemList[1].string.encode('utf-8'):
+            if len(itemList) >= 10 and name in unicode(itemList[1].string).encode('utf-8'):
                 value = int(re.search(r'\d+', unicode(itemList[7].string)).group())
                 return value
     print("can not find dbudam of %s in %s" % (name, fname))
@@ -63,7 +63,7 @@ def get_weight(meet, date, rcno, name, course):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 try:
                     return int(float(unicode(itemList[2].string)))
                 except ValueError:
@@ -84,7 +84,7 @@ def get_dweight(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 return unicode(itemList[3].string)
     print("can not find dweight %s in %s" % (name, fname))
     return 0
@@ -105,7 +105,7 @@ def get_drweight(meet, date, rcno, name):
             itemList = itemElm2.findAll('td')
             if len(itemList) < 5:
                 continue
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 last_date = itemList[4].string
                 if len(last_date) >= 10:
                     last_date = datetime.date(int(last_date[:4]), int(last_date[5:7]), int(last_date[8:10]))
@@ -135,7 +135,7 @@ def get_lastday(meet, date, rcno, name):
             itemList = itemElm2.findAll('td')
             if len(itemList) < 5:
                 continue
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 last_date = itemList[4].string
                 if len(last_date) >= 10:
                     last_date = datetime.date(int(last_date[:4]), int(last_date[5:7]), int(last_date[8:10]))
@@ -166,7 +166,7 @@ def get_train_state(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 for item in itemList[2:]:
                     if item.string is None:
                         continue
