@@ -599,7 +599,7 @@ def get_data2(filename, _date, _rcno):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/1/rcresult/rcresult_1_20161224.txt'
+    filename = '../txt/1/rcresult/rcresult_1_20090215.txt'
     #md = joblib.load('../data/1_2007_2016_md.pkl')
     rd = RaceDetail()
     import glob
