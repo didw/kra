@@ -7,6 +7,7 @@ import glob
 import parse_xml_entry as xe
 import datetime
 import train as tr
+from get_race_detail import RaceDetail
 
 
 def normalize_data(org_data, nData=47):
@@ -277,8 +278,8 @@ def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
     fresult.close()
 
 
-def predict_next(estimator, md, meet, date, rcno, course=0, nData=47, year=4, train_course=0):
-    data_pre = xe.parse_xml_entry(meet, date, rcno, md)
+def predict_next(estimator, md, rd, meet, date, rcno, course=0, nData=47, year=4, train_course=0):
+    data_pre = xe.parse_xml_entry(meet, date, rcno, md, rd)
     data = normalize_data(data_pre, nData=nData)
     print(len(data.columns))
     X_data = data.copy()
@@ -320,6 +321,19 @@ def predict_next(estimator, md, meet, date, rcno, course=0, nData=47, year=4, tr
     #print(X_data.columns)
     #print(estimator.feature_importances_)
 
+def get_race_detail():
+    rd = RaceDetail()
+    import glob
+    for year in range(2007,2017):
+        filelist1 = glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_%d*.txt' % year)
+        filelist2 = glob.glob('../txt/1/rcresult/rcresult_1_%d*.txt' % year)
+        print("loading rslt at %d" % year)
+        for fname in filelist1:
+            rd.parse_ap_rslt(fname)
+        print("loading rcresult at %d" % year)
+        for fname in filelist2:
+            rd.parse_race_detail(fname)
+    return rd
 
 if __name__ == '__main__':
     meet = 1
@@ -329,14 +343,15 @@ if __name__ == '__main__':
     rcno = 14
     course = courses[rcno-1]
     test_course = course
+    rd = get_race_detail()
     fname = '../result/1612/%d_%d.txt' % (date%100, rcno)
     for nData, year in zip([47, 69], [2,1]):
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
         estimator, md, umd = tr.training(datetime.date(2016, 12, 23) + datetime.timedelta(days=-365*year), datetime.date(2016, 12, 23), train_course, nData)
-        predict_next(estimator, md, meet, date, rcno, test_course, nData, year, train_course)
+        predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
     train_course = course
     for nData in [47, 69]:
         for year in [2,4]:
             print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
             estimator, md, umd = tr.training(datetime.date(2016, 12, 23) + datetime.timedelta(days=-365*year), datetime.date(2016, 12, 23), train_course, nData)
-            predict_next(estimator, md, meet, date, rcno, test_course, nData, year, train_course)
+            predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
