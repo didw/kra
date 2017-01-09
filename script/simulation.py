@@ -89,6 +89,7 @@ def simulation2(pred, ans, target=1):
                 rack_data = True
             sim_data.append(pred[i])
             total_player = int(ans['cnt'][i])
+            price = int(ans['price'][i])
             r = float(ans['r2'][i])
             a = price*0.8 / r
             r = (price+100000)*0.8 / (a+100000)
@@ -98,7 +99,7 @@ def simulation2(pred, ans, target=1):
         # if rack_data or total < total_player:
         #     continue
 
-        if len(sim_data) < 6:
+        if len(sim_data) < 3:
             continue
         sim_data = pd.Series(sim_data)
         top = sim_data.rank()
@@ -130,13 +131,11 @@ def simulation3(pred, ans, targets=[[1,2],[1,3],[2,3]]):
     res1 = 0
     assert len(pred) == len(ans)
     while True:
-        cache = np.zeros(20)
         if i >= len(pred):
             break
         sim_data = [pred[i]]
         r3 = float(ans['r3'][i])
         rcno = int(ans['rcno'][i])
-        cache[int(ans['rank'][i])] = 1
         price = int(ans['price'][i])
         i += 1
         total = 1
@@ -144,11 +143,11 @@ def simulation3(pred, ans, targets=[[1,2],[1,3],[2,3]]):
         total_player = 0
         price = 0
         while i < len(pred) and int(ans['rcno'][i]) == rcno and int(ans['rank'][i]) != 1:
-            cache[int(ans['rank'][i])] = 1
             if ans['hr_nt'][i] == -1 or ans['jk_nt'][i] == -1 or ans['tr_nt'][i] == -1:
                 rack_data = True
             sim_data.append(pred[i])
             total_player = int(ans['cnt'][i])
+            price = int(ans['price'][i])
             total += 1
             i += 1
         # if rack_data or total < total_player:
@@ -219,6 +218,7 @@ def simulation4(pred, ans, target=[1,2]):
             sim_data.append(pred[i])
             idxes.append(ans['idx'][i])
             total_player = int(ans['cnt'][i])
+            price = int(ans['price'][i])
             total += 1
             i += 1
         # if rack_data or total < total_player:

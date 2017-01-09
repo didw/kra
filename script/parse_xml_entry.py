@@ -15,6 +15,7 @@ import os
 import get_detail_data as gdd
 from mean_data import mean_data
 from get_race_detail import RaceDetail
+import get_weekly_clinic as wc
 
 reload(sys)
 sys.setdefaultencoding('utf-8')

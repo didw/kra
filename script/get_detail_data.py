@@ -391,15 +391,15 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
             #print("%d, %s, %s, %d" % (date, racekind, distance, record))
 
 
-    if len(race_sum[6]) != 0:
+    if len(race_sum[6]) == 0:
+        result[6] = int(md.course_record[6])
+    else:
         result[6] = np.mean(race_sum[6])
         race_sum[6].reverse()
         for r in race_sum[6]:
             result[6] += 0.1 * (r - result[6])
         result[6] = int(result[6])
-    else:
-        result[6] = int(md.course_record[6])
-    for i in range(len(race_sum)):
+    for i in range(len(race_sum)-1):
         if len(race_sum[i]) == 0:
             result[i] = int(result[6] * md.course_record[i] / md.course_record[6])
         else:
