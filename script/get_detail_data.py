@@ -220,7 +220,7 @@ def get_distance_record(meet, name, rcno, date, course, md=mean_data()):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
             #print("name: %s, %s" % (name, itemList[1].string.encode('utf-8')))
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 #print("find name: %s, %s" % (name, itemList[1].string.encode('utf-8')))
                 if int(unicode(itemList[2].string)[0]) == 0:
                     try:
@@ -270,7 +270,7 @@ def get_hrno(meet, date, rcno, name):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
             try:
-                hrname = itemList[1].string.encode('utf-8')
+                hrname = unicode(itemList[1].string).encode('utf-8')
                 hrname = hrname.replace('★', '')
             except:
                 continue
