@@ -220,7 +220,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
             estimator = joblib.load(model_name)
         else:
             print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016.csv', course, 0, nData=nData)
+            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_2007_2016.csv', course, 0, nData=nData)
             print("%d data is fully loaded" % len(X_train))
             if len(X_train) < 10:
                 res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
@@ -463,10 +463,10 @@ if __name__ == '__main__':
     train_ed = datetime.date(2016, 10, 31)
     test_bd = datetime.date(2015, 1, 1)
     test_ed = datetime.date(2016, 12, 31)
-    for delta_year in [1,2]:
+    for delta_year in [1,2,4]:
         for nData in [186]:
-            simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[1000, 1200, 1300, 1400, 1700, 0], nData=nData)
-            #for c in [1000, 1200, 1300, 1400, 1700]:
-            #    for k in [0]:
-            #        outfile = '../data/weekly_result_m2_nd%d_y%d_c%d_0_k%d.txt' % (nData, delta_year, c, k)
-            #        simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c, k, nData=nData)
+            simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[400, 800, 900, 1000, 1200, 0], nData=nData)
+            for c in [400, 800, 900, 1000, 1200]:
+                for k in [0]:
+                    outfile = '../data/weekly_result_m2_nd%d_y%d_c%d_0_k%d.txt' % (nData, delta_year, c, k)
+                    simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c, k, nData=nData)
