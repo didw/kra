@@ -268,8 +268,9 @@ def predict_next(estimator, md, rd, meet, date, rcno, course=0, nData=47, year=4
     del X_data['trainer']
     del X_data['owner']
     del X_data['index']
-    #print(X_data.columns)
-    #print(len(X_data.columns))
+    __DEBUG__ = True
+    if __DEBUG__:
+        X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
     pred = pd.DataFrame(estimator.predict(X_data))
     pred.columns = ['predict']
     __DEBUG__ = True

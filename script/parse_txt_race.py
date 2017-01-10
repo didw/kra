@@ -506,7 +506,7 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
         name = str(name)[:6]
     course = int(course)
     filename = get_fname(date, "trainer")
-    #print(filename)
+    if DEBUG: print(filename)
     f_input = open(filename)
     while True:
         line = f_input.readline()
