@@ -7,6 +7,7 @@ import glob
 import parse_xml_entry as xe
 import datetime
 import train as tr
+from get_race_detail import RaceDetail
 
 
 def normalize_data(org_data, nData=47):
@@ -243,42 +244,21 @@ def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
     print("ssang")
     print("%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2]))
     print("%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2]))
+
     print("sambok")
-    if course in [1000]:
-        print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3]))
-    elif course in [1300]:  # [[1, 2, 3]]
-        print("%s,%s,%s" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2]))
-        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5], rcdata['idx'][6]))
-        print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][5], rcdata['idx'][6]))
-        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][5], rcdata['idx'][6], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-        print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5], rcdata['idx'][6]))
-    elif course in [1200, 1700]:  # [[3, 4, 5], [3, 4, 6], [3, 4, 7], [3, 5, 6], [3, 5, 7], [3, 6, 7], [4, 5, 6], [4, 5, 7], [4, 6, 7], [5, 6, 7]]
-        print("bet: 10000")
-        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5], rcdata['idx'][6]))
-        print("%s,%s,{%s,%s}" % (rcdata['idx'][2], rcdata['idx'][4], rcdata['idx'][5], rcdata['idx'][6]))
-        print("%s,%s,{%s,%s,%s}" % (rcdata['idx'][5], rcdata['idx'][6], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4]))
-        print("%s,%s,{%s,%s}" % (rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5], rcdata['idx'][6]))
+    print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3]))
+    print("{%s,%s},%s,%s" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3]))
 
     print("samssang")
     global fname
     fresult = open(fname, 'a')
-    if train_course == 0:
-        if nData == 47 and year == 2:
-            print_detail(rcdata['idx'], [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]], fresult)
-            print_detail(rcdata['idx'], [[4,5,6],[4,5,6],[4,5,6]], fresult)
-        elif nData == 69 and year == 1:
-            print_detail(rcdata['idx'], [[4,5,6],[4,5,6],[4,5,6]], fresult)
-    else:
-        if nData == 69 and year == 1:
-            print_detail(rcdata['idx'], [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]], fresult)
-        elif nData == 69 and year == 4:
-            print_detail(rcdata['idx'], [[1],[2],[3]], fresult)
+    print_detail(rcdata['idx'], [[1],[2],[3]], fresult)
 
     fresult.close()
 
 
-def predict_next(estimator, md, meet, date, rcno, course=0, nData=47, year=4, train_course=0):
-    data_pre = xe.parse_xml_entry(meet, date, rcno, md)
+def predict_next(estimator, md, rd, meet, date, rcno, course=0, nData=47, year=4, train_course=0):
+    data_pre = xe.parse_xml_entry(meet, date, rcno, md, rd)
     data = normalize_data(data_pre, nData=nData)
     print(len(data.columns))
     X_data = data.copy()
@@ -288,8 +268,9 @@ def predict_next(estimator, md, meet, date, rcno, course=0, nData=47, year=4, tr
     del X_data['trainer']
     del X_data['owner']
     del X_data['index']
-    #print(X_data.columns)
-    #print(len(X_data.columns))
+    __DEBUG__ = True
+    if __DEBUG__:
+        X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
     pred = pd.DataFrame(estimator.predict(X_data))
     pred.columns = ['predict']
     __DEBUG__ = True
@@ -317,7 +298,22 @@ def predict_next(estimator, md, meet, date, rcno, course=0, nData=47, year=4, tr
                 rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
         else:
             rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
+    print(X_data.columns)
+    print(estimator.feature_importances_)
 
+def get_race_detail(date):
+    rd = RaceDetail()
+    import glob
+    for year in range(date/10000 - 3, date/10000):
+        filelist1 = glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_%d*.txt' % year)
+        filelist2 = glob.glob('../txt/1/rcresult/rcresult_1_%d*.txt' % year)
+        print("loading rslt at %d" % year)
+        for fname in filelist1:
+            rd.parse_ap_rslt(fname)
+        print("loading rcresult at %d" % year)
+        for fname in filelist2:
+            rd.parse_race_detail(fname)
+    return rd
 
 if __name__ == '__main__':
     meet = 3
@@ -327,14 +323,15 @@ if __name__ == '__main__':
     rcno = 14
     course = courses[rcno-1]
     test_course = course
-    fname = '../result/1612/%d_%d.txt' % (date%100, rcno)
-    for nData, year in zip([47, 69], [2,1]):
+    rd = get_race_detail(date)
+    fname = '../result/1701/%d_%d.txt' % (date%100, rcno)
+    for nData, year in zip([186], [2]):
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
-        estimator, md, umd = tr.training(datetime.date(2016, 12, 23) + datetime.timedelta(days=-365*year), datetime.date(2016, 12, 23), train_course, nData)
-        predict_next(estimator, md, meet, date, rcno, test_course, nData, year, train_course)
-    train_course = course
-    for nData in [47, 69]:
-        for year in [2,4]:
-            print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
-            estimator, md, umd = tr.training(datetime.date(2016, 12, 23) + datetime.timedelta(days=-365*year), datetime.date(2016, 12, 23), train_course, nData)
-            predict_next(estimator, md, meet, date, rcno, test_course, nData, year, train_course)
+        estimator, md, umd = tr.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100), train_course, nData)
+        predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
+#        train_course = course
+#        for nData in [186]:
+#            for year in [2]:
+#                print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
+#                estimator, md, umd = tr.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100), train_course, nData)
+#                predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)

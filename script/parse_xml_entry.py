@@ -14,6 +14,8 @@ import sys
 import os
 import get_detail_data as gdd
 from mean_data import mean_data
+from get_race_detail import RaceDetail
+import get_weekly_clinic as wc
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -157,7 +159,7 @@ def get_game_info(date, rcno):
     return [-1, -1]
 
 
-def parse_xml_entry(meet, date_i, number, md=mean_data()):
+def parse_xml_entry(meet, date_i, number, md=mean_data(), rd=RaceDetail()):
     # get other data
     data_hr = xh.parse_xml_hr(meet)
     data_jk = xj.parse_xml_jk(meet)
@@ -171,9 +173,11 @@ def parse_xml_entry(meet, date_i, number, md=mean_data()):
     response_body = file_input.read()
     xml_text = BeautifulSoup(response_body, 'html.parser')
     humidity = get_humidity()
+    jangu_clinic = wc.parse_hr_clinic(date)
     for itemElm in xml_text.findAll('item'):
         #print itemElm
         course = int(unicode(itemElm.rcdist.string))
+        month = date_i/100%100
         rcdate = int("%s%s%s" % (itemElm.rcdate.string[:4], itemElm.rcdate.string[5:7], itemElm.rcdate.string[8:10]))
         rcno = int("%s" % (itemElm.rcno.string))
         if date_i != rcdate:
@@ -197,7 +201,9 @@ def parse_xml_entry(meet, date_i, number, md=mean_data()):
         lastday = gdd.get_lastday(1, date_i, int(rcno), hrname)
         train_state = gdd.get_train_state(1, date_i, int(rcno), hrname)
         hr_no = gdd.get_hrno(1, date_i, int(rcno), hrname)
-        race_score = gdd.get_hr_racescore(1, hr_no, date_i, course, 'url', md)
+        race_score = gdd.get_hr_racescore(1, hr_no, date_i, month, course, 'url', md)
+        rd_data = rd.get_data(hrname, date_i, md)
+        jc_data = wc.get_jangu_clinic(jangu_clinic, hrname)
 
         adata = [unicode(itemElm.rcdist.string),
                  humidity,
@@ -282,6 +288,8 @@ def parse_xml_entry(meet, date_i, number, md=mean_data()):
                  tr_win[9],
                  ]
         #print(adata)
+        adata.extend(rd_data)
+        adata.extend(jc_data)
         data.append(adata)
 
     df = pd.DataFrame(data)
@@ -292,7 +300,11 @@ def parse_xml_entry(meet, date_i, number, md=mean_data()):
                   'hr_ny2', 'hr_y1', 'hr_y2', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 9
                   'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', # 7
                   'jk_ny2', 'jk_y1', 'jk_y2', 'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', # 10
-                  'tr_ny2', 'tr_y1', 'tr_y2'] # 3
+                  'tr_ny2', 'tr_y1', 'tr_y2', # 3
+                  'rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
+                  'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',  # 30
+                  'jc31', 'jc32', 'jc33', 'jc34', 'jc35', 'jc36', 'jc37', 'jc38', 'jc39', 'jc40', 'jc41', 'jc42', 'jc43', 'jc44', 'jc45', 'jc46', 'jc47', 'jc48', 'jc49', 'jc50', 'jc51', 'jc52', 'jc53', 'jc54', 'jc55', 'jc56', 'jc57', 'jc58', 'jc59', 'jc60',  # 30
+                  'jc61', 'jc62', 'jc63', 'jc64', 'jc65', 'jc66', 'jc67', 'jc68', 'jc69', 'jc70', 'jc71', 'jc72', 'jc73', 'jc74', 'jc75', 'jc76', 'jc77', 'jc78', 'jc79', 'jc80', 'jc81']  # 21
     return df
 
 
@@ -301,4 +313,5 @@ if __name__ == '__main__':
     rcno = 8
     date = 20161112
     data = parse_xml_entry(meet, date, rcno)
+    data.to_csv('../log/xml_%d_%d.csv' % (date, rcno))
     print data

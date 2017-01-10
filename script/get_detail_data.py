@@ -10,6 +10,7 @@ from mean_data import mean_data
 
 DEBUG = False
 
+
 def get_budam(meet, date, rcno, name):
     name = name.replace('★', '')
     fname = '../txt/%d/chulmapyo/chulmapyo_%d_%d_%d.txt' % (meet, meet, date, rcno)
@@ -23,7 +24,7 @@ def get_budam(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 return unicode(itemList[6].string)
     print("can not find budam of %s in %s" % (name, fname))
     return 54
@@ -42,7 +43,7 @@ def get_dbudam(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if len(itemList) >= 10 and name in itemList[1].string.encode('utf-8'):
+            if len(itemList) >= 10 and name in unicode(itemList[1].string).encode('utf-8'):
                 value = int(re.search(r'\d+', unicode(itemList[7].string)).group())
                 return value
     print("can not find dbudam of %s in %s" % (name, fname))
@@ -62,7 +63,7 @@ def get_weight(meet, date, rcno, name, course):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 try:
                     return int(float(unicode(itemList[2].string)))
                 except ValueError:
@@ -83,7 +84,7 @@ def get_dweight(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 return unicode(itemList[3].string)
     print("can not find dweight %s in %s" % (name, fname))
     return 0
@@ -104,7 +105,7 @@ def get_drweight(meet, date, rcno, name):
             itemList = itemElm2.findAll('td')
             if len(itemList) < 5:
                 continue
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 last_date = itemList[4].string
                 if len(last_date) >= 10:
                     last_date = datetime.date(int(last_date[:4]), int(last_date[5:7]), int(last_date[8:10]))
@@ -134,7 +135,7 @@ def get_lastday(meet, date, rcno, name):
             itemList = itemElm2.findAll('td')
             if len(itemList) < 5:
                 continue
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 last_date = itemList[4].string
                 if len(last_date) >= 10:
                     last_date = datetime.date(int(last_date[:4]), int(last_date[5:7]), int(last_date[8:10]))
@@ -165,7 +166,7 @@ def get_train_state(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 for item in itemList[2:]:
                     if item.string is None:
                         continue
@@ -182,7 +183,7 @@ def get_train_state(meet, date, rcno, name):
                     res[5] += train_time
                 return res
     print("can not find train state %s in %s" % (name, fname))
-    return [-1, -1, -1, -1, -1, -1]
+    return [2, 7, 1, 27, 125, 162]
 
 
 # http://race.kra.co.kr/racehorse/profileTrainState.do?Act=02&Sub=1&meet=1&hrNo=036114
@@ -390,15 +391,15 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
             #print("%d, %s, %s, %d" % (date, racekind, distance, record))
 
 
-    if len(race_sum[6]) != 0:
+    if len(race_sum[6]) == 0:
+        result[6] = int(md.course_record[6])
+    else:
         result[6] = np.mean(race_sum[6])
         race_sum[6].reverse()
         for r in race_sum[6]:
             result[6] += 0.1 * (r - result[6])
         result[6] = int(result[6])
-    else:
-        result[6] = int(md.course_record[6])
-    for i in range(len(race_sum)):
+    for i in range(len(race_sum)-1):
         if len(race_sum[i]) == 0:
             result[i] = int(result[6] * md.course_record[i] / md.course_record[6])
         else:

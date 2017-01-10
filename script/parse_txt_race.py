@@ -436,17 +436,22 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
     return map(lambda x: int(x), md.tr_history_total[course] + md.tr_history_year[course])
 
 
-def get_data(filename, md=mean_data()):
+def get_data(filename, md=mean_data(), rd=RaceDetail()):
     print("race file: %s" % filename)
     date_i = re.search(unicode(r'\d{8}', 'utf-8').encode('utf-8'), filename).group()
     date = datetime.date(int(date_i[:4]), int(date_i[4:6]), int(date_i[6:]))
     data = parse_txt_race(filename, md)
+
+    jangu_clinic = wc.parse_hr_clinic(date)
+
     for i in range(len(data)):
         #print("race file: %s" % filename)
         #print("%s %s %s" % (data[i][5], data[i][10], data[i][11]))
         data[i].extend(parse_txt_horse(date, int(data[i][39]), data[i][24], data[i][0], md))
         data[i].extend(parse_txt_jockey(date, data[i][29], data[i][0], md))
         data[i].extend(parse_txt_trainer(date, data[i][30], data[i][0], md))
+        data[i].extend(rd.get_data(data[i][24], date_i, md))
+        data[i].extend(wc.get_jangu_clinic(jangu_clinic, data[i][24]))
         data[i].extend([date_i])
     df = pd.DataFrame(data)
     df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
