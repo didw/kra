@@ -464,10 +464,10 @@ if __name__ == '__main__':
     train_ed = datetime.date(2016, 10, 31)
     test_bd = datetime.date(2015, 1, 1)
     test_ed = datetime.date(2016, 12, 25)
-    for delta_year in [1,2]:
+    for delta_year in [1,2,4]:
         for nData in [186]:
             simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[1000, 1200, 1300, 1400, 1600, 0], nData=nData)
-            #for c in [1000, 1200, 1300, 1400, 1700]:
-            #    for k in [0]:
-            #        outfile = '../data/weekly_result_m3_nd%d_y%d_c%d_0_k%d.txt' % (nData, delta_year, c, k)
-            #        simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c, k, nData=nData)
+            for c in [1000, 1200, 1300, 1400, 1600]:
+                for k in [0]:
+                    outfile = '../data/weekly_result_m3_nd%d_y%d_c%d_0_k%d.txt' % (nData, delta_year, c, k)
+                    simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c, k, nData=nData)
