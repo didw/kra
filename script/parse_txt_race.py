@@ -354,6 +354,7 @@ def parse_txt_horse(date, rcno, name, course, md=mean_data()):
 
             data.extend(dist_rec)
             assert len(data) == 17
+            data = map(lambda x: int(x), data)
             return data
     print("can not find %s in %s" % (name, filename))
     #return [-1] + [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1, -1]
@@ -397,6 +398,7 @@ def parse_txt_jockey(date, name, course, md=mean_data()):
                 data.append(int(participates[4])*100/int(participates[3]))
                 data.append(int(participates[5])*100/int(participates[3]))
 
+            data = map(lambda x: int(x), data)
             return data
     print("can not find %s in %s" % (name, filename))
     #return [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1]
@@ -441,13 +443,14 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
                 data.append(int(participates[4])*100/int(participates[3]))
                 data.append(int(participates[5])*100/int(participates[3]))
 
+            data = map(lambda x: int(x), data)
             return data
     print("can not find %s in %s" % (name, filename))
     #return [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1]
     return map(lambda x: int(x), md.tr_history_total[course] + md.tr_history_year[course])
 
 
-def get_data(filename, md=mean_data()):
+def get_data(filename, md=mean_data(), rd=RaceDetail()):
     print("race file: %s" % filename)
     date_i = re.search(unicode(r'\d{8}', 'utf-8').encode('utf-8'), filename).group()
     date = datetime.date(int(date_i[:4]), int(date_i[4:6]), int(date_i[6:]))
@@ -498,13 +501,8 @@ if __name__ == '__main__':
             print("processed rc in %s" % fname)
             rd.parse_race_detail(fname)
     md = mean_data()
-    data = get_data(filename)
-    print(data)
+    data = get_data(filename, md, rd)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)
-    data = data.dropna()
-    print(data[['rctime', 'r1', 'r2', 'r3']])
-    print(data['cnt'])
-    print(data['rcno'])
     del data['name']
     del data['jockey']
     del data['trainer']
@@ -525,4 +523,5 @@ if __name__ == '__main__':
     del data['samssang']
     data.to_csv(filename.replace('.txt', '_x.csv'), index=False)
 
+    print(data)
 

@@ -14,7 +14,7 @@ DEBUG = False
 
 class mean_data:
     def __init__(self):
-        self.lr = 0.001
+        self.lr = 0.01
 
         self.race_score = \
             {300:  [[707, 707, 707, 706, 703, 707, 709, 707, 709, 709, 702, 710, 706, 707, 713, 709, 712, 700, 712, 710, 707],
@@ -254,7 +254,7 @@ class mean_data:
         humidity -= 1
         try:
             self.race_score[300][month][humidity] += self.lr*10 * (record - self.race_score[300][month][humidity])
-            self.race_score[300][20] = np.mean(self.race_score[300])
+            self.race_score[300][month][20] = np.mean(self.race_score[300][month])
         except KeyError:
             return 0
 

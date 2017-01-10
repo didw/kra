@@ -89,6 +89,16 @@ class RaceDetail:
                             s1f = 180
                             g1f = 180
                             g3f = 500
+                    elif len(words) == 10:
+                        if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (words[3], words[7], words[2]))
+                        try:
+                            s1f = float(re.search(r'\d{2}\.\d', words[3]).group())*10
+                            g1f = float(re.search(r'\d{2}\.\d', words[7]).group())*10
+                            g3f = float(re.search(r'\d{2}\.\d', words[2]).group())*10
+                        except:
+                            s1f = 180
+                            g1f = 180
+                            g3f = 500
                     elif len(words) == 11:
                         if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (words[3], words[8], words[2]))
                         try:

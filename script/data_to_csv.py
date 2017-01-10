@@ -20,11 +20,8 @@ def get_data(begin_date, end_date, fname_csv):
     rd = RaceDetail()
     import glob
     for year in range(2007, 2017):
-        filelist1 = glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_2_%d*.txt' % year)
-        filelist2 = glob.glob('../txt/1/rcresult/rcresult_2_%d*.txt' % year)
-        for fname in filelist1:
-            print("processed ap %s" % fname)
-            rd.parse_ap_rslt(fname)
+        filelist1 = glob.glob('../txt/2/ap-check-rslt/ap-check-rslt_2_%d*.txt' % year)
+        filelist2 = glob.glob('../txt/2/rcresult/rcresult_2_%d*.txt' % year)
         for fname in filelist2:
             print("processed rc in %s" % fname)
             rd.parse_race_detail(fname)
@@ -34,7 +31,7 @@ def get_data(begin_date, end_date, fname_csv):
         if date.weekday() != 4 and date.weekday() != 5:
             continue
         for i in [300, 400, 800, 900, 1000, 1200, 0]:
-            print("%f" % md.race_score[i][20], end=' ')
+            print("%f" % md.race_score[i][0][20], end=' ')
         print()
         filename = "../txt/2/rcresult/rcresult_2_%02d%02d%02d.txt" % (date.year, date.month, date.day)
         if not os.path.isfile(filename):
@@ -68,7 +65,7 @@ def update_data(end_date, fname_csv):
         if date.weekday() != 4 and date.weekday() != 5:
             continue
         for i in [300, 400, 800, 900, 1000, 1200, 0]:
-            print("%f" % md.race_score[i][20], end=' ')
+            print("%f" % md.race_score[i][0][20], end=' ')
         print()
         filename = "../txt/2/rcresult/rcresult_2_%02d%02d%02d.txt" % (date.year, date.month, date.day)
         if not os.path.isfile(filename):
@@ -91,7 +88,7 @@ def update_md(fname):
 if __name__ == '__main__':
     DEBUG = True
     fname_csv = '../data/2_2007_2016.csv'
-    bdate = datetime.date(2016, 11, 10)
+    bdate = datetime.date(2007, 1, 1)
     edate = datetime.date(2016,12,31)
-    #get_data(bdate, edate, fname_csv)
-    update_data(datetime.date(2016,12,31), fname_csv)
+    get_data(bdate, edate, fname_csv)
+    #update_data(datetime.date(2016,12,31), fname_csv)
