@@ -9,7 +9,10 @@ import os
 # http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/rcresult/20161030dacom11.rpt&meet=3
 # http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/jeju/horse/20161102cdb1.txt&meet=2
 # http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/chulma/20161103dacom01.rpt&meet=1
-# http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/busan/jockey/20070216pdb2.txt&meet=3
+# http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/daily-train/20161113dacom55.rpt&meet=1
+# http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/ap-check-rslt/20141226dacom23.rpt&meet=1
+# http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/weekly-clinic/20170101dacom72.rpt&meet=1
+# http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/weekly-jangu/20161222dacom71.rpt&meet=1
 def download_txt(bd, ed, meet, overwrite=False):
     data = [# seoul
             [["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/rcresult/", "rcresult", "dacom11.rpt", [5, 6]],
@@ -17,21 +20,30 @@ def download_txt(bd, ed, meet, overwrite=False):
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/jockey/", "jockey", "sdb2.txt", [3, 6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/trainer/", "trainer", "sdb3.txt", [3, 6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/chulma/", "chulma", "dacom01.rpt", [3]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/daily-train/", "daily-train", "dacom55.rpt", [0,1,2,3,4,5,6]]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/daily-train/", "daily-train", "dacom55.rpt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/ap-check-rslt/", "ap-check-rslt", "dacom23.rpt", [4]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/weekly-clinic/", "weekly-clinic", "dacom72.rpt", [3,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/weekly-jangu/", "weekly-jangu", "dacom71.rpt", [3]]],
             # jeju
             [["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/jungbo/rcresult/", "rcresult", "dacom11.rpt", [4, 5]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/jeju/horse/", "horse", "cdb1.txt", [2, 5]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/jeju/jockey/", "jockey", "cdb2.txt", [2, 5]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/jeju/trainer/", "trainer", "cdb3.txt", [2, 5]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/jungbo/chulma/", "chulma", "dacom01.rpt", [2]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/sokbo/daily-train/", "daily-train", "dacom55.rpt", [0,1,2,3,4,5,6]]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/sokbo/daily-train/", "daily-train", "dacom55.rpt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/jungbo/ap-check-rslt/", "ap-check-rslt", "dacom23.rpt", [3,4]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/sokbo/weekly-clinic/", "weekly-clinic", "dacom72.rpt", [3]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/sokbo/weekly-jangu/", "weekly-jangu", "dacom71.rpt", [2]]],
             # busan
             [["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/rcresult/", "rcresult", "dacom11.rpt", [4, 6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/busan/horse/", "horse", "pdb1.txt", [2, 4, 5, 6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/busan/jockey/", "jockey", "pdb2.txt", [2, 4, 5, 6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/busan/trainer/", "trainer", "pdb3.txt", [2, 4, 5, 6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/chulma/", "chulma", "dacom01.rpt", [2]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/sokbo/daily-train/", "daily-train", "dacom55.rpt", [0,1,2,3,4,5,6]]]
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/sokbo/daily-train/", "daily-train", "dacom55.rpt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/ap-check-rslt/", "ap-check-rslt", "dacom23.rpt", [5]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/sokbo/weekly-clinic/", "weekly-clinic", "dacom72.rpt", [2,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/sokbo/weekly-jangu/", "weekly-jangu", "dacom71.rpt", [2]]]
             ]
 
     for line in data[meet-1]:
@@ -51,9 +63,12 @@ def download_txt(bd, ed, meet, overwrite=False):
                 fout = open(fname, 'w')
                 fout.write(response_body)
                 fout.close()
+                if os.path.getsize(fname) < 100:
+                    os.remove(fname)
                 print "[%s] data is downloaded" % request
             except:
                 print '[%s] data downloading failed' % request
+                print 'or fail to save %s' % fname
     print "job has completed"
 
 
@@ -65,20 +80,20 @@ def download_txt(bd, ed, meet, overwrite=False):
 def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
     data = [# seoul http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=1&rcNo=3&rcDate=20070415
         #      http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=1&rcNo=5&rcDate=20070714
-            [["DistanceRecord.do?Act=02&Sub=1", "dist_rec", [5, 6]],
-             ["Chulmapyo.do?Act=02&Sub=1", "chulmapyo", [5, 6]],
-             ["Weight.do?Act=02&Sub=1", "weight", [5, 6]],
-             ["TrainState.do?Act=02&Sub=1", "train_state", [5, 6]]
+            [["DistanceRecord.do?Act=02&Sub=1", "dist_rec", [5, 6], 31700],
+             ["Chulmapyo.do?Act=02&Sub=1", "chulmapyo", [5, 6], 33400],
+             ["Weight.do?Act=02&Sub=1", "weight", [5, 6], 31400],
+             ["TrainState.do?Act=02&Sub=1", "train_state", [5, 6], 32000]
              ],
-            [["DistanceRecord.do?Act=02&Sub=1", "dist_rec", [4, 5]],
-             ["Chulmapyo.do?Act=02&Sub=1", "chulmapyo", [4, 5]],
-             ["Weight.do?Act=02&Sub=1", "weight", [4, 5]],
-             ["TrainState.do?Act=02&Sub=1", "train_state", [4, 5]],
+            [["DistanceRecord.do?Act=02&Sub=1", "dist_rec", [4, 5], 31700],
+             ["Chulmapyo.do?Act=02&Sub=1", "chulmapyo", [4, 5], 33400],
+             ["Weight.do?Act=02&Sub=1", "weight", [4, 5], 31400],
+             ["TrainState.do?Act=02&Sub=1", "train_state", [4, 5], 32000],
              ],
-            [["DistanceRecord.do?Act=02&Sub=1", "dist_rec", [4, 6]],
-             ["Chulmapyo.do?Act=02&Sub=1", "chulmapyo", [4, 6]],
-             ["Weight.do?Act=02&Sub=1", "weight", [4, 6]],
-             ["TrainState.do?Act=02&Sub=1", "train_state", [4, 6]],
+            [["DistanceRecord.do?Act=02&Sub=1", "dist_rec", [4, 6], 31700],
+             ["Chulmapyo.do?Act=02&Sub=1", "chulmapyo", [4, 6], 33400],
+             ["Weight.do?Act=02&Sub=1", "weight", [4, 6], 31400],
+             ["TrainState.do?Act=02&Sub=1", "train_state", [4, 6], 32000],
              ],
     ]
     for line in data[meet-1]:
@@ -100,14 +115,45 @@ def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
                     fout = open(fname, 'w')
                     fout.write(response_body)
                     fout.close()
+                    if os.path.getsize(fname) < line[3]:
+                        os.remove(fname)
                     print("[%s] data is downloaded" % request)
                 except:
                     print('[%s] data downloading failed' % request)
     print("job has completed")
 
+def download_racehorse(hrno_b, hrno_e, meet, overwrite=False):
+    data = [# seoul http://race.kra.co.kr/racehorse/profileRaceScore.do?Act=02&Sub=1&meet=1&hrNo=040000
+            ["profileRaceScore.do?Act=02&Sub=1&", "racehorse",
+             ],
+            ["profileRaceScore.do?Act=02&Sub=1&", "racehorse",
+             ],
+            ["profileRaceScore.do?Act=02&Sub=1&", "racehorse",
+             ]
+    ]
+    line = data[meet-1]
+    base_url = "http://race.kra.co.kr/racehorse/"
+    race_url = base_url + line[0]
+    for hrno in range(hrno_b, hrno_e):
+        request = "%s&meet=%d&hrNo=%06d" % (race_url, meet, hrno)
+        try:
+            fname = "../txt/%d/%s/%s_%d_%06d.txt" % (meet, line[1], line[1], meet, hrno)
+            if not overwrite and os.path.exists(fname):
+                continue
+            response_body = urlopen(request).read()
+            fout = open(fname, 'w')
+            fout.write(response_body)
+            fout.close()
+            if os.path.getsize(fname) < 31100:
+                os.remove(fname)
+            print("[%s] data is downloaded" % request)
+        except:
+            print('[%s] data downloading failed' % request)
+    print("job has completed")
 
 if __name__ == '__main__':
     for i in range(3, 4):
-        download_chulmaDetailInfo(datetime.date(2016, 11, 20), datetime.date.today()+datetime.timedelta(days=-1), i, True)
-        download_txt(datetime.date(2016, 11, 20), datetime.date.today()+datetime.timedelta(days=-1), i, True)
+        #download_racehorse(1, 40000, i, False)
+        #download_chulmaDetailInfo(datetime.date(2016, 11, 27), datetime.date.today(), i, True)
+        download_txt(datetime.date(2006, 1, 1), datetime.date.today(), i, False)
 
