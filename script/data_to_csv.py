@@ -7,6 +7,7 @@ import pandas as pd
 import os.path
 from mean_data import mean_data
 from sklearn.externals import joblib
+from get_race_detail import RaceDetail
 
 def get_data(begin_date, end_date, fname_csv):
     train_bd = begin_date
@@ -16,23 +17,32 @@ def get_data(begin_date, end_date, fname_csv):
     first = True
     date += datetime.timedelta(days=-1)
     md = mean_data()
+    rd = RaceDetail()
+    import glob
+    for year in range(2007, 2017):
+        filelist1 = glob.glob('../txt/2/ap-check-rslt/ap-check-rslt_2_%d*.txt' % year)
+        filelist2 = glob.glob('../txt/2/rcresult/rcresult_2_%d*.txt' % year)
+        for fname in filelist2:
+            print("processed rc in %s" % fname)
+            rd.parse_race_detail(fname)
+    joblib.dump(rd, fname_csv.replace('.csv', '_rd.pkl'))
     while date < train_ed:
         date += datetime.timedelta(days=1)
         if date.weekday() != 4 and date.weekday() != 5:
             continue
         for i in [300, 400, 800, 900, 1000, 1200, 0]:
-            print("%f" % md.race_score[i][20], end=' ')
+            print("%f" % md.race_score[i][0][20], end=' ')
         print()
         filename = "../txt/2/rcresult/rcresult_2_%02d%02d%02d.txt" % (date.year, date.month, date.day)
         if not os.path.isfile(filename):
             continue
         if first:
-            adata = pr.get_data(filename, md)
+            adata = pr.get_data(filename, md, rd)
             md.update_data(adata)
             data = adata
             first = False
         else:
-            adata = pr.get_data(filename, md)
+            adata = pr.get_data(filename, md, rd)
             md.update_data(adata)
             data = data.append(adata, ignore_index=True)
     data.to_csv(fname_csv, index=False)
@@ -47,18 +57,20 @@ def update_data(end_date, fname_csv):
     train_ed = end_date
     date = datetime.date(train_bd/10000, train_bd/100%100, train_bd%100)
     fname_md = fname_csv.replace('.csv', '_md.pkl')
+    fname_rd = fname_csv.replace('.csv', '_rd.pkl')
+    rd = joblib.load(fname_rd)
     md = joblib.load(fname_md)
     while date < train_ed:
         date += datetime.timedelta(days=1)
         if date.weekday() != 4 and date.weekday() != 5:
             continue
         for i in [300, 400, 800, 900, 1000, 1200, 0]:
-            print("%f" % md.race_score[i][20], end=' ')
+            print("%f" % md.race_score[i][0][20], end=' ')
         print()
         filename = "../txt/2/rcresult/rcresult_2_%02d%02d%02d.txt" % (date.year, date.month, date.day)
         if not os.path.isfile(filename):
             continue
-        adata = pr.get_data(filename, md)
+        adata = pr.get_data(filename, md, rd)
         md.update_data(adata)
         data = data.append(adata, ignore_index=True)
     os.system("rename \"%s\" \"%s\"" % (fname_csv, fname_csv.replace('.csv', '_%s.csv'%train_bd)))
@@ -76,7 +88,7 @@ def update_md(fname):
 if __name__ == '__main__':
     DEBUG = True
     fname_csv = '../data/2_2007_2016.csv'
-    bdate = datetime.date(2015, 6, 20)
-    edate = datetime.date(2015,12,31)
+    bdate = datetime.date(2007, 1, 1)
+    edate = datetime.date(2016,12,31)
     get_data(bdate, edate, fname_csv)
-    #update_data(datetime.date(2015,12,31), fname_csv)
+    #update_data(datetime.date(2016,12,31), fname_csv)

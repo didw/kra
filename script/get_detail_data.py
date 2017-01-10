@@ -24,7 +24,7 @@ def get_budam(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 return unicode(itemList[6].string)
     print("can not find budam of %s in %s" % (name, fname))
     return 54
@@ -43,7 +43,7 @@ def get_dbudam(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if len(itemList) >= 10 and name in itemList[1].string.encode('utf-8'):
+            if len(itemList) >= 10 and name in unicode(itemList[1].string).encode('utf-8'):
                 value = int(re.search(r'\d+', unicode(itemList[7].string)).group())
                 return value
     print("can not find dbudam of %s in %s" % (name, fname))
@@ -63,7 +63,7 @@ def get_weight(meet, date, rcno, name, course):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 try:
                     return int(float(unicode(itemList[2].string)))
                 except ValueError:
@@ -84,7 +84,7 @@ def get_dweight(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 return unicode(itemList[3].string)
     print("can not find dweight %s in %s" % (name, fname))
     return 0
@@ -105,7 +105,7 @@ def get_drweight(meet, date, rcno, name):
             itemList = itemElm2.findAll('td')
             if len(itemList) < 5:
                 continue
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 last_date = itemList[4].string
                 if len(last_date) >= 10:
                     last_date = datetime.date(int(last_date[:4]), int(last_date[5:7]), int(last_date[8:10]))
@@ -135,7 +135,7 @@ def get_lastday(meet, date, rcno, name):
             itemList = itemElm2.findAll('td')
             if len(itemList) < 5:
                 continue
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 last_date = itemList[4].string
                 if len(last_date) >= 10:
                     last_date = datetime.date(int(last_date[:4]), int(last_date[5:7]), int(last_date[8:10]))
@@ -167,7 +167,7 @@ def get_train_state(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 for item in itemList[2:]:
                     if item.string is None:
                         continue
@@ -283,20 +283,19 @@ def get_hrno(meet, date, rcno, name):
     return -1
 
 
-
-def norm_racescore(meet, course, humidity, value, md=mean_data()):
+def norm_racescore(meet, course, month, humidity, value, md=mean_data()):
     humidity = min(humidity, 20) - 1
     try:
-        return value * md.race_score[0][20] / md.race_score[0][humidity]
+        return value * np.array(md.race_score[0])[:,20].mean() / md.race_score[0][month][humidity]
     except KeyError:
         return value
 
 
-def get_hr_racescore(meet, hrno, _date, course, mode='File', md=mean_data()):
+def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data()):
     first_attend = True
     course = int(course)
     result = [-1, -1, -1, -1, -1, -1, -1] # 주, 400, 800, 900, 1000, 1200, 0
-    default_res = map(lambda x: int(x), [md.race_score[300][20], md.race_score[400][20], md.race_score[800][20], md.race_score[900][20], md.race_score[1000][20], md.race_score[1200][20], md.race_score[0][20]])
+    default_res = map(lambda x: int(np.mean(np.array(x)[:,20])), [md.race_score[300], md.race_score[400], md.race_score[800], md.race_score[900], md.race_score[1000], md.race_score[1200], md.race_score[0]])
     default_res.extend(map(lambda x: int(x), md.dist_rec[course][3:]))
     race_sum = [[], [], [], [], [], [], []]
     race_same_dist = []
@@ -333,6 +332,7 @@ def get_hr_racescore(meet, hrno, _date, course, mode='File', md=mean_data()):
                 print("regular expression error: %s" % itemList)
                 continue
             date = int("%s%s%s" % (date[:4], date[5:7], date[8:]))
+            month_ = date/100%100
             if date >= _date:
                 continue
 
@@ -363,16 +363,16 @@ def get_hr_racescore(meet, hrno, _date, course, mode='File', md=mean_data()):
             if record == 0:
                 continue
             #print("주, 일, %s" % racekind)
-            record = norm_racescore(1, distance, humidity, record, md)
+            record = norm_racescore(1, distance, month_-1, humidity, record, md)
             if distance not in [300, 400, 800, 900, 1000, 1200]:
                 continue
-            if record < md.race_score[distance][20]*0.8 or record > md.race_score[distance][20]*1.2:
+            if record < md.race_score[distance][month_-1][20]*0.8 or record > md.race_score[distance][month_-1][20]*1.2:
                 continue
             if racekind == '주' and len(race_sum[0]) == 0:
                 race_sum[0].append(record)
                 race_sum[6].append(record * md.course_record[6] / md.course_record[0])
                 if first_attend:
-                    md.update_race_score_qual(humidity, record)
+                    md.update_race_score_qual(month_-1, humidity, record)
                 first_attend = False
             elif racekind == '일':
                 if distance == 1000:
@@ -395,15 +395,23 @@ def get_hr_racescore(meet, hrno, _date, course, mode='File', md=mean_data()):
             #print("%d, %s, %s, %d" % (date, racekind, distance, record))
 
 
-    if len(race_sum[6]) != 0:
-        result[6] = np.mean(race_sum[6])
+    if len(race_sum[6]) == 0:
+        result[6] = int(md.course_record[6])
     else:
-        result[6] = md.course_record[6]
-    for i in range(len(race_sum)):
+        result[6] = np.mean(race_sum[6])
+        race_sum[6].reverse()
+        for r in race_sum[6]:
+            result[6] += 0.1 * (r - result[6])
+        result[6] = int(result[6])
+    for i in range(len(race_sum)-1):
         if len(race_sum[i]) == 0:
             result[i] = int(result[6] * md.course_record[i] / md.course_record[6])
         else:
-            result[i] = int(np.mean(race_sum[i]))
+            result[i] = np.mean(race_sum[i])
+            race_sum[i].reverse()
+            for r in race_sum[i]:
+                result[i] += 0.1 * (r - result[i])
+            result[i] = int(result[i])
     if len(race_same_dist) > 0:
         result.append(int(np.min(race_same_dist)))
         result.append(int(np.mean(race_same_dist)))
@@ -412,9 +420,9 @@ def get_hr_racescore(meet, hrno, _date, course, mode='File', md=mean_data()):
         #result.extend([-1, -1, -1])
         delta1 = md.dist_rec[course][4] - md.dist_rec[course][3]
         delta2 = md.dist_rec[course][5] - md.dist_rec[course][4]
-        result.append(int(md.race_score[course][20] - delta1))
-        result.append(int(md.race_score[course][20]))
-        result.append(int(md.race_score[course][20] + delta2))
+        result.append(int(md.race_score[course][month-1][20] - delta1))
+        result.append(int(md.race_score[course][month-1][20]))
+        result.append(int(md.race_score[course][month-1][20] + delta2))
     else:
         #result.extend([-1, -1, -1])
         result.append(int(md.dist_rec[course][3]))
