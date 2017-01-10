@@ -78,5 +78,5 @@ if __name__ == '__main__':
     fname_csv = '../data/2_2007_2016.csv'
     bdate = datetime.date(2015, 6, 20)
     edate = datetime.date(2015,12,31)
-    #get_data(bdate, edate, fname_csv)
-    update_data(datetime.date(2015,12,31), fname_csv)
+    get_data(bdate, edate, fname_csv)
+    #update_data(datetime.date(2015,12,31), fname_csv)
