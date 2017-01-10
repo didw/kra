@@ -220,7 +220,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
             estimator = joblib.load(model_name)
         else:
             print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016.csv', course, 0, nData=nData)
+            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_2007_2016.csv', course, 0, nData=nData)
             print("%d data is fully loaded" % len(X_train))
             if len(X_train) < 10:
                 res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
