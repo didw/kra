@@ -194,12 +194,12 @@ class mean_data:
                                 2000: [287.7213706, 32.33092876, 29.59963931, 9.820108206, 9.155545537],
                                 2200: [305.5578947, 34.87368421, 31.73684211, 10.4, 9.757894737]
                                 }
-        self.race_detail = { 900: [150, 150, 400],
-                            1000: [150, 150, 400],
-                            1200: [150, 150, 400],
-                            1300: [150, 150, 400],
-                            1400: [150, 150, 400],
-                            1600: [150, 150, 400],
+        self.race_detail = { 900: [140, 140, 250, 370],
+                            1000: [140, 140, 250, 370],
+                            1200: [140, 140, 250, 370],
+                            1300: [140, 140, 250, 370],
+                            1400: [140, 140, 250, 370],
+                            1600: [140, 140, 250, 370],
                             }
     def get_dist_rec(self):
         return self.dist_rec
@@ -254,7 +254,7 @@ class mean_data:
             humidity = 20
         humidity -= 1
         try:
-            self.race_score[900][month][humidity] += self.lr*10 * (record - self.race_score[900][month][humidity])
+            self.race_score[900][month][humidity] += self.lr * (record - self.race_score[900][month][humidity])
             self.race_score[900][month][20] = np.mean(self.race_score[900][month])
         except KeyError:
             return 0
@@ -271,7 +271,8 @@ class mean_data:
         try:
             self.race_detail[course][0] += self.lr * (data['s1f'] - self.race_score[course][0])
             self.race_detail[course][1] += self.lr * (data['g1f'] - self.race_score[course][1])
-            self.race_detail[course][2] += self.lr * (data['g3f'] - self.race_score[course][2])
+            self.race_detail[course][2] += self.lr * (data['g2f'] - self.race_score[course][2])
+            self.race_detail[course][3] += self.lr * (data['g3f'] - self.race_score[course][3])
         except KeyError:
             return 0
 

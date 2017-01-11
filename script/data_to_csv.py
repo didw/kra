@@ -19,7 +19,7 @@ def get_data(begin_date, end_date, fname_csv):
     md = mean_data()
     rd = RaceDetail()
     import glob
-    for year in range(2009, 2017):
+    for year in range(2007, 2017):
         filelist1 = glob.glob('../txt/3/ap-check-rslt/ap-check-rslt_3_%d*.txt' % year)
         filelist2 = glob.glob('../txt/3/rcresult/rcresult_3_%d*.txt' % year)
         for fname in filelist1:

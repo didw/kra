@@ -69,26 +69,36 @@ class RaceDetail:
                         #print("result: %s" % res)
                         break
                     words = re.findall(r'\S+', line)
+                    s1f, g1f, g2f, g3f = -1, -1, -1, -1
                     if len(words) == 9:
-                        if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (words[3], words[6], words[2]))
+                        if DEBUG: print("s1f: %s, g1f: %s, g2f: %s, g3f: %s" % (words[3], words[6], words[5], words[2]))
                         try:
                             g1f = float(re.search(r'\d{2}\.\d', words[6]).group())*10
+                            g2f = float(re.search(r'\d{2}\.\d', words[5]).group())*10
                         except:
-                            g1f = 150
+                            print("parsing error in race_detail - 1")
+                            g1f = -1
+                            g2f = -1
                     elif len(words) == 10:
-                        if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (words[3], words[7], words[2]))
+                        if DEBUG: print("s1f: %s, g1f: %s, g2f: %s, g3f: %s" % (words[3], words[7], words[6], words[2]))
                         try:
                             g1f = float(re.search(r'\d{2}\.\d', words[7]).group())*10
+                            g2f = float(re.search(r'\d{2}\.\d', words[6]).group())*10
                         except:
-                            g1f = 150
+                            print("parsing error in race_detail - 2")
+                            g1f = -1
+                            g2f = -1
                     elif len(words) == 11:
-                        if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (words[3], words[8], words[2]))
+                        if DEBUG: print("s1f: %s, g1f: %s, g2f: %s, g3f: %s" % (words[3], words[8], words[7], words[2]))
                         try:
                             g1f = float(re.search(r'\d{2}\.\d', words[8]).group())*10
+                            g2f = float(re.search(r'\d{2}\.\d', words[7]).group())*10
                         except:
-                            g1f = 150
+                            print("parsing error in race_detail - 3")
+                            g1f = -1
+                            g2f = -1
                     elif len(words) < 9:
-                        #print("unexpected line: %s" % line)
+                        i += 1
                         continue
                     try:
                         s1f = float(re.search(r'\d{2}\.\d', words[3]).group())*10
@@ -99,12 +109,14 @@ class RaceDetail:
                     except:
                         g3f = 400
                     if s1f < 100 or s1f > 200:
-                        s1f = 150
+                        s1f = -1
                     if g1f < 100 or g1f > 200:
-                        g1f = 150
+                        g1f = -1
+                    if g2f < 200 or g2f > 300:
+                        g2f = -1
                     if g3f < 300 or g3f > 500:
-                        g3f = 400
-                    data[name_list[i]].extend([s1f, g1f, g3f])
+                        g3f = -1
+                    data[name_list[i]].extend([s1f, g1f, g2f, g3f])
                     i += 1
                     
         for k,v in data.iteritems():
@@ -155,7 +167,7 @@ class RaceDetail:
                         print("name: %s" % unicode(name, 'utf-8'))
 
             # read score
-            if re.search(r'S1F', line) is not None:
+            if re.search(r'S1F', line) is not None or re.search(r'S1-F', line) is not None :
                 while re.search(r'[-─]{10}', line) is None:
                     line = in_data.readline()
                     break
@@ -169,30 +181,32 @@ class RaceDetail:
                         break
                     words = re.findall(r'\S+', line)
                     if len(words) < 9:
-                        #print("unexpected line: %s" % line)
-                        data[name_list[i]].extend([150, 150, 400])  # need to fix to default from mean_data
                         i += 1
                         continue
                     if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (words[3], words[6], words[2]))
                     try:
                         s1f = float(re.search(r'\d{2}\.\d', words[-5]).group())*10
                     except:
-                        s1f = 150
+                        print("parsing error in ap s1f")
+                        s1f = -1
                     try:
                         g1f = float(re.search(r'\d{2}\.\d', words[-1]).group())*10
                     except:
-                        g1f = 150
+                        print("parsing error in ap g1f")
+                        g1f = -1
                     try:
                         g3f = float(re.search(r'\d{2}\.\d', words[-2]).group())*10
                     except:
-                        g3f = 400
+                        print("parsing error in ap g3f")
+                        g3f = -1
                     if s1f < 100 or s1f > 200:
-                        s1f = 150
+                        s1f = -1
                     if g1f < 100 or g1f > 200:
-                        g1f = 150
+                        g1f = -1
                     if g3f < 300 or g3f > 500:
-                        g3f = 400
-                    data[name_list[i]].extend([s1f, g1f, g3f])
+                        g3f = -1
+                    g2f = -1
+                    data[name_list[i]].extend([s1f, g1f, g2f, g3f])
                     i += 1
         for k,v in data.iteritems():
             if len(v) < 5:
@@ -205,7 +219,7 @@ class RaceDetail:
 
     def get_data(self, name, date, md=mean_data()):
         res = []
-        rs = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]
+        rs = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]
         course_list = [900, 1000, 1200, 1300, 1400, 1600]
 
         for c in range(len(course_list)):
@@ -213,17 +227,19 @@ class RaceDetail:
                 for data in self.data[name]:
                     if data[0] < date and data[1] == course_list[c]:
                         humidity = date[2]
-                        s1f = norm_racescore(data[0]/100%100, humidity, data[3], md)
-                        g1f = norm_racescore(data[0]/100%100, humidity, data[4], md)
-                        g3f = norm_racescore(data[0]/100%100, humidity, data[5], md)
-                        rs[3*c+0].append(s1f)
-                        rs[3*c+1].append(g1f)
-                        rs[3*c+2].append(g3f)
+                        if data[3] != -1:
+                            rs[4*c+0].append(norm_racescore(data[0]/100%100, humidity, data[3], md))  # s1f
+                        if data[4] != -1:
+                            rs[4*c+1].append(norm_racescore(data[0]/100%100, humidity, data[4], md))  # g1f
+                        if data[5] != -1:
+                            rs[4*c+2].append(norm_racescore(data[0]/100%100, humidity, data[5], md))  # g2f
+                        if data[6] != -1:
+                            rs[4*c+3].append(norm_racescore(data[0]/100%100, humidity, data[6], md))  # g3f
             except:
                 continue
         for i in range(len(rs)):
             if len(rs[i]) == 0:
-                res.append(md.race_detail[course_list[i/3]][i%3])
+                res.append(md.race_detail[course_list[i/4]][i%4])
             else:
                 res.append(np.mean(rs[i]))
         for i in range(len(rs)):
