@@ -408,6 +408,7 @@ def get_fname_dist(date, rcno):
 def parse_txt_horse(date, rcno, name, course, md=mean_data()):
     name = name.replace('★', '')
     filename = get_fname(date, "horse")
+    if DEBUG: print(filename)
     course = int(course)
     #print(filename)
     f_input = open(filename)
@@ -599,11 +600,11 @@ def get_data2(filename, _date, _rcno):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/1/rcresult/rcresult_1_20090215.txt'
+    filename = '../txt/1/rcresult/rcresult_1_20100508.txt'
     #md = joblib.load('../data/1_2007_2016_md.pkl')
     rd = RaceDetail()
     import glob
-    for year in range(2007,2017):
+    for year in range(2009, 2011):
         filelist1 = glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_%d*.txt' % year)
         filelist2 = glob.glob('../txt/1/rcresult/rcresult_1_%d*.txt' % year)
         for fname in filelist1:
