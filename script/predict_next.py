@@ -304,7 +304,7 @@ def predict_next(estimator, md, rd, meet, date, rcno, course=0, nData=47, year=4
 def get_race_detail(date):
     rd = RaceDetail()
     import glob
-    for year in range(date/10000 - 3, date/10000):
+    for year in range(date/10000 - 3, date/10000+1):
         filelist1 = glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_%d*.txt' % year)
         filelist2 = glob.glob('../txt/1/rcresult/rcresult_1_%d*.txt' % year)
         print("loading rslt at %d" % year)
