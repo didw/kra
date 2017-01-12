@@ -14,6 +14,6 @@ def get_data(meet, date):
 
 
 if __name__ == '__main__':
-    get_data(2, 201611)
+    get_data(2, 201612)
 
 
