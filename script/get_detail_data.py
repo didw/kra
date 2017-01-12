@@ -361,7 +361,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
             if record == 0:
                 continue
             #print("주, 일, %s" % racekind)
-            record = norm_racescore(1, distance, month_-1, humidity, record, md)
+            record = norm_racescore(distance, month_-1, humidity, record, md)
             if distance not in [900, 1000, 1200, 1300, 1400, 1600]:
                 continue
             if record < md.race_score[distance][month_-1][20]*0.8 or record > md.race_score[distance][month_-1][20]*1.2:
