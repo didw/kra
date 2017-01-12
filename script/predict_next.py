@@ -305,8 +305,8 @@ def get_race_detail(date):
     rd = RaceDetail()
     import glob
     for year in range(date/10000 - 3, date/10000):
-        filelist1 = glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_%d*.txt' % year)
-        filelist2 = glob.glob('../txt/1/rcresult/rcresult_1_%d*.txt' % year)
+        filelist1 = glob.glob('../txt/3/ap-check-rslt/ap-check-rslt_3_%d*.txt' % year)
+        filelist2 = glob.glob('../txt/3/rcresult/rcresult_3_%d*.txt' % year)
         print("loading rslt at %d" % year)
         for fname in filelist1:
             rd.parse_ap_rslt(fname)
@@ -317,17 +317,17 @@ def get_race_detail(date):
 
 if __name__ == '__main__':
     meet = 3
-    date = 20161218
+    date = 20170106
     train_course = 0
-    courses = [1000, 1000, 1300, 1000, 1300, 1300, 1300, 1300, 1200, 1300, 1700, 1700, 1200, 1400, 1200]
-    rcno = 14
-    course = courses[rcno-1]
+    courses = [0, 0, 0, 0, 0]
+    rcno = 0
+    course = courses[rcno]
     test_course = course
     rd = get_race_detail(date)
     fname = '../result/1701/%d_%d.txt' % (date%100, rcno)
-    for nData, year in zip([186], [2]):
+    for nData, year in zip([192], [1]):
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
-        estimator, md, umd = tr.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100), train_course, nData)
+        estimator, md, umd = tr.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
         predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
 #        train_course = course
 #        for nData in [186]:

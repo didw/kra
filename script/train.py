@@ -91,7 +91,6 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0, kind=0, nData=4
     R_data = data[['name', 'rank', 'r1', 'r2', 'r3', 'hr_nt', 'hr_dt', 'jk_nt', 'tr_nt', 'cnt', 'rcno', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'samssang', 'idx']]
     Y_data = data['rctime']
     X_data = data.copy()
-
     del X_data['name']
     del X_data['jockey']
     del X_data['trainer']
@@ -263,7 +262,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
             res5 = sim.simulation7(pred, R_test, [[1,2],[1,2,3],[1,2,3]])
             res6 = sim.simulation7(pred, R_test, [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]])
             res7 = sim.simulation7(pred, R_test, [[5,6,7,8,9,10],[5,6,7,8,9,10],[5,6,7,8,9,10]])
-            
+            """
             res1 = sim.simulation6(pred, R_test, [[1,2,3]])
             res2 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,3,4], [2,3,4]])
             res3 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5]])
@@ -284,7 +283,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
             res5 = sim.simulation3(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4]])
             res6 = sim.simulation3(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[1,5]])
             res7 = sim.simulation3(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[1,5],[2,5],[3,5],[4,5]])
-            
+            """
             sr1 += res1
             sr2 += res2
             sr3 += res3
@@ -315,6 +314,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
 
 
 def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, courses=[0], kinds=[0], nData=47):
+    remove_outlier = False
     today = begin_date
     sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10 = {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
     while today <= end_date:
@@ -331,7 +331,6 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         test_ed_s = "%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day)
         if not os.path.exists('../txt/3/rcresult/rcresult_3_%s.txt' % test_bd_s) and not os.path.exists('../txt/3/rcresult/rcresult_3_%s.txt' % test_ed_s):
             continue
-        remove_outlier = False
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
@@ -360,6 +359,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
 
         test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
         test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
+
         for course in courses:
             for kind in kinds:
                 fname_result = '../data/weekly_result_train0_m3_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
@@ -399,15 +399,6 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     res6 = sim.simulation6(pred, R_test, [[2,3,4], [2,3,5], [2,4,5], [3,4,5], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
                     res7 = sim.simulation6(pred, R_test, [[3,4,5], [3,4,6], [3,4,7], [3,5,6], [3,5,7], [3,6,7], [4,5,6], [4,5,7], [4,6,7], [5,6,7]])
                     """
-<<<<<<< HEAD
-                    res1 = sim.simulation1(pred, R_test, 1)
-                    res2 = sim.simulation1(pred, R_test, 2)
-                    res3 = sim.simulation1(pred, R_test, 3)
-                    res4 = sim.simulation1(pred, R_test, 4)
-                    res5 = sim.simulation1(pred, R_test, 5)
-                    res6 = sim.simulation1(pred, R_test, 6)
-                    res7 = sim.simulation1(pred, R_test, 7)
-=======
                     res1 = sim.simulation2(pred, R_test, 1)
                     res2 = sim.simulation2(pred, R_test, 2)
                     res3 = sim.simulation2(pred, R_test, 3)
@@ -415,7 +406,6 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     res5 = sim.simulation2(pred, R_test, 5)
                     res6 = sim.simulation2(pred, R_test, 6)
                     res7 = sim.simulation2(pred, R_test, 7)
->>>>>>> 4cf65166ed9dfe810e2035f1d8b749c3366d55ee
                     
                     res1 = sim.simulation3(pred, R_test, [[1,2]])
                     res2 = sim.simulation3(pred, R_test, [[1,2],[1,3]])

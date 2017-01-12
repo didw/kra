@@ -196,12 +196,12 @@ def parse_xml_entry(meet, date_i, number, md=mean_data(), rd=RaceDetail()):
         tr_win = get_tr_win(data_tr, itemElm.trname.string, course, md)
 		
         hrname = unicode(itemElm.hrname.string)
-        dbudam = gdd.get_dbudam(1, date_i, int(rcno), hrname)
-        drweight = gdd.get_drweight(1, date_i, int(rcno), hrname)
-        lastday = gdd.get_lastday(1, date_i, int(rcno), hrname)
-        train_state = gdd.get_train_state(1, date_i, int(rcno), hrname)
-        hr_no = gdd.get_hrno(1, date_i, int(rcno), hrname)
-        race_score = gdd.get_hr_racescore(1, hr_no, date_i, month, course, 'url', md)
+        dbudam = gdd.get_dbudam(meet, date_i, int(rcno), hrname)
+        drweight = gdd.get_drweight(meet, date_i, int(rcno), hrname)
+        lastday = gdd.get_lastday(meet, date_i, int(rcno), hrname)
+        train_state = gdd.get_train_state(meet, date_i, int(rcno), hrname)
+        hr_no = gdd.get_hrno(meet, date_i, int(rcno), hrname)
+        race_score = gdd.get_hr_racescore(meet, hr_no, date_i, month, course, 'url', md)
         rd_data = rd.get_data(hrname, date_i, md)
         jc_data = wc.get_jangu_clinic(jangu_clinic, hrname)
 
@@ -301,7 +301,7 @@ def parse_xml_entry(meet, date_i, number, md=mean_data(), rd=RaceDetail()):
                   'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', # 7
                   'jk_ny2', 'jk_y1', 'jk_y2', 'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', # 10
                   'tr_ny2', 'tr_y1', 'tr_y2', # 3
-                  'rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
+                  'rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', 'rd19', 'rd20', 'rd21', 'rd22', 'rd23', 'rd24', # 24
                   'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',  # 30
                   'jc31', 'jc32', 'jc33', 'jc34', 'jc35', 'jc36', 'jc37', 'jc38', 'jc39', 'jc40', 'jc41', 'jc42', 'jc43', 'jc44', 'jc45', 'jc46', 'jc47', 'jc48', 'jc49', 'jc50', 'jc51', 'jc52', 'jc53', 'jc54', 'jc55', 'jc56', 'jc57', 'jc58', 'jc59', 'jc60',  # 30
                   'jc61', 'jc62', 'jc63', 'jc64', 'jc65', 'jc66', 'jc67', 'jc68', 'jc69', 'jc70', 'jc71', 'jc72', 'jc73', 'jc74', 'jc75', 'jc76', 'jc77', 'jc78', 'jc79', 'jc80', 'jc81']  # 21
