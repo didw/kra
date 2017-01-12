@@ -43,11 +43,6 @@ def get_hr_weight(meet, date, rcno, hrname):
     return res
 
 
-def test():
-    df = pd.DataFrame([[1,2,3],[4,5,6]])
-    df.columns = ['a', 'b', 'c']
-    for idx, rows in df.iterrows():
-        print(rows['a'])
 
 
 def df_concat():
@@ -561,19 +556,26 @@ def check_md():
     print(md.race_score[1700][20])
 
 
-def print_all():
-    cand = [[5], [3,16,1,13,7,12], [3,16,1,13,7,12]]
+def print_all(data=[1,2,3,4,5,6,7], cand=[[1,2,3],[1,2,3],[1,2,3]]):
     cnt = 0
     for x in cand[0]:
         for y in cand[1]:
+            if x == y:
+                continue
+            print("%s,%s,{" % (data[x-1], data[y-1]), end='')
             for z in cand[2]:
-                if x == y or x == z or y == z:
+                if x == z or y == z:
                     continue
+                print("%s," % data[z-1], end='')
                 cnt += 1
-    bet = 100 / cnt
-    print("bet: %f" % bet)
+            print("}")
+    print("bet: %d, %f" % (cnt, 100.0/cnt))
 
+def test():
+    list = [[1,2,3],[3,4,5]]
+    print(np.mean(np.array(list)[:,1]))
 
 
 if __name__ == '__main__':
-    print_all()
+    test()
+

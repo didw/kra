@@ -223,7 +223,7 @@ def get_distance_record(meet, name, rcno, date, course, md=mean_data()):
             if len(itemList) < 5:
                 continue
             #print("name: %s, %s" % (name, itemList[1].string.encode('utf-8')))
-            if name in itemList[1].string.encode('utf-8'):
+            if name in unicode(itemList[1].string).encode('utf-8'):
                 #print("find name: %s, %s" % (name, itemList[1].string.encode('utf-8')))
                 if int(unicode(itemList[2].string)[0]) == 0:
                     try:
@@ -251,7 +251,7 @@ def get_distance_record(meet, name, rcno, date, course, md=mean_data()):
     if len(res) == 6:
         return res
     else:
-        print("can not find %s in %s" % (name, fname))
+        print("can not find %s in %s" % (unicode(name, 'utf-8'), fname))
         try:
             return map(lambda x: int(x), md.dist_rec[course])
         except KeyError:
@@ -273,7 +273,7 @@ def get_hrno(meet, date, rcno, name):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
             try:
-                hrname = itemList[1].string.encode('utf-8')
+                hrname = unicode(itemList[1].string).encode('utf-8')
                 hrname = hrname.replace('★', '')
             except:
                 continue
@@ -283,7 +283,7 @@ def get_hrno(meet, date, rcno, name):
     return -1
 
 
-def norm_racescore(meet, course, month, humidity, value, md=mean_data()):
+def norm_racescore(course, month, humidity, value, md=mean_data()):
     humidity = min(humidity, 20) - 1
     try:
         return value * np.array(md.race_score[0])[:,20].mean() / md.race_score[0][month][humidity]
@@ -342,18 +342,16 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
             try:
                 distance = int(unicode(itemList[4].string).strip().encode('utf-8'))
             except:
-                if racekind == '주':
-                    distance = 300
-                else:
-                    continue
+                print("can not parsing distance")
+                continue
             try:
-                record = unicode(itemList[8].string).strip().encode('utf-8')
+                record = unicode(itemList[9].string).strip().encode('utf-8')
             except:
                 print("unicode error")
                 continue
             #print(unicode(itemList[9].string).strip())
             try:
-                humidity = int(re.search(r'\d+', unicode(itemList[9].string)).group())
+                humidity = int(re.search(r'\d+', unicode(itemList[11].string)).group())
             except AttributeError:
                 humidity = 7
             try:
@@ -363,7 +361,16 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
             if record == 0:
                 continue
             #print("주, 일, %s" % racekind)
-            record = norm_racescore(1, distance, month_-1, humidity, record, md)
+            if racekind == '주':
+                if distance == 1000:
+                    distance = 300
+                    record = record * md.race_score[800][month_-1][20] / md.race_score[1000][month_-1][20]
+                if distance == 900:
+                    distance = 300
+                    record = float(record) * md.race_score[800][month_-1][20] / md.race_score[900][month_-1][20]
+                if distance == 800:
+                    distance = 300
+            record = norm_racescore(distance, month_-1, humidity, record, md)
             if distance not in [300, 400, 800, 900, 1000, 1200]:
                 continue
             if record < md.race_score[distance][month_-1][20]*0.8 or record > md.race_score[distance][month_-1][20]*1.2:

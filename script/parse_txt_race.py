@@ -330,7 +330,7 @@ def parse_txt_horse(date, rcno, name, course, md=mean_data()):
             #print(datetime.date(int(birth[:4]), int(birth[5:7]), int(birth[8:])))
             data.append((date - datetime.date(int(birth[:4]), int(birth[5:7]), int(birth[8:]))).days)
             participates = re.search(unicode(r'\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().replace(',', '').split()
-            dist_rec = gdd.get_distance_record(1, name, rcno, date, course)
+            dist_rec = gdd.get_distance_record(2, name, rcno, date, course)
             #print(participates)
             if int(participates[0]) == 0:
                 #data.extend([0, -1, -1, -1, -1])

@@ -7,6 +7,7 @@ import glob
 import parse_xml_entry as xe
 import datetime
 import train as tr
+from get_race_detail import RaceDetail
 
 
 def normalize_data(org_data, nData=47):
@@ -318,7 +319,6 @@ def get_race_detail(date):
 if __name__ == '__main__':
     meet = 2
     date = 20161218
-    rcno = 11
     train_course = 0
     courses = [1000, 1300, 1300, 1200, 1300, 1300, 1300, 1700, 1700, 1800, 1200]
     rcno = 1

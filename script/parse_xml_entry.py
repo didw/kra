@@ -336,12 +336,12 @@ def parse_xml_entry(meet, date_i, number, md=mean_data(), rd=RaceDetail()):
         tr_win = get_tr_win(data_tr, itemElm.trname.string, course, md)
 		
         hrname = unicode(itemElm.hrname.string)
-        dbudam = gdd.get_dbudam(2, date_i, int(rcno), hrname)
-        drweight = gdd.get_drweight(2, date_i, int(rcno), hrname)
-        lastday = gdd.get_lastday(2, date_i, int(rcno), hrname)
-        train_state = gdd.get_train_state(2, date_i, int(rcno), hrname)
-        hr_no = gdd.get_hrno(2, date_i, int(rcno), hrname)
-        race_score = gdd.get_hr_racescore(2, hr_no, date_i, month, course, 'url', md)
+        dbudam = gdd.get_dbudam(meet, date_i, int(rcno), hrname)
+        drweight = gdd.get_drweight(meet, date_i, int(rcno), hrname)
+        lastday = gdd.get_lastday(meet, date_i, int(rcno), hrname)
+        train_state = gdd.get_train_state(meet, date_i, int(rcno), hrname)
+        hr_no = gdd.get_hrno(meet, date_i, int(rcno), hrname)
+        race_score = gdd.get_hr_racescore(meet, hr_no, date_i, month, course, 'url', md)
         rd_data = rd.get_data(hrname, date_i, md)
         jc_data = wc.get_jangu_clinic(jangu_clinic, hrname)
 

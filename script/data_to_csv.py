@@ -16,7 +16,11 @@ def get_data(begin_date, end_date, fname_csv):
     data = pd.DataFrame()
     first = True
     date += datetime.timedelta(days=-1)
-    md = mean_data()
+    fname_md = fname_csv.replace('.csv', '_md.pkl')
+    if os.path.isfile(fname_md):
+        md = joblib.load(fname_md)
+    else:
+        md = mean_data()
     rd = RaceDetail()
     import glob
     for year in range(2007, 2017):
@@ -30,12 +34,12 @@ def get_data(begin_date, end_date, fname_csv):
         date += datetime.timedelta(days=1)
         if date.weekday() != 4 and date.weekday() != 5:
             continue
-        for i in [300, 400, 800, 900, 1000, 1200, 0]:
-            print("%f" % md.race_score[i][0][20], end=' ')
-        print()
         filename = "../txt/2/rcresult/rcresult_2_%02d%02d%02d.txt" % (date.year, date.month, date.day)
         if not os.path.isfile(filename):
             continue
+        for i in [300, 400, 800, 900, 1000, 1200, 0]:
+            print("%f" % md.race_score[i][0][20], end=' ')
+        print()
         if first:
             adata = pr.get_data(filename, md, rd)
             md.update_data(adata)
@@ -64,10 +68,10 @@ def update_data(end_date, fname_csv):
         date += datetime.timedelta(days=1)
         if date.weekday() != 4 and date.weekday() != 5:
             continue
+        filename = "../txt/2/rcresult/rcresult_2_%02d%02d%02d.txt" % (date.year, date.month, date.day)
         for i in [300, 400, 800, 900, 1000, 1200, 0]:
             print("%f" % md.race_score[i][0][20], end=' ')
         print()
-        filename = "../txt/2/rcresult/rcresult_2_%02d%02d%02d.txt" % (date.year, date.month, date.day)
         if not os.path.isfile(filename):
             continue
         adata = pr.get_data(filename, md, rd)
@@ -85,6 +89,7 @@ def update_md(fname):
     md = mean_data()
     md.update_data(data)
     joblib.dump(md, fname.replace('.csv', '_md.pkl'))
+
 if __name__ == '__main__':
     DEBUG = True
     fname_csv = '../data/2_2007_2016.csv'
