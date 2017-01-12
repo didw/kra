@@ -253,7 +253,7 @@ class mean_data:
             humidity = 20
         humidity -= 1
         try:
-            self.race_score[900][month][humidity] += self.lr*10 * (record - self.race_score[900][month][humidity])
+            self.race_score[900][month][humidity] += self.lr * (record - self.race_score[900][month][humidity])
             self.race_score[900][month][20] = np.mean(self.race_score[900][month])
         except KeyError:
             return 0

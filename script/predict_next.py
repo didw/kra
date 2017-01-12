@@ -328,7 +328,7 @@ if __name__ == '__main__':
     fname = '../result/1701/%d_%d.txt' % (date%100, rcno)
     for nData, year in zip([186], [2]):
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
-        estimator, md, umd = tr.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100), train_course, nData)
+        estimator, md, umd = tr.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
         predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
 #        train_course = course
 #        for nData in [186]:

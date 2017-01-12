@@ -248,7 +248,7 @@ def get_distance_record(meet, name, rcno, date, course, md=mean_data()):
     if len(res) == 6:
         return res
     else:
-        print("can not find %s in %s" % (name, fname))
+        print("can not find %s in %s" % (unicode(name, 'utf-8'), fname))
         try:
             return map(lambda x: int(x), md.dist_rec[course])
         except KeyError:
@@ -281,7 +281,7 @@ def get_hrno(meet, date, rcno, name):
     return -1
 
 
-def norm_racescore(meet, course, month, humidity, value, md=mean_data()):
+def norm_racescore(course, month, humidity, value, md=mean_data()):
     humidity = min(humidity, 20) - 1
     try:
         return value * np.array(md.race_score[0])[:,20].mean() / md.race_score[0][month][humidity]
@@ -325,7 +325,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
             try:
                 date = re.search(r'\d{4}/\d{2}/\d{2}', unicode(itemList[1])).group()
             except:
-                print("regular expression error")
+                print("regular expression error: %s" % itemList)
                 continue
             date = int("%s%s%s" % (date[:4], date[5:7], date[8:]))
             month_ = date/100%100

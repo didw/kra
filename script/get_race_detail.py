@@ -163,8 +163,6 @@ class RaceDetail:
                         break
                     words = re.findall(r'\S+', line)
                     if len(words) < 9:
-                        #print("unexpected line: %s" % line)
-                        data[name_list[i]].extend([150, 150, 400])  # need to fix to default from mean_data
                         i += 1
                         continue
                     if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (words[3], words[6], words[2]))
@@ -207,12 +205,12 @@ class RaceDetail:
                 for data in self.data[name]:
                     if data[0] < date and data[1] == course_list[c]:
                         humidity = date[2]
-                        s1f = norm_racescore(data[0]/100%100, humidity, data[3], md)
-                        g1f = norm_racescore(data[0]/100%100, humidity, data[4], md)
-                        g3f = norm_racescore(data[0]/100%100, humidity, data[5], md)
-                        rs[3*c+0].append(s1f)
-                        rs[3*c+1].append(g1f)
-                        rs[3*c+2].append(g3f)
+                        if data[3] != -1:
+                            rs[3*c+0].append(norm_racescore(data[0]/100%100, humidity, data[3], md))  # s1f
+                        if data[4] != -1:
+                            rs[3*c+1].append(norm_racescore(data[0]/100%100, humidity, data[4], md))  # g1f
+                        if data[5] != -1:
+                            rs[3*c+2].append(norm_racescore(data[0]/100%100, humidity, data[5], md))  # g3f
             except:
                 continue
         for i in range(len(rs)):
