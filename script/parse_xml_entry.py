@@ -6,7 +6,9 @@ import glob
 import re
 from urllib2 import urlopen
 import parse_xml_jk as xj
+import parse_txt_jk as tj
 import parse_xml_hr as xh
+import parse_txt_hr as th
 import parse_xml_tr as xt
 import parse_xml_train as xtr
 import datetime
@@ -39,30 +41,54 @@ def get_humidity():
 def get_hr_data(data, name):
     name = name.replace('★'.encode('utf-8'), '')
     for idx, line in data.iterrows():
-        #print ("line: ", line)
-        #print ("name: %s" % name)
         if line['hrName'] == name:
-            hr_birth = line['birth']
-            hr_birth = (datetime.date.today() - datetime.date(int(hr_birth[:4]), int(hr_birth[5:7]), int(hr_birth[8:]))).days
-            return (line['gender'], hr_birth)
+            return (line['gender'], line['hr_days'])
     print("can not find horse %s" % (name,))
     return (-1, -1)
 
 
-def get_hr_win(tt, t1, t2, yt, y1, y2, course, md=mean_data()):
-    res = [-1, -1, -1, -1]
-    if int(tt) != 0:
-        res[0] = int(t1) * 100 / int(tt)
-        res[1] = int(t2) * 100 / int(tt)
-    else:
-        res[0] = md.hr_history_total[course][3]
-        res[1] = md.hr_history_total[course][4]
-    if int(yt) != 0:
-        res[2] = int(y1) * 100 / int(yt)
-        res[3] = int(y2) * 100 / int(yt)
-    else:
-        res[2] = md.hr_history_year[course][3]
-        res[3] = md.hr_history_year[course][4]
+#def get_hr_win(tt, t1, t2, yt, y1, y2, course, md=mean_data()):
+#    res = [-1, -1, -1, -1]
+#    if int(tt) != 0:
+#        res[0] = int(t1) * 100 / int(tt)
+#        res[1] = int(t2) * 100 / int(tt)
+#    else:
+#        res[0] = md.hr_history_total[course][3]
+#        res[1] = md.hr_history_total[course][4]
+#    if int(yt) != 0:
+#        res[2] = int(y1) * 100 / int(yt)
+#        res[3] = int(y2) * 100 / int(yt)
+#    else:
+#        res[2] = md.hr_history_year[course][3]
+#        res[3] = md.hr_history_year[course][4]
+#    return res
+
+
+def get_hr_win(data, name, course, md=mean_data()):
+    name = name.replace('★'.encode('utf-8'), '')
+    res = md.hr_history_total[course] + md.hr_history_year[course]
+    for idx, line in data.iterrows():
+        if line['hrName'] == name:
+            res[0] = tt = int(line['cntT'])
+            res[1] = t1 = int(line['ord1T'])
+            res[2] = t2 = int(line['ord2T'])
+            res[5] = yt = int(line['cntY'])
+            res[6] = y1 = int(line['ord1Y'])
+            res[7] = y2 = int(line['ord2Y'])
+            if int(tt) != 0:
+                res[3] = int(t1) * 100 / int(tt)
+                res[4] = int(t2) * 100 / int(tt)
+            else:
+                res[3] = md.jk_history_total[course][3]
+                res[4] = md.jk_history_total[course][4]
+            if int(yt) != 0:
+                res[8] = int(y1) * 100 / int(yt)
+                res[9] = int(y2) * 100 / int(yt)
+            else:
+                res[8] = md.jk_history_year[course][3]
+                res[9] = md.jk_history_year[course][4]
+            return res
+    print("can not find horse %s" % (name,))
     return res
 
 
@@ -301,8 +327,10 @@ def parse_txt_trainer(date, name):
 
 def parse_xml_entry(meet, date_i, number, md=mean_data(), rd=RaceDetail()):
     # get other data
-    data_hr = xh.parse_xml_hr(meet)
-    data_jk = xj.parse_xml_jk(meet)
+    #data_hr = xh.parse_xml_hr(meet)
+    data_hr = th.parse_txt_hr(meet, date_i)
+    #data_jk = xj.parse_xml_jk(meet)
+    data_jk = tj.parse_txt_jk(meet, date_i)
     data_tr = xt.parse_xml_tr(meet)
     date_m = date_i / 100
     date = datetime.date(date_i/10000, date_i/100%100, date_i%100)
@@ -330,8 +358,9 @@ def parse_xml_entry(meet, date_i, number, md=mean_data(), rd=RaceDetail()):
         hr_dweight = gdd.get_dweight(meet, date_i, int(itemElm.rcno.string), itemElm.hrname.string)
         hr_dist_rec = gdd.get_distance_record(meet, itemElm.hrname.string, int(itemElm.rcno.string), date, course, md)
         cnt, kind = get_game_info(datetime.date(date_i / 10000, date_i / 100 % 100, date_i % 100), int(itemElm.rcno.string))
-        hr_win = get_hr_win(itemElm.cntt.string, itemElm.ord1t.string, itemElm.ord2t.string, itemElm.cnty.string,
-                           itemElm.ord1y.string, itemElm.ord2y.string, course, md)
+        #hr_win = get_hr_win(itemElm.cntt.string, itemElm.ord1t.string, itemElm.ord2t.string, itemElm.cnty.string,
+        #                   itemElm.ord1y.string, itemElm.ord2y.string, course, md)
+        hr_win = get_hr_win(data_hr, itemElm.hrname.string, course, md)
         jk_win = get_jk_win(data_jk, itemElm.jkname.string, course, md)
         tr_win = get_tr_win(data_tr, itemElm.trname.string, course, md)
 		

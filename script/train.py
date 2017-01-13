@@ -465,7 +465,7 @@ if __name__ == '__main__':
     train_ed = datetime.date(2016, 10, 31)
     test_bd = datetime.date(2015, 1, 1)
     test_ed = datetime.date(2016, 12, 31)
-    for delta_year in [1,2]:
+    for delta_year in [4]:
         for nData in [186]:
             simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[400, 800, 900, 1000, 1200, 0], nData=nData)
             #for c in [400, 800, 900, 1000, 1200]:
