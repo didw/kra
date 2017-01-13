@@ -385,7 +385,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     res5 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6]])
                     res6 = sim.simulation7(pred, R_test, [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]])
                     res7 = sim.simulation7(pred, R_test, [[5,6,7,8,9,10],[5,6,7,8,9,10],[5,6,7,8,9,10]])
-                    """
+                    
                     res1 = sim.simulation6(pred, R_test, [[1,2,3]])
                     res2 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,3,4], [2,3,4]])
                     res3 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5]])
@@ -398,7 +398,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                                                         ])
                     res6 = sim.simulation6(pred, R_test, [[2,3,4], [2,3,5], [2,4,5], [3,4,5], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
                     res7 = sim.simulation6(pred, R_test, [[3,4,5], [3,4,6], [3,4,7], [3,5,6], [3,5,7], [3,6,7], [4,5,6], [4,5,7], [4,6,7], [5,6,7]])
-                    """
+                    
                     res1 = sim.simulation2(pred, R_test, 1)
                     res2 = sim.simulation2(pred, R_test, 2)
                     res3 = sim.simulation2(pred, R_test, 3)
@@ -406,15 +406,15 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     res5 = sim.simulation2(pred, R_test, 5)
                     res6 = sim.simulation2(pred, R_test, 6)
                     res7 = sim.simulation2(pred, R_test, 7)
-                    
-                    res1 = sim.simulation3(pred, R_test, [[1,2]])
-                    res2 = sim.simulation3(pred, R_test, [[1,2],[1,3]])
-                    res3 = sim.simulation3(pred, R_test, [[1,2],[1,3],[2,3]])
-                    res4 = sim.simulation3(pred, R_test, [[1,2],[1,3],[2,3],[1,4]])
-                    res5 = sim.simulation3(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4]])
-                    res6 = sim.simulation3(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[1,5]])
-                    res7 = sim.simulation3(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[1,5],[2,5],[3,5],[4,5]])
                     """
+                    res1 = sim.simulation5(pred, R_test, [[1,2]])
+                    res2 = sim.simulation5(pred, R_test, [[1,2],[1,3]])
+                    res3 = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3]])
+                    res4 = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4]])
+                    res5 = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4]])
+                    res6 = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[1,5]])
+                    res7 = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[1,5],[2,5],[3,5],[4,5]])
+                    
                     try:
                         sr1[course] += res1
                         sr2[course] += res2
@@ -467,7 +467,7 @@ if __name__ == '__main__':
     for delta_year in [4]:
         for nData in [186]:
             simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[1000, 1200, 1300, 1400, 1700, 0], nData=nData)
-            for c in [1000, 1200, 1300, 1400, 1700]:
-                for k in [0]:
-                    outfile = '../data/weekly_result_m1_nd%d_y%d_c%d_0_k%d.txt' % (nData, delta_year, c, k)
-                    simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c, k, nData=nData)
+            #for c in [1000, 1200, 1300, 1400, 1700]:
+            #    for k in [0]:
+            #        outfile = '../data/weekly_result_m1_nd%d_y%d_c%d_0_k%d.txt' % (nData, delta_year, c, k)
+            #        simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c, k, nData=nData)
