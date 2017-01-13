@@ -325,6 +325,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
             try:
                 date = re.search(r'\d{4}/\d{2}/\d{2}', unicode(itemList[1])).group()
             except:
+                print(fname)
                 print("regular expression error: %s" % itemList)
                 continue
             date = int("%s%s%s" % (date[:4], date[5:7], date[8:]))
