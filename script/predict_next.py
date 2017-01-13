@@ -316,7 +316,7 @@ def get_race_detail(date):
 
 if __name__ == '__main__':
     meet = 2
-    date = 20161216
+    date = 20170113
     train_course = 0
     courses = [0,0,0,0,0,0,0,0]
     rcno = 0
@@ -325,7 +325,7 @@ if __name__ == '__main__':
     test_course = course
     rd = get_race_detail(date)
     fname = '../result/1701/%d_%d.txt' % (date%100, rcno)
-    for nData, year in zip([186], [2]):
+    for nData, year in zip([186], [1]):
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
         estimator, md, umd = tr.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
         predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
