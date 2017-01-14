@@ -132,10 +132,11 @@ class RaceDetail:
 
 
     def get_data(self, name, date, md=mean_data()):
+        name = name.replace('★', '')
+        date = int(date)
         res = []
         rs = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]
         course_list = [300, 400, 800, 900, 1000, 1200]
-
         for c in range(len(course_list)):
             try:
                 for data in self.data[name]:
