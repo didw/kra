@@ -298,8 +298,8 @@ def predict_next(estimator, md, rd, meet, date, rcno, course=0, nData=47, year=4
                 rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
         else:
             rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
-    print(X_data.columns)
-    print(estimator.feature_importances_)
+    #print(X_data.columns)
+    #print(estimator.feature_importances_)
 
 def get_race_detail(date):
     rd = RaceDetail()
@@ -317,16 +317,16 @@ def get_race_detail(date):
 
 if __name__ == '__main__':
     meet = 1
-    date = 20170108
+    date = 20170114
     train_course = 0
-    courses = [1000, 1300, 1300, 1200, 1300, 1300, 1300, 1700, 1700, 1800, 1200]
-    rcno = 1
+    courses = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    rcno = 3
     #for rcno in range(len(courses)):
     course = courses[rcno-1]
     test_course = course
     rd = get_race_detail(date)
     fname = '../result/1701/%d_%d.txt' % (date%100, rcno)
-    for nData, year in zip([186], [2]):
+    for nData, year in zip([186], [4]):
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
         estimator, md, umd = tr.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
         predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
