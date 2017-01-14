@@ -488,19 +488,17 @@ def get_data(filename, md=mean_data(), rd=RaceDetail()):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/2/rcresult/rcresult_2_20161125.txt'
+    filename = '../txt/2/rcresult/rcresult_2_20170114.txt'
     rd = RaceDetail()
     import glob
-    for year in range(2007,2017):
-        filelist1 = glob.glob('../txt/2/ap-check-rslt/ap-check-rslt_2_%d*.txt' % year)
+    year_ = int(re.search(r'\d{8}', filename).group())
+    for year in range(year_-3, year_+1):
         filelist2 = glob.glob('../txt/2/rcresult/rcresult_2_%d*.txt' % year)
-        for fname in filelist1:
-            print("processed ap %s" % fname)
-            rd.parse_ap_rslt(fname)
         for fname in filelist2:
             print("processed rc in %s" % fname)
             rd.parse_race_detail(fname)
-    md = mean_data()
+    #md = mean_data()
+    md = joblib.load('../data/2_2007_2016_md.pkl')
     data = get_data(filename, md, rd)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)
     del data['name']
