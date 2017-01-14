@@ -218,6 +218,8 @@ class RaceDetail:
 
 
     def get_data(self, name, date, md=mean_data()):
+        name = name.replace('★', '')
+        date = int(date)
         res = []
         rs = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]
         course_list = [900, 1000, 1200, 1300, 1400, 1600]
@@ -226,7 +228,7 @@ class RaceDetail:
             try:
                 for data in self.data[name]:
                     if data[0] < date and data[1] == course_list[c]:
-                        humidity = date[2]
+                        humidity = int(data[2])
                         if data[3] != -1:
                             rs[4*c+0].append(norm_racescore(data[0]/100%100, humidity, data[3], md))  # s1f
                         if data[4] != -1:
@@ -235,7 +237,8 @@ class RaceDetail:
                             rs[4*c+2].append(norm_racescore(data[0]/100%100, humidity, data[5], md))  # g2f
                         if data[6] != -1:
                             rs[4*c+3].append(norm_racescore(data[0]/100%100, humidity, data[6], md))  # g3f
-            except:
+            except KeyError:
+                print("can not find %s in race detail" % unicode(name))
                 continue
         for i in range(len(rs)):
             if len(rs[i]) == 0:
@@ -252,7 +255,8 @@ class RaceDetail:
 def norm_racescore(month, humidity, value, md=mean_data()):
     humidity = min(humidity, 20) - 1
     try:
-        return value * np.array(md.race_score[0])[:,20].mean() / md.race_score[0][month][humidity]
+        m = np.array(md.race_score[0])[:,20].mean()
+        return value * m / md.race_score[0][month][humidity]
     except KeyError:
         return value
 
