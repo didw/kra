@@ -91,48 +91,13 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0, kind=0, nData=4
     R_data = data[['name', 'rank', 'r1', 'r2', 'r3', 'hr_nt', 'hr_dt', 'jk_nt', 'tr_nt', 'cnt', 'rcno', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'samssang', 'idx']]
     Y_data = data['rctime']
     X_data = data.copy()
-    del X_data['name']
-    del X_data['jockey']
-    del X_data['trainer']
-    del X_data['owner']
-    del X_data['rctime']
-    del X_data['rank']
-    del X_data['r3']
-    del X_data['r2']
-    del X_data['r1']
-    del X_data['date']
-    del X_data['price']
-    del X_data['bokyeon1']
-    del X_data['bokyeon2']
-    del X_data['bokyeon3']
-    del X_data['boksik']
-    del X_data['ssang']
-    del X_data['sambok']
-    del X_data['samssang']
-    del X_data['index']
+    X_data = X_data.drop(['name', 'jockey', 'trainer', 'owner', 'rctime', 'rank', 'r3', 'r2', 'r1', 'date', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'ssang', 'samssang', 'index'], axis=1)
     if nData == 47:
-        del X_data['ts1']
-        del X_data['ts2']
-        del X_data['ts3']
-        del X_data['ts4']
-        del X_data['ts5']
-        del X_data['ts6']
-        del X_data['score1']
-        del X_data['score2']
-        del X_data['score3']
-        del X_data['score4']
-        del X_data['score5']
-        del X_data['score6']
-        del X_data['score7']
-        del X_data['score8']
-        del X_data['score9']
-        del X_data['score10']
-        del X_data['hr_dt']
-        del X_data['hr_d1']
-        del X_data['hr_d2']
-        del X_data['hr_rh']
-        del X_data['hr_rm']
-        del X_data['hr_rl']
+        X_data = X_data.drop(['ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', 'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl'], axis=1)
+        X_data = X_data.drop(['rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
+                  'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',
+                  'jc31', 'jc32', 'jc33', 'jc34', 'jc35', 'jc36', 'jc37', 'jc38', 'jc39', 'jc40', 'jc41', 'jc42', 'jc43', 'jc44', 'jc45', 'jc46', 'jc47', 'jc48', 'jc49', 'jc50', 'jc51', 'jc52', 'jc53', 'jc54', 'jc55', 'jc56', 'jc57', 'jc58', 'jc59', 'jc60',
+                  'jc61', 'jc62', 'jc63', 'jc64', 'jc65', 'jc66', 'jc67', 'jc68', 'jc69', 'jc70', 'jc71', 'jc72', 'jc73', 'jc74', 'jc75', 'jc76', 'jc77', 'jc78', 'jc79', 'jc80', 'jc81'], axis=1)
     return X_data, Y_data, R_data, data
 
 def delete_lack_data(X_data, Y_data):
@@ -166,7 +131,7 @@ def training(train_bd, train_ed, course=0, nData=47):
         updated_md = mean_data()
         #updated_md.update_data(X_train)
 
-        os.system('mkdir ..\\model%d\\%d_%d' % (nData, train_bd_i, train_ed_i))
+        os.system('mkdir ../model%d/%d_%d' % (nData, train_bd_i, train_ed_i))
         joblib.dump(estimator, model_name)
         joblib.dump(updated_md, md_name)
     md = joblib.load('../data/1_2007_2016_md.pkl')
@@ -229,7 +194,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
                 print("Start train model")
                 estimator = RandomForestRegressor(random_state=0, n_estimators=100)
                 estimator.fit(X_train, Y_train)
-                os.system('mkdir ..\\model%d\\%d_%d' % (nData, train_bd_i, train_ed_i))
+                os.system('mkdir ../model%d/%d_%d' % (nData, train_bd_i, train_ed_i))
                 joblib.dump(estimator, model_name)
                 print("Finish train model")
                 print("important factor")
@@ -254,36 +219,15 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
             score = estimator.score(X_test, Y_test)
             print("Score with the entire test dataset = %.2f" % score)
             pred = estimator.predict(X_test)
-            """
-            res1 = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]])
-            res2 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
-            res3 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6]])
-            res4 = sim.simulation7(pred, R_test, [[1],[2],[3]])
-            res5 = sim.simulation7(pred, R_test, [[1,2],[1,2,3],[1,2,3]])
+
+            res1 = sim.simulation7(pred, R_test, [[1],[2],[3]])
+            res2 = sim.simulation7(pred, R_test, [[1,2],[1,2,3],[1,2,3]])
+            res3 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
+            res4 = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]])
+            res5 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6]])
             res6 = sim.simulation7(pred, R_test, [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]])
             res7 = sim.simulation7(pred, R_test, [[5,6,7,8,9,10],[5,6,7,8,9,10],[5,6,7,8,9,10]])
-            """
-            res1 = sim.simulation6(pred, R_test, [[1,2,3]])
-            res2 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,3,4], [2,3,4]])
-            res3 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5]])
-            res4 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5],
-                                                [1,2,6], [1,3,6], [1,4,6], [1,5,6], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
-            res5 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5],
-                                                [1,2,6], [1,3,6], [1,4,6], [1,5,6], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6],
-                                                [1,2,7], [1,3,7], [1,4,7], [1,5,7], [2,3,7], [2,4,7], [2,5,7], [3,4,7], [3,5,7], [4,5,7],
-                                                [1,6,7], [2,6,7], [3,6,7], [4,6,7], [5,6,7]
-                                                ])
-            res6 = sim.simulation6(pred, R_test, [[2,3,4], [2,3,5], [2,4,5], [3,4,5], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
-            res7 = sim.simulation6(pred, R_test, [[3,4,5], [3,4,6], [3,4,7], [3,5,6], [3,5,7], [3,6,7], [4,5,6], [4,5,7], [4,6,7], [5,6,7]])
-            """
-            res1 = sim.simulation3(pred, R_test, [[1,2]])
-            res2 = sim.simulation3(pred, R_test, [[1,2],[1,3]])
-            res3 = sim.simulation3(pred, R_test, [[1,2],[1,3],[2,3]])
-            res4 = sim.simulation3(pred, R_test, [[1,2],[1,3],[2,3],[1,4]])
-            res5 = sim.simulation3(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4]])
-            res6 = sim.simulation3(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[1,5]])
-            res7 = sim.simulation3(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[1,5],[2,5],[3,5],[4,5]])
-            """
+            
             sr1 += res1
             sr2 += res2
             sr3 += res3
@@ -351,7 +295,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 print("Start train model")
                 estimator = RandomForestRegressor(random_state=0, n_estimators=100)
                 estimator.fit(X_train, Y_train)
-                os.system('mkdir ..\\model%d\\%d_%d' % (nData, train_bd_i, train_ed_i))
+                os.system('mkdir ../model%d/%d_%d' % (nData, train_bd_i, train_ed_i))
                 joblib.dump(estimator, model_name)
                 print("Finish train model")
                 score = estimator.score(X_train, Y_train)
@@ -378,6 +322,15 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     print("Score with the entire test dataset = %.5f" % score)
                     pred = estimator.predict(X_test)
 
+                    res1 = sim.simulation7(pred, R_test, [[1],[2],[3]])
+                    res2 = sim.simulation7(pred, R_test, [[1,2],[1,2,3],[1,2,3]])
+                    res3 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
+                    res4 = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]])
+                    res5 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6]])
+                    res6 = sim.simulation7(pred, R_test, [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]])
+                    res7 = sim.simulation7(pred, R_test, [[5,6,7,8,9,10],[5,6,7,8,9,10],[5,6,7,8,9,10]])
+                    
+                    """
                     res1 = sim.simulation1(pred, R_test, 1)
                     res2 = sim.simulation2(pred, R_test, 1)
                     res3 = sim.simulation3(pred, R_test, [[1,2]])
@@ -385,7 +338,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     res5 = sim.simulation5(pred, R_test, [[1,2]])
                     res6 = sim.simulation6(pred, R_test, [[1,2,3]])
                     res7 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3],[2,3,4]])
-                    """
+
                     res1 = sim.simulation5(pred, R_test, [[1,2]])
                     res2 = sim.simulation5(pred, R_test, [[1,2],[1,3]])
                     res3 = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3]])
@@ -473,10 +426,10 @@ if __name__ == '__main__':
     train_ed = datetime.date(2016, 10, 31)
     test_bd = datetime.date(2015, 1, 1)
     test_ed = datetime.date(2016, 12, 31)
-    for delta_year in [4]:
-        for nData in [186]:
+    for delta_year in [1,2,4]:
+        for nData in [47, 186]:
             simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[1000, 1200, 1300, 1400, 1700, 0], nData=nData)
-            #for c in [1000, 1200, 1300, 1400, 1700]:
-            #    for k in [0]:
-            #        outfile = '../data/weekly_result_m1_nd%d_y%d_c%d_0_k%d.txt' % (nData, delta_year, c, k)
-            #        simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c, k, nData=nData)
+            for c in [1000, 1200, 1300, 1400, 1700]:
+                for k in [0]:
+                    outfile = '../data/weekly_result_m1_nd%d_y%d_c%d_0_k%d.txt' % (nData, delta_year, c, k)
+                    simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c, k, nData=nData)

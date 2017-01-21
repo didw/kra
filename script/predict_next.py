@@ -34,29 +34,11 @@ def normalize_data(org_data, nData=47):
     data.loc[data['cntry'] == '아', 'cntry'] = 15
     data.loc[data['cntry'] == '프', 'cntry'] = 16
     if nData == 47:
-        del data['ts1']
-        del data['ts2']
-        del data['ts3']
-        del data['ts4']
-        del data['ts5']
-        del data['ts6']
-        del data['score1']
-        del data['score2']
-        del data['score3']
-        del data['score4']
-        del data['score5']
-        del data['score6']
-        del data['score7']
-        del data['score8']
-        del data['score9']
-        del data['score10']
-        del data['hr_dt']
-        del data['hr_d1']
-        del data['hr_d2']
-        del data['hr_rh']
-        del data['hr_rm']
-        del data['hr_rl']
-
+        data = data.drop(['ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', 'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl'], axis=1)
+        data = data.drop(['rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
+                  'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',
+                  'jc31', 'jc32', 'jc33', 'jc34', 'jc35', 'jc36', 'jc37', 'jc38', 'jc39', 'jc40', 'jc41', 'jc42', 'jc43', 'jc44', 'jc45', 'jc46', 'jc47', 'jc48', 'jc49', 'jc50', 'jc51', 'jc52', 'jc53', 'jc54', 'jc55', 'jc56', 'jc57', 'jc58', 'jc59', 'jc60',
+                  'jc61', 'jc62', 'jc63', 'jc64', 'jc65', 'jc66', 'jc67', 'jc68', 'jc69', 'jc70', 'jc71', 'jc72', 'jc73', 'jc74', 'jc75', 'jc76', 'jc77', 'jc78', 'jc79', 'jc80', 'jc81'], axis=1)
     return data
 
 
@@ -252,8 +234,7 @@ def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
     print("samssang")
     global fname
     fresult = open(fname, 'a')
-    print_detail(rcdata['idx'], [[1],[2],[3]], fresult)
-
+    fresult.write("%s,%s,%s,%s,%s,%s\n" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
     fresult.close()
 
 
@@ -291,6 +272,9 @@ def predict_next(estimator, md, rd, meet, date, rcno, course=0, nData=47, year=4
             rcdata = rcdata.reset_index(drop=True)
             print("=========== %s ==========" % prev_rc)
             print(rcdata)
+            fresult = open(fname, 'a')
+            fresult.write("=== rcno: %d, nData: %d, year: %d, train_course: %d ===\n" % (int(prev_rc), nData, year, train_course))
+            fresult.close()
             print_bet(rcdata, course, nData=nData, year=year, train_course=train_course)
             rcdata = []
             prev_rc = row['rcno']
@@ -317,22 +301,17 @@ def get_race_detail(date):
 
 if __name__ == '__main__':
     meet = 1
-    date = 20170114
+    date = 20170121
     train_course = 0
-    courses = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-    rcno = 3
-    #for rcno in range(len(courses)):
-    course = courses[rcno-1]
-    test_course = course
-    rd = get_race_detail(date)
-    fname = '../result/1701/%d_%d.txt' % (date%100, rcno)
-    for nData, year in zip([186], [4]):
-        print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
-        estimator, md, umd = tr.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
-        predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
-#        train_course = course
-#        for nData in [186]:
-#            for year in [2]:
-#                print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
-#                estimator, md, umd = tr.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100), train_course, nData)
-#                predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
+    courses = [0,1000,1200,1300,1300,1000,1000,1200,1300,1700,0,0,1200]
+    rcno = 0
+    for rcno in range(len(courses)):
+        course = courses[rcno]
+        test_course = course
+        rd = get_race_detail(date)
+        fname = '../result/1701/%d_%d.txt' % (date%100, rcno)
+        for nData, year, train_course in zip([47, 47, 186, 186, 186], [4, 2, 2, 1, 2], [1, 0, 1, 0, 0]):
+            if train_course == 1: train_course = course
+            print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
+            estimator, md, umd = tr.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
+            predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)

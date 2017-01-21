@@ -213,7 +213,7 @@ class RaceDetail:
                         if data[5] != -1:
                             rs[3*c+2].append(norm_racescore(data[0]/100%100-1, humidity, data[5], md))  # g3f
             except KeyError:
-                print("can not find %s in race detail" % unicode(name))
+                print("can not find %s in race detail" % name)
                 continue
         for i in range(len(rs)):
             if len(rs[i]) == 0:
