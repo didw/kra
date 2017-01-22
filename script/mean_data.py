@@ -14,7 +14,7 @@ DEBUG = False
 
 class mean_data:
     def __init__(self):
-        self.lr = 0.001
+        self.lr = 0.01
 
         self.race_score = \
             {300:  [[707, 707, 707, 706, 703, 707, 709, 707, 709, 709, 702, 710, 706, 707, 713, 709, 712, 700, 712, 710, 707],

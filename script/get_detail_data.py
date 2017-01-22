@@ -65,7 +65,7 @@ def get_weight(meet, date, rcno, name, course):
             itemList = itemElm2.findAll('td')
             if name in unicode(itemList[1].string).encode('utf-8'):
                 try:
-                    return int(float(unicode(itemList[2].string)))
+                    return float(float(unicode(itemList[2].string)))
                 except ValueError:
                     return {400: 266, 800: 268, 900: 286, 1000: 293, 1110: 300, 1200: 300, 1400: 301, 1610: 302, 1700: 304, 1800: 304}[course]
     return {400: 266, 800: 268, 900: 286, 1000: 293, 1110: 300, 1200: 300, 1400: 301, 1610: 302, 1700: 304, 1800: 304}[course]
@@ -85,7 +85,7 @@ def get_dweight(meet, date, rcno, name):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
             if name in unicode(itemList[1].string).encode('utf-8'):
-                return unicode(itemList[3].string)
+                return float(unicode(itemList[3].string))
     print("can not find dweight %s in %s" % (name, fname))
     return 0
 
@@ -110,7 +110,7 @@ def get_drweight(meet, date, rcno, name):
                 if len(last_date) >= 10:
                     last_date = datetime.date(int(last_date[:4]), int(last_date[5:7]), int(last_date[8:10]))
                     delta_day = datetime.date(date/10000, date/100%100, date%100) - last_date
-                    return int(unicode(itemList[3].string)) * 1000 / delta_day.days
+                    return float(unicode(itemList[3].string)) * 1000 / delta_day.days
                 else:
                     if "-R" not in last_date:
                         print("can not parsing get_drweight %s" % fname)
@@ -355,7 +355,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
             except AttributeError:
                 humidity = 7
             try:
-                record = int(record[0])*600 + int(record[2:4])*10 + int(record[5])
+                record = float(record[0])*600 + float(record[2:4])*10 + float(record[5])
             except:
                 continue
             if record == 0:
@@ -403,13 +403,12 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
 
 
     if len(race_sum[6]) == 0:
-        result[6] = int(md.course_record[6])
+        result[6] = float(md.course_record[6])
     else:
         result[6] = np.mean(race_sum[6])
         race_sum[6].reverse()
         for r in race_sum[6]:
             result[6] += 0.1 * (r - result[6])
-        result[6] = float(result[6])
     for i in range(len(race_sum)-1):
         if len(race_sum[i]) == 0:
             result[i] = float(result[6] * md.course_record[i] / md.course_record[6])
@@ -418,7 +417,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
             race_sum[i].reverse()
             for r in race_sum[i]:
                 result[i] += 0.1 * (r - result[i])
-            result[i] = int(result[i])
+            result[i] = float(result[i])
     if len(race_same_dist) > 0:
         result.append(float(np.min(race_same_dist)))
         result.append(float(np.mean(race_same_dist)))

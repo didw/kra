@@ -69,6 +69,7 @@ class RaceDetail:
                         #print("result: %s" % res)
                         break
                     words = re.findall(r'\S+', line)
+                    s1f, g1f, g2f, g3f = -1, -1, -1, -1
                     if len(words) == 6:
                         if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (words[3], words[6], words[2]))
                         try:
@@ -76,9 +77,9 @@ class RaceDetail:
                             g1f = float(re.search(r'\d{2}\.\d', words[3]).group())*10
                             g3f = 500
                         except:
-                            s1f = 180
-                            g1f = 180
-                            g3f = 500
+                            s1f = -1
+                            g1f = -1
+                            g3f = -1
                     elif len(words) == 9:
                         if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (words[3], words[6], words[2]))
                         try:
@@ -86,9 +87,9 @@ class RaceDetail:
                             g1f = float(re.search(r'\d{2}\.\d', words[6]).group())*10
                             g3f = float(re.search(r'\d{2}\.\d', words[2]).group())*10
                         except:
-                            s1f = 180
-                            g1f = 180
-                            g3f = 500
+                            s1f = -1
+                            g1f = -1
+                            g3f = -1
                     elif len(words) == 10:
                         if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (words[3], words[7], words[2]))
                         try:
@@ -96,9 +97,9 @@ class RaceDetail:
                             g1f = float(re.search(r'\d{2}\.\d', words[7]).group())*10
                             g3f = float(re.search(r'\d{2}\.\d', words[2]).group())*10
                         except:
-                            s1f = 180
-                            g1f = 180
-                            g3f = 500
+                            s1f = -1
+                            g1f = -1
+                            g3f = -1
                     elif len(words) == 11:
                         if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (words[3], words[8], words[2]))
                         try:
@@ -106,18 +107,18 @@ class RaceDetail:
                             g1f = float(re.search(r'\d{2}\.\d', words[8]).group())*10
                             g3f = float(re.search(r'\d{2}\.\d', words[2]).group())*10
                         except:
-                            s1f = 180
-                            g1f = 180
-                            g3f = 500
+                            s1f = -1
+                            g1f = -1
+                            g3f = -1
                     elif len(words) < 9:
                         #print("unexpected line: %s" % line)
                         continue
                     if s1f < 100 or s1f > 230:
-                        s1f = 180
+                        s1f = -1
                     if g1f < 100 or g1f > 230:
-                        g1f = 180
+                        g1f = -1
                     if g3f < 300 or g3f > 600:
-                        g3f = 500
+                        g3f = -1
                     data[name_list[i]].extend([s1f, g1f, g3f])
                     i += 1
                     
