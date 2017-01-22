@@ -65,7 +65,7 @@ def get_weight(meet, date, rcno, name, course):
             itemList = itemElm2.findAll('td')
             if name in unicode(itemList[1].string).encode('utf-8'):
                 try:
-                    return int(float(unicode(itemList[2].string)))
+                    return float(float(unicode(itemList[2].string)))
                 except ValueError:
                     return {1000: 461, 1100: 460, 1200: 463, 1300: 464, 1400: 466, 1700: 466, 1800: 471, 1900: 475, 2000: 482, 2300: 492}[course]
     return {1000: 461, 1100: 460, 1200: 463, 1300: 464, 1400: 466, 1700: 466, 1800: 471, 1900: 475, 2000: 482, 2300: 492}[course]
@@ -85,7 +85,7 @@ def get_dweight(meet, date, rcno, name):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
             if name in unicode(itemList[1].string).encode('utf-8'):
-                return unicode(itemList[3].string)
+                return float(unicode(itemList[3].string))
     print("can not find dweight %s in %s" % (name, fname))
     return 0
 
@@ -110,7 +110,7 @@ def get_drweight(meet, date, rcno, name):
                 if len(last_date) >= 10:
                     last_date = datetime.date(int(last_date[:4]), int(last_date[5:7]), int(last_date[8:10]))
                     delta_day = datetime.date(date/10000, date/100%100, date%100) - last_date
-                    return int(unicode(itemList[3].string)) * 1000 / delta_day.days
+                    return float(unicode(itemList[3].string)) * 1000 / delta_day.days
                 else:
                     if "-R" not in last_date:
                         print("can not parsing get_drweight %s" % fname)
@@ -154,7 +154,7 @@ def get_lastday(meet, date, rcno, name):
 def get_train_state(meet, date, rcno, name):
     name = name.replace('★', '')
     fname = '../txt/%d/train_state/train_state_%d_%d_%d.txt' % (meet, meet, date, rcno)
-    res = [0, 0, 0, 0, 0, 0]
+    res = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     cand = "조보후승기"
     if os.path.exists(fname):
         response_body = open(fname).read()
@@ -354,7 +354,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
             except AttributeError:
                 humidity = 7
             try:
-                record = int(record[0])*600 + int(record[2:4])*10 + int(record[5])
+                record = float(record[0])*600 + float(record[2:4])*10 + float(record[5])
             except:
                 continue
             if record == 0:
@@ -393,7 +393,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
 
 
     if len(race_sum[6]) == 0:
-        result[6] = int(md.course_record[6])
+        result[6] = float(md.course_record[6])
     else:
         result[6] = np.mean(race_sum[6])
         race_sum[6].reverse()
@@ -407,7 +407,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
             race_sum[i].reverse()
             for r in race_sum[i]:
                 result[i] += 0.1 * (r - result[i])
-            result[i] = int(result[i])
+            result[i] = float(result[i])
     if len(race_same_dist) > 0:
         result.append(float(np.min(race_same_dist)))
         result.append(float(np.mean(race_same_dist)))

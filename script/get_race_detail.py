@@ -69,18 +69,21 @@ class RaceDetail:
                         #print("result: %s" % res)
                         break
                     words = re.findall(r'\S+', line)
+                    s1f, g1f, g2f, g3f = -1, -1, -1, -1
                     if len(words) == 9:
                         if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (words[3], words[6], words[2]))
                         try:
                             g1f = float(re.search(r'\d{2}\.\d', words[6]).group())*10
                         except:
-                            g1f = 150
+                            print("parsing error in race_detail - 1")
+                            g1f = -1
                     elif len(words) == 11:
                         if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (words[3], words[8], words[2]))
                         try:
                             g1f = float(re.search(r'\d{2}\.\d', words[8]).group())*10
                         except:
-                            g1f = 150
+                            print("parsing error in race_detail - 3")
+                            g1f = -1
                     elif len(words) < 9:
                         #print("unexpected line: %s" % line)
                         continue
@@ -93,11 +96,11 @@ class RaceDetail:
                     except:
                         g3f = 400
                     if s1f < 100 or s1f > 200:
-                        s1f = 150
+                        s1f = -1
                     if g1f < 100 or g1f > 200:
-                        g1f = 150
+                        g1f = -1
                     if g3f < 300 or g3f > 500:
-                        g3f = 400
+                        g3f = -1
                     data[name_list[i]].extend([s1f, g1f, g3f])
                     i += 1
                     
@@ -169,21 +172,24 @@ class RaceDetail:
                     try:
                         s1f = float(re.search(r'\d{2}\.\d', words[3]).group())*10
                     except:
-                        s1f = 150
+                        print("parsing error in ap s1f")
+                        s1f = -1
                     try:
                         g1f = float(re.search(r'\d{2}\.\d', words[6]).group())*10
                     except:
-                        g1f = 150
+                        print("parsing error in ap g1f")
+                        g1f = -1
                     try:
                         g3f = float(re.search(r'\d{2}\.\d', words[2]).group())*10
                     except:
-                        g3f = 400
+                        print("parsing error in ap g3f")
+                        g3f = -1
                     if s1f < 100 or s1f > 200:
-                        s1f = 150
+                        s1f = -1
                     if g1f < 100 or g1f > 200:
-                        g1f = 150
+                        g1f = -1
                     if g3f < 300 or g3f > 500:
-                        g3f = 400
+                        g3f = -1
                     data[name_list[i]].extend([s1f, g1f, g3f])
                     i += 1
         for k,v in data.iteritems():
