@@ -161,7 +161,10 @@ class RaceDetail:
                 means_course[i%3].append(np.mean(rs[i]) / md.race_detail[course_list[i/3]][i%3])
                 res.append(np.mean(rs[i]))
         for i in range(len(means_course)):
-            m_course[i] = np.mean(means_course)
+            if len(means_course[i]) == 0:
+                m_course[i] = 1.0
+            else:
+                m_course[i] = np.mean(means_course[i])
 
         for i in range(len(rs)):
             rs[i].reverse()
