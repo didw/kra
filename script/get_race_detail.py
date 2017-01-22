@@ -248,7 +248,7 @@ class RaceDetail:
             else:
                 means_course[i%4].append(np.mean(rs[i]) / md.race_detail[course_list[i/4]][i%4])
                 res.append(np.mean(rs[i]))
-        for i in range(len(means_course[i])):
+        for i in range(len(means_course)):
             if len(means_course[i]) == 0:
                 m_course[i] = 1.0
             else:
