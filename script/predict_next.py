@@ -105,8 +105,20 @@ def print_detail(players, cand, fresult):
         fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[2], players[1], players[0], players[3], players[4], players[5]))
         fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[2], players[3], players[0], players[1], players[4], players[5]))
         fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[2], players[4], players[0], players[1], players[3], players[5]))
+    elif cand == [[1,2],[1,2,3],[1,2,3]]:
+        print("bet: 10000")  # 14200 / 6 = 2366
+        print("%s,%s,%s" % (players[0], players[1], players[2]))
+        print("%s,%s,%s" % (players[0], players[2], players[1]))
+        print("%s,%s,%s" % (players[1], players[0], players[2]))
+        print("%s,%s,%s" % (players[1], players[2], players[0]))
+
+        fresult.write("\n\nbet: 700")  # 14200 / 6 = 2366
+        fresult.write("\n%s,%s,%s" % (players[0], players[1], players[2]))
+        fresult.write("\n%s,%s,%s" % (players[0], players[2], players[1]))
+        fresult.write("\n%s,%s,%s" % (players[1], players[0], players[2]))
+        fresult.write("\n%s,%s,%s" % (players[1], players[2], players[0]))
     elif cand == [[4,5,6],[4,5,6],[4,5,6]]:
-        print("bet: 700")  # 14200 / 6 = 2366
+        print("bet: 2000")  # 14200 / 6 = 2366
         print("%s,%s,%s" % (players[3], players[4], players[5]))
         print("%s,%s,%s" % (players[3], players[5], players[4]))
         print("%s,%s,%s" % (players[4], players[3], players[5]))
@@ -235,6 +247,8 @@ def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
     global fname
     fresult = open(fname, 'a')
     fresult.write("%s,%s,%s,%s,%s,%s\n" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
+    print_detail(rcdata['idx'], [[1,2],[1,2,3],[1,2,3]], fresult)
+    print_detail(rcdata['idx'], [[4,5,6],[4,5,6],[4,5,6]], fresult)
     fresult.close()
 
 
@@ -273,7 +287,7 @@ def predict_next(estimator, md, rd, meet, date, rcno, course=0, nData=47, year=4
             print("=========== %s ==========" % prev_rc)
             print(rcdata)
             fresult = open(fname, 'a')
-            fresult.write("=== rcno: %d, nData: %d, year: %d, train_course: %d ===\n" % (int(prev_rc), nData, year, train_course))
+            fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d ===\n" % (int(prev_rc), nData, year, train_course))
             fresult.close()
             print_bet(rcdata, course, nData=nData, year=year, train_course=train_course)
             rcdata = []
@@ -301,17 +315,17 @@ def get_race_detail(date):
 
 if __name__ == '__main__':
     meet = 1
-    date = 20170121
+    date = 20170122
     train_course = 0
     courses = [0,1000,1200,1300,1300,1000,1000,1200,1300,1700,0,0,1200]
-    rcno = 0
-    for rcno in range(len(courses)):
-        course = courses[rcno]
-        test_course = course
-        rd = get_race_detail(date)
-        fname = '../result/1701/%d_%d.txt' % (date%100, rcno)
-        for nData, year, train_course in zip([47, 47, 186, 186, 186], [4, 2, 2, 1, 2], [1, 0, 1, 0, 0]):
-            if train_course == 1: train_course = course
-            print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
-            estimator, md, umd = tr.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
-            predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
+    rcno = 5
+    #for rcno in range(11, len(courses)):
+    course = courses[rcno]
+    test_course = course
+    rd = get_race_detail(date)
+    fname = '../result/1701/%d_%d.txt' % (date%100, rcno)
+    for nData, year, train_course in zip([186], [4], [0]):
+        if train_course == 1: train_course = course
+        print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
+        estimator, md, umd = tr.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
+        predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)

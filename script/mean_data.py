@@ -268,9 +268,9 @@ class mean_data:
 
     def update_race_detail(self, course, data):
         try:
-            self.race_detail[course][0] += self.lr * (data['s1f'] - self.race_score[course][0])
-            self.race_detail[course][1] += self.lr * (data['g1f'] - self.race_score[course][1])
-            self.race_detail[course][2] += self.lr * (data['g3f'] - self.race_score[course][2])
+            self.race_detail[course][0] += self.lr * (data['s1f'] - self.race_detail[course][0])
+            self.race_detail[course][1] += self.lr * (data['g1f'] - self.race_detail[course][1])
+            self.race_detail[course][2] += self.lr * (data['g3f'] - self.race_detail[course][2])
         except KeyError:
             return 0
 
