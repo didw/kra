@@ -358,7 +358,7 @@ def parse_txt_horse(date, rcno, name, course, md=mean_data()):
             return data
     print("can not find %s in %s" % (name, filename))
     #return [-1] + [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1, -1]
-    return map(lambda x: int(x), [md.hr_days[course]] + md.hr_history_total[course] + md.hr_history_year[course] + md.dist_rec[course])
+    return map(lambda x: float(x), [md.hr_days[course]] + md.hr_history_total[course] + md.hr_history_year[course] + md.dist_rec[course])
 
 
 # 이름  소속 생일        데뷔일  총경기수, 총1, 총2, 1년, 1년1, 1년2
@@ -402,7 +402,7 @@ def parse_txt_jockey(date, name, course, md=mean_data()):
             return data
     print("can not find %s in %s" % (name, filename))
     #return [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1]
-    return map(lambda x: int(x), md.jk_history_total[course] + md.jk_history_year[course])
+    return map(lambda x: float(x), md.jk_history_total[course] + md.jk_history_year[course])
 
 
 # 이름  소속 생일        데뷔일  총경기수, 총1, 총2, 1년, 1년1, 1년2
@@ -447,7 +447,7 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
             return data
     print("can not find %s in %s" % (name, filename))
     #return [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1]
-    return map(lambda x: int(x), md.tr_history_total[course] + md.tr_history_year[course])
+    return map(lambda x: float(x), md.tr_history_total[course] + md.tr_history_year[course])
 
 
 def get_data(filename, md=mean_data(), rd=RaceDetail()):

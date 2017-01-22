@@ -96,21 +96,21 @@ def get_jk_win(data, name, course, md=mean_data()):
     res = md.jk_history_total[course] + md.jk_history_year[course]
     for idx, line in data.iterrows():
         if line['jkName'] == name:
-            res[0] = tt = int(line['cntT'])
-            res[1] = t1 = int(line['ord1T'])
-            res[2] = t2 = int(line['ord2T'])
-            res[5] = yt = int(line['cntY'])
-            res[6] = y1 = int(line['ord1Y'])
-            res[7] = y2 = int(line['ord2Y'])
+            res[0] = tt = float(line['cntT'])
+            res[1] = t1 = float(line['ord1T'])
+            res[2] = t2 = float(line['ord2T'])
+            res[5] = yt = float(line['cntY'])
+            res[6] = y1 = float(line['ord1Y'])
+            res[7] = y2 = float(line['ord2Y'])
             if int(tt) != 0:
-                res[3] = int(t1) * 100 / int(tt)
-                res[4] = int(t2) * 100 / int(tt)
+                res[3] = float(t1) * 100 / float(tt)
+                res[4] = float(t2) * 100 / float(tt)
             else:
                 res[3] = md.jk_history_total[course][3]
                 res[4] = md.jk_history_total[course][4]
             if int(yt) != 0:
-                res[8] = int(y1) * 100 / int(yt)
-                res[9] = int(y2) * 100 / int(yt)
+                res[8] = float(y1) * 100 / float(yt)
+                res[9] = float(y2) * 100 / float(yt)
             else:
                 res[8] = md.jk_history_year[course][3]
                 res[9] = md.jk_history_year[course][4]
@@ -123,21 +123,21 @@ def get_tr_win(data, name, course, md=mean_data()):
     res = md.tr_history_total[course] + md.tr_history_year[course]
     for idx, line in data.iterrows():
         if line['trName'] == name:
-            res[0] = tt = int(line['cntT'])
-            res[1] = t1 = int(line['ord1T'])
-            res[2] = t2 = int(line['ord2T'])
-            res[5] = yt = int(line['cntY'])
-            res[6] = y1 = int(line['ord1Y'])
-            res[7] = y2 = int(line['ord2Y'])
+            res[0] = tt = float(line['cntT'])
+            res[1] = t1 = float(line['ord1T'])
+            res[2] = t2 = float(line['ord2T'])
+            res[5] = yt = float(line['cntY'])
+            res[6] = y1 = float(line['ord1Y'])
+            res[7] = y2 = float(line['ord2Y'])
             if int(tt) != 0:
-                res[3] = int(t1) * 100 / int(tt)
-                res[4] = int(t2) * 100 / int(tt)
+                res[3] = float(t1) * 100 / float(tt)
+                res[4] = float(t2) * 100 / float(tt)
             else:
                 res[3] = md.tr_history_total[course][3]
                 res[4] = md.tr_history_total[course][4]
             if int(yt) != 0:
-                res[8] = int(y1) * 100 / int(yt)
-                res[9] = int(y2) * 100 / int(yt)
+                res[8] = float(y1) * 100 / float(yt)
+                res[9] = float(y2) * 100 / float(yt)
             else:
                 res[8] = md.tr_history_year[course][3]
                 res[9] = md.tr_history_year[course][4]
