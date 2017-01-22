@@ -345,7 +345,7 @@ def parse_txt_horse(date, rcno, name, course, md=mean_data()):
             return data
     print("can not find %s in %s" % (name, filename))
     #return [-1] + [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1, -1]
-    return map(lambda x: int(x), [md.hr_days[course]] + md.hr_history_total[course] + md.hr_history_year[course] + md.dist_rec[course])
+    return map(lambda x: float(x), [md.hr_days[course]] + md.hr_history_total[course] + md.hr_history_year[course] + md.dist_rec[course])
 
 
 # 이름  소속 생일        데뷔일  총경기수, 총1, 총2, 1년, 1년1, 1년2
@@ -389,7 +389,7 @@ def parse_txt_jockey(date, name, course, md=mean_data()):
             return data
     print("can not find %s in %s" % (name, filename))
     #return [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1]
-    return map(lambda x: int(x), md.jk_history_total[course] + md.jk_history_year[course])
+    return map(lambda x: float(x), md.jk_history_total[course] + md.jk_history_year[course])
 
 
 # 이름  소속 생일        데뷔일  총경기수, 총1, 총2, 1년, 1년1, 1년2
@@ -434,7 +434,7 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
             return data
     print("can not find %s in %s" % (name, filename))
     #return [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1]
-    return map(lambda x: int(x), md.tr_history_total[course] + md.tr_history_year[course])
+    return map(lambda x: float(x), md.tr_history_total[course] + md.tr_history_year[course])
 
 
 def get_data(filename, md=mean_data(), rd=RaceDetail()):
@@ -477,7 +477,8 @@ if __name__ == '__main__':
     filename = '../txt/3/rcresult/rcresult_3_20070106.txt'
     rd = RaceDetail()
     import glob
-    for year in range(2007,2017):
+    year_ = int(re.search(r'\d{8}', filename).group())/10000
+    for year in range(year_-3, year_+1):
         filelist1 = glob.glob('../txt/3/ap-check-rslt/ap-check-rslt_3_%d*.txt' % year)
         filelist2 = glob.glob('../txt/3/rcresult/rcresult_3_%d*.txt' % year)
         for fname in filelist1:
@@ -486,7 +487,7 @@ if __name__ == '__main__':
         for fname in filelist2:
             print("processed rc in %s" % fname)
             rd.parse_race_detail(fname)
-    md = mean_data()
+    #md = mean_data()
     md = joblib.load('../data/3_2007_2016_md.pkl')
 
     data = get_data(filename, md, rd)

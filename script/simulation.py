@@ -164,8 +164,6 @@ def simulation3(pred, ans, targets=[[1,2],[1,3],[2,3]]):
         for target in targets:
             if (top[0] in target) and (top[1] in target):
                 res1 += bet * (r3-1)
-                if r3 > 40:
-                    print("\nrcno[%d] boksik = %f\n" % (rcno, r3))
             else:
                 res1 -= bet
 
@@ -248,6 +246,7 @@ def simulation4(pred, ans, target=[1,2]):
     return res1
 
 
+import re
 # 2 straight win
 def simulation5(pred, ans, targets=[[1,2],[1,3],[2,1],[2,3]]):
     bet = 10.0 / len(targets)
@@ -259,7 +258,9 @@ def simulation5(pred, ans, targets=[[1,2],[1,3],[2,1],[2,3]]):
         if i >= len(pred):
             break
         sim_data = [pred[i]]
-        r5 = float(ans['ssang'][i]) - 1
+        r5 = float(re.search(r'\d+\.\d', str(ans['ssang'][i])).group()) - 1
+        if r5 == 0:
+            r5 = 0.1
         rcno = int(ans['rcno'][i])
         cache[int(ans['rank'][i])] = 1
         i += 1
@@ -290,8 +291,6 @@ def simulation5(pred, ans, targets=[[1,2],[1,3],[2,1],[2,3]]):
         for target in targets:
             if top[0] == target[0] and top[1] == target[1]:
                 res1 += bet * r5
-                if r5 > 40:
-                    print("\n== rcno[%d], ssang rate = %f\n" % (rcno, r5))
             else:
                 res1 -= bet
 
@@ -348,8 +347,6 @@ def simulation6(pred, ans, targets=[[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5],
         
         for target in targets:
             if top[0] in target and top[1] in target and top[2] in target:
-                if r6 > 100:
-                    print("\n== rcno[%d], sambok rate = %f\n" % (rcno, r6))
                 res1 += bet * r6
             else:
                 res1 -= bet
@@ -421,8 +418,6 @@ def simulation7(pred, ans, targets=[[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]]):
                     if x == y or x == z or y == z:
                         continue
                     if top[0] == x and top[1] == y and top[2] == z:
-                        if r7 > 100:
-                            print("\n== rcno[%d], samssang rate = %f\n" % (rcno, r7))
                         res1 += bet * r7
                     else:
                         res1 -= bet

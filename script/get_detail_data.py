@@ -65,7 +65,7 @@ def get_weight(meet, date, rcno, name, course):
             itemList = itemElm2.findAll('td')
             if name in unicode(itemList[1].string).encode('utf-8'):
                 try:
-                    return int(float(unicode(itemList[2].string)))
+                    return float(float(unicode(itemList[2].string)))
                 except ValueError:
                     return {1000: 461, 1200: 463, 1300: 464, 1400: 466, 1500: 466, 1600: 466, 1800: 471, 1900: 475, 2000: 482, 2200: 492}[course]
     return {1000: 461, 1200: 463, 1300: 464, 1400: 466, 1500: 466, 1600: 466, 1800: 471, 1900: 475, 2000: 482, 2200: 492}[course]
@@ -85,7 +85,7 @@ def get_dweight(meet, date, rcno, name):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
             if name in unicode(itemList[1].string).encode('utf-8'):
-                return unicode(itemList[3].string)
+                return float(unicode(itemList[3].string))
     print("can not find dweight %s in %s" % (name, fname))
     return 0
 
@@ -110,7 +110,7 @@ def get_drweight(meet, date, rcno, name):
                 if len(last_date) >= 10:
                     last_date = datetime.date(int(last_date[:4]), int(last_date[5:7]), int(last_date[8:10]))
                     delta_day = datetime.date(date/10000, date/100%100, date%100) - last_date
-                    return int(unicode(itemList[3].string)) * 1000 / delta_day.days
+                    return float(unicode(itemList[3].string)) * 1000 / delta_day.days
                 else:
                     if "-R" not in last_date:
                         print("can not parsing get_drweight %s" % fname)
@@ -154,7 +154,7 @@ def get_lastday(meet, date, rcno, name):
 def get_train_state(meet, date, rcno, name):
     name = name.replace('★', '')
     fname = '../txt/%d/train_state/train_state_%d_%d_%d.txt' % (meet, meet, date, rcno)
-    res = [0, 0, 0, 0, 0, 0]
+    res = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     cand = "조보후승기"
     if os.path.exists(fname):
         response_body = open(fname).read()
@@ -224,23 +224,23 @@ def get_distance_record(meet, name, rcno, date, course, md=mean_data()):
                 #print("find name: %s, %s" % (name, itemList[1].string.encode('utf-8')))
                 if int(unicode(itemList[2].string)[0]) == 0:
                     try:
-                        return [0, 0, 0] + map(lambda x: int(x), md.dist_rec[course][3:])
+                        return [0, 0, 0] + map(lambda x: float(x), md.dist_rec[course][3:])
                     except KeyError:
                         print("there is no course %d" % course)
-                        return map(lambda x: int(x), md.dist_rec[course])
+                        return map(lambda x: float(x), md.dist_rec[course])
                 if DEBUG:
                     print("%s, %s, %s, %s, %s, %s" % (unicode(itemList[2].string), unicode(itemList[3].string), unicode(itemList[4].string), unicode(itemList[5].string), unicode(itemList[6].string), unicode(itemList[7].string)))
                 try:
                     cnt = re.search(r'\d+', unicode(itemList[2].string)).group()
-                    res.append(int(cnt))
-                    res.append(int(float(unicode(itemList[3].string))))
-                    res.append(int(float(unicode(itemList[4].string))))
+                    res.append(float(cnt))
+                    res.append(float(unicode(itemList[3].string)))
+                    res.append(float(unicode(itemList[4].string)))
                     t = unicode(itemList[5].string)
-                    res.append(int(t.split(':')[0]) * 600 + int(t.split(':')[1].split('.')[0]) * 10 + int(t.split('.')[1][0]))
+                    res.append(float(t.split(':')[0]) * 600 + float(t.split(':')[1].split('.')[0]) * 10 + float(t.split('.')[1][0]))
                     t = unicode(itemList[6].string)
-                    res.append(int(t.split(':')[0]) * 600 + int(t.split(':')[1].split('.')[0]) * 10 + int(t.split('.')[1][0]))
+                    res.append(float(t.split(':')[0]) * 600 + float(t.split(':')[1].split('.')[0]) * 10 + float(t.split('.')[1][0]))
                     t = unicode(itemList[7].string)
-                    res.append(int(t.split(':')[0]) * 600 + int(t.split(':')[1].split('.')[0]) * 10 + int(t.split('.')[1][0]))
+                    res.append(float(t.split(':')[0]) * 600 + float(t.split(':')[1].split('.')[0]) * 10 + float(t.split('.')[1][0]))
                     break
                 except:
                     print("parsing error")
@@ -250,7 +250,7 @@ def get_distance_record(meet, name, rcno, date, course, md=mean_data()):
     else:
         print("can not find %s in %s" % (unicode(name, 'utf-8'), fname))
         try:
-            return map(lambda x: int(x), md.dist_rec[course])
+            return map(lambda x: float(x), md.dist_rec[course])
         except KeyError:
             print("there is no course %d" % course)
             return [-1, -1, -1, -1, -1, -1]
@@ -293,8 +293,8 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
     first_attend = True
     course = int(course)
     result = [-1, -1, -1, -1, -1, -1, -1] # 주, 1000, 1200, 1300, 1400, 1700, 0
-    default_res = map(lambda x: int(np.mean(np.array(x)[:,20])), [md.race_score[900], md.race_score[1000], md.race_score[1200], md.race_score[1300], md.race_score[1400], md.race_score[1600], md.race_score[0]])
-    default_res.extend(map(lambda x: int(x), md.dist_rec[course][3:]))
+    default_res = map(lambda x: float(np.mean(np.array(x)[:,20])), [md.race_score[900], md.race_score[1000], md.race_score[1200], md.race_score[1300], md.race_score[1400], md.race_score[1600], md.race_score[0]])
+    default_res.extend(map(lambda x: float(x), md.dist_rec[course][3:]))
     race_sum = [[], [], [], [], [], [], []]
     race_same_dist = []
     if hrno == -1:
@@ -355,7 +355,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
             except AttributeError:
                 humidity = 7
             try:
-                record = int(record[0])*600 + int(record[2:4])*10 + int(record[5])
+                record = float(record[0])*600 + float(record[2:4])*10 + float(record[5])
             except:
                 continue
             if record == 0:
@@ -394,38 +394,37 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
 
 
     if len(race_sum[6]) == 0:
-        result[6] = int(md.course_record[6])
+        result[6] = float(md.course_record[6])
     else:
         result[6] = np.mean(race_sum[6])
         race_sum[6].reverse()
         for r in race_sum[6]:
             result[6] += 0.1 * (r - result[6])
-        result[6] = int(result[6])
     for i in range(len(race_sum)-1):
         if len(race_sum[i]) == 0:
-            result[i] = int(result[6] * md.course_record[i] / md.course_record[6])
+            result[i] = float(result[6] * md.course_record[i] / md.course_record[6])
         else:
             result[i] = np.mean(race_sum[i])
             race_sum[i].reverse()
             for r in race_sum[i]:
                 result[i] += 0.1 * (r - result[i])
-            result[i] = int(result[i])
+            result[i] = float(result[i])
     if len(race_same_dist) > 0:
-        result.append(int(np.min(race_same_dist)))
-        result.append(int(np.mean(race_same_dist)))
-        result.append(int(np.max(race_same_dist)))
+        result.append(float(np.min(race_same_dist)))
+        result.append(float(np.mean(race_same_dist)))
+        result.append(float(np.max(race_same_dist)))
     elif course in [1000, 1200, 1300, 1400, 1700]:
         #result.extend([-1, -1, -1])
         delta1 = md.dist_rec[course][4] - md.dist_rec[course][3]
         delta2 = md.dist_rec[course][5] - md.dist_rec[course][4]
-        result.append(int(md.race_score[course][month-1][20] - delta1))
-        result.append(int(md.race_score[course][month-1][20]))
-        result.append(int(md.race_score[course][month-1][20] + delta2))
+        result.append(float(md.race_score[course][month-1][20] - delta1))
+        result.append(float(md.race_score[course][month-1][20]))
+        result.append(float(md.race_score[course][month-1][20] + delta2))
     else:
         #result.extend([-1, -1, -1])
-        result.append(int(md.dist_rec[course][3]))
-        result.append(int(md.dist_rec[course][4]))
-        result.append(int(md.dist_rec[course][5]))
+        result.append(float(md.dist_rec[course][3]))
+        result.append(float(md.dist_rec[course][4]))
+        result.append(float(md.dist_rec[course][5]))
     return result
 
 

@@ -34,29 +34,11 @@ def normalize_data(org_data, nData=47):
     data.loc[data['cntry'] == '아', 'cntry'] = 15
     data.loc[data['cntry'] == '프', 'cntry'] = 16
     if nData == 47:
-        del data['ts1']
-        del data['ts2']
-        del data['ts3']
-        del data['ts4']
-        del data['ts5']
-        del data['ts6']
-        del data['score1']
-        del data['score2']
-        del data['score3']
-        del data['score4']
-        del data['score5']
-        del data['score6']
-        del data['score7']
-        del data['score8']
-        del data['score9']
-        del data['score10']
-        del data['hr_dt']
-        del data['hr_d1']
-        del data['hr_d2']
-        del data['hr_rh']
-        del data['hr_rm']
-        del data['hr_rl']
-
+        data = data.drop(['ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', 'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl'], axis=1)
+        data = data.drop(['rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
+                  'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',
+                  'jc31', 'jc32', 'jc33', 'jc34', 'jc35', 'jc36', 'jc37', 'jc38', 'jc39', 'jc40', 'jc41', 'jc42', 'jc43', 'jc44', 'jc45', 'jc46', 'jc47', 'jc48', 'jc49', 'jc50', 'jc51', 'jc52', 'jc53', 'jc54', 'jc55', 'jc56', 'jc57', 'jc58', 'jc59', 'jc60',
+                  'jc61', 'jc62', 'jc63', 'jc64', 'jc65', 'jc66', 'jc67', 'jc68', 'jc69', 'jc70', 'jc71', 'jc72', 'jc73', 'jc74', 'jc75', 'jc76', 'jc77', 'jc78', 'jc79', 'jc80', 'jc81'], axis=1)
     return data
 
 
@@ -123,8 +105,20 @@ def print_detail(players, cand, fresult):
         fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[2], players[1], players[0], players[3], players[4], players[5]))
         fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[2], players[3], players[0], players[1], players[4], players[5]))
         fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[2], players[4], players[0], players[1], players[3], players[5]))
+    elif cand == [[1,2],[1,2,3],[1,2,3]]:
+        print("bet: 10000")  # 14200 / 6 = 2366
+        print("%s,%s,%s" % (players[0], players[1], players[2]))
+        print("%s,%s,%s" % (players[0], players[2], players[1]))
+        print("%s,%s,%s" % (players[1], players[0], players[2]))
+        print("%s,%s,%s" % (players[1], players[2], players[0]))
+
+        fresult.write("\n\nbet: 700")  # 14200 / 6 = 2366
+        fresult.write("\n%s,%s,%s" % (players[0], players[1], players[2]))
+        fresult.write("\n%s,%s,%s" % (players[0], players[2], players[1]))
+        fresult.write("\n%s,%s,%s" % (players[1], players[0], players[2]))
+        fresult.write("\n%s,%s,%s" % (players[1], players[2], players[0]))
     elif cand == [[4,5,6],[4,5,6],[4,5,6]]:
-        print("bet: 700")  # 14200 / 6 = 2366
+        print("bet: 2000")  # 14200 / 6 = 2366
         print("%s,%s,%s" % (players[3], players[4], players[5]))
         print("%s,%s,%s" % (players[3], players[5], players[4]))
         print("%s,%s,%s" % (players[4], players[3], players[5]))
@@ -252,8 +246,9 @@ def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
     print("samssang")
     global fname
     fresult = open(fname, 'a')
-    print_detail(rcdata['idx'], [[1],[2],[3]], fresult)
-
+    fresult.write("%s,%s,%s,%s,%s,%s\n" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
+    print_detail(rcdata['idx'], [[1,2],[1,2,3],[1,2,3]], fresult)
+    print_detail(rcdata['idx'], [[4,5,6],[4,5,6],[4,5,6]], fresult)
     fresult.close()
 
 
@@ -291,6 +286,9 @@ def predict_next(estimator, md, rd, meet, date, rcno, course=0, nData=47, year=4
             rcdata = rcdata.reset_index(drop=True)
             print("=========== %s ==========" % prev_rc)
             print(rcdata)
+            fresult = open(fname, 'a')
+            fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d ===\n" % (int(prev_rc), nData, year, train_course))
+            fresult.close()
             print_bet(rcdata, course, nData=nData, year=year, train_course=train_course)
             rcdata = []
             prev_rc = row['rcno']
@@ -298,8 +296,8 @@ def predict_next(estimator, md, rd, meet, date, rcno, course=0, nData=47, year=4
                 rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
         else:
             rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
-    print(X_data.columns)
-    print(estimator.feature_importances_)
+    #print(X_data.columns)
+    #print(estimator.feature_importances_)
 
 def get_race_detail(date):
     rd = RaceDetail()
