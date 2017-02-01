@@ -6,6 +6,7 @@ import datetime
 import pandas as pd
 import os.path
 from sklearn.ensemble.forest import RandomForestRegressor
+from sklearn.preprocessing import StandardScaler
 from sklearn.externals import joblib
 import random
 import simulation as sim
@@ -125,7 +126,7 @@ def training(train_bd, train_ed, course=0, nData=47):
         X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016.csv', course, nData=nData)
         print("%d data is fully loaded" % len(X_train))
 
-        estimator = RandomForestRegressor(random_state=0, n_estimators=100)
+        estimator = RandomForestRegressor(random_state=0, n_estimators=100, n_jobs=-1)
         estimator.fit(X_train, Y_train)
         print("finish training model")
         updated_md = mean_data()
@@ -158,7 +159,7 @@ def print_log(data, pred, fname):
 
 def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_year=0, course=0, kind=0, nData=47):
     today = begin_date
-    sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10, score_sum = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     while today <= end_date:
         while today.weekday() != 3:
             today = today + datetime.timedelta(days=1)
@@ -182,6 +183,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         if os.path.exists(model_name):
             print("model exist. try to loading..")
             estimator = joblib.load(model_name)
+            #X_scaler = joblib.load(model_name.replace('model.', 'scaler.'))
         else:
             print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
             X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016.csv', course, 0, nData=nData)
@@ -191,11 +193,14 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
             else:
                 if remove_outlier:
                     X_train, Y_train = delete_lack_data(X_train, Y_train)
+                #X_scaler = StandardScaler()
+                #X_train = X_scaler.fit_transform(X_train)
                 print("Start train model")
-                estimator = RandomForestRegressor(random_state=0, n_estimators=100)
+                estimator = RandomForestRegressor(random_state=0, n_estimators=100, n_jobs=-1)
                 estimator.fit(X_train, Y_train)
                 os.system('mkdir ..\model%d\%d_%d' % (nData, train_bd_i, train_ed_i))
                 joblib.dump(estimator, model_name)
+                #joblib.dump(X_scaler, model_name.replace('model.', 'scaler.'))
                 print("Finish train model")
                 print("important factor")
                 #print(X_train.columns)
@@ -216,6 +221,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
             DEBUG = False
             if DEBUG:
                 X_test.to_csv('../log/2016_7_9.csv', index=False)
+            #X_test = X_scaler.transform(X_test)
             score = estimator.score(X_test, Y_test)
             print("Score with the entire test dataset = %.2f" % score)
             pred = estimator.predict(X_test)
@@ -235,6 +241,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
             sr5 += res5
             sr6 += res6
             sr7 += res7
+            score_sum += score
         print("train data: %s - %s" % (str(train_bd), str(train_ed)))
         print("test data: %s - %s" % (str(test_bd), str(test_ed)))
         print("course: %d[%d]" % (course, kind))
@@ -242,7 +249,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         print("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
                     score, res1, res2, res3, res4, res5, res6, res7))
         print("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                score, sr1, sr2, sr3, sr4, sr5, sr6, sr7))
+                score_sum, sr1, sr2, sr3, sr4, sr5, sr6, sr7))
         f_result = open(fname_result, 'a')
         f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
         f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
@@ -253,14 +260,14 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
     f_result = open(fname_result, 'a')
     f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
     f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                    score, sr1, sr2, sr3, sr4, sr5, sr6, sr7))
+                    score_sum, sr1, sr2, sr3, sr4, sr5, sr6, sr7))
     f_result.close()
 
 
 def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, courses=[0], kinds=[0], nData=47):
     remove_outlier = False
     today = begin_date
-    sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10 = {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+    sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10, score_sum = {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
     while today <= end_date:
         while today.weekday() != 3:
             today = today + datetime.timedelta(days=1)
@@ -283,6 +290,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         if os.path.exists(model_name):
             print("model exist. try to loading.. %s - %s" % (str(train_bd), str(train_ed)))
             estimator = joblib.load(model_name)
+            #X_scaler = joblib.load(model_name.replace('model.', 'scaler.'))
         else:
             print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
             X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016.csv', 0, nData=nData)
@@ -292,11 +300,15 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
             else:
                 if remove_outlier:
                     X_train, Y_train = delete_lack_data(X_train, Y_train)
+                #X_scaler = StandardScaler()
+                #X_train = X_scaler.fit_transform(X_train)
                 print("Start train model")
-                estimator = RandomForestRegressor(random_state=0, n_estimators=100)
+
+                estimator = RandomForestRegressor(random_state=0, n_estimators=100, n_jobs=-1)
                 estimator.fit(X_train, Y_train)
                 os.system('mkdir ..\model%d\%d_%d' % (nData, train_bd_i, train_ed_i))
                 joblib.dump(estimator, model_name)
+                #joblib.dump(X_scaler, model_name.replace('model.', 'scaler.'))
                 print("Finish train model")
                 score = estimator.score(X_train, Y_train)
                 print("Score with the entire training dataset = %.2f" % score)
@@ -318,6 +330,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     DEBUG = False
                     if DEBUG:
                         X_test.to_csv('../log/weekly_train0_%s.csv' % today, index=False)
+                    #X_test = X_scaler.transform(X_test)
                     score = estimator.score(X_test, Y_test)
                     print("Score with the entire test dataset = %.5f" % score)
                     pred = estimator.predict(X_test)
@@ -385,6 +398,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                         sr5[course] += res5
                         sr6[course] += res6
                         sr7[course] += res7
+                        score_sum[course] += score
                     except KeyError:
                         sr1[course] = res1
                         sr2[course] = res2
@@ -393,6 +407,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                         sr5[course] = res5
                         sr6[course] = res6
                         sr7[course] = res7
+                        score_sum[course] = score
 
                 print("train data: %s - %s" % (str(train_bd), str(train_ed)))
                 print("test data: %s - %s" % (str(test_bd), str(test_ed)))
@@ -401,7 +416,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 print("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
                         score, res1, res2, res3, res4, res5, res6, res7))
                 print("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                        score, sr1[course], sr2[course], sr3[course], sr4[course], sr5[course], sr6[course], sr7[course]))
+                        score_sum[course], sr1[course], sr2[course], sr3[course], sr4[course], sr5[course], sr6[course], sr7[course]))
                 f_result = open(fname_result, 'a')
                 f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
                 f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
@@ -415,7 +430,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
             f_result = open(fname_result, 'a')
             f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
             f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                            0, sr1[course], sr2[course], sr3[course], sr4[course], sr5[course], sr6[course], sr7[course]))
+                            score_sum[course], sr1[course], sr2[course], sr3[course], sr4[course], sr5[course], sr6[course], sr7[course]))
             f_result.close()
 
 

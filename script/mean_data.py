@@ -267,12 +267,45 @@ class mean_data:
             return 0
 
     def update_race_detail(self, course, data):
-        try:
-            self.race_detail[course][0] += self.lr * (data['s1f'] - self.race_detail[course][0])
-            self.race_detail[course][1] += self.lr * (data['g1f'] - self.race_detail[course][1])
-            self.race_detail[course][2] += self.lr * (data['g3f'] - self.race_detail[course][2])
-        except KeyError:
-            return 0
+        if course not in [900, 1000, 1200, 1300, 1400, 1700]:
+            print("%d course is not in data" % course)
+            return -1
+        if data['rd1'] != -1:
+            self.race_detail[900][0] += self.lr * (data['rd1'] - self.race_detail[900][0])
+        if data['rd2'] != -1:
+            self.race_detail[900][1] += self.lr * (data['rd2'] - self.race_detail[900][1])
+        if data['rd3'] != -1:
+            self.race_detail[900][2] += self.lr * (data['rd3'] - self.race_detail[900][2])
+        if data['rd4'] != -1:
+            self.race_detail[1000][0] += self.lr * (data['rd4'] - self.race_detail[1000][0])
+        if data['rd5'] != -1:
+            self.race_detail[1000][1] += self.lr * (data['rd5'] - self.race_detail[1000][1])
+        if data['rd6'] != -1:
+            self.race_detail[1000][2] += self.lr * (data['rd6'] - self.race_detail[1000][2])
+        if data['rd7'] != -1:
+            self.race_detail[1200][0] += self.lr * (data['rd7'] - self.race_detail[1200][0])
+        if data['rd8'] != -1:
+            self.race_detail[1200][1] += self.lr * (data['rd8'] - self.race_detail[1200][1])
+        if data['rd9'] != -1:
+            self.race_detail[1200][2] += self.lr * (data['rd9'] - self.race_detail[1200][2])
+        if data['rd10'] != -1:
+            self.race_detail[1300][0] += self.lr * (data['rd10'] - self.race_detail[1300][0])
+        if data['rd11'] != -1:
+            self.race_detail[1300][1] += self.lr * (data['rd11'] - self.race_detail[1300][1])
+        if data['rd12'] != -1:
+            self.race_detail[1300][2] += self.lr * (data['rd12'] - self.race_detail[1300][2])
+        if data['rd13'] != -1:
+            self.race_detail[1400][0] += self.lr * (data['rd13'] - self.race_detail[1400][0])
+        if data['rd14'] != -1:
+            self.race_detail[1400][1] += self.lr * (data['rd14'] - self.race_detail[1400][1])
+        if data['rd15'] != -1:
+            self.race_detail[1400][2] += self.lr * (data['rd15'] - self.race_detail[1400][2])
+        if data['rd16'] != -1:
+            self.race_detail[1700][0] += self.lr * (data['rd16'] - self.race_detail[1700][0])
+        if data['rd17'] != -1:
+            self.race_detail[1700][1] += self.lr * (data['rd17'] - self.race_detail[1700][1])
+        if data['rd18'] != -1:
+            self.race_detail[1700][2] += self.lr * (data['rd18'] - self.race_detail[1700][2])
 
 
     def update_data(self, df):

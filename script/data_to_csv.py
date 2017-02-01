@@ -43,6 +43,9 @@ def get_data(begin_date, end_date, fname_csv):
         for i in [900, 1000, 1200, 1300, 1400, 1700, 0]:
             print("%f" % md.race_score[i][0][20], end=' ')
         print()
+        for i in [900, 1000, 1200, 1300, 1400, 1700]:
+            print("[%.0f %.0f %.0f]" % (md.race_detail[i][0], md.race_detail[i][1], md.race_detail[i][2]), end=', ')
+        print()
         if first:
             adata = pr.get_data(filename, md, rd)
             md.update_data(adata)
