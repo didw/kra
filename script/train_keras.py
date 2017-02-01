@@ -6,6 +6,7 @@ import datetime
 import pandas as pd
 import os.path
 from sklearn.ensemble.forest import RandomForestRegressor
+from sklearn.preprocessing import StandardScaler
 from sklearn.externals import joblib
 import random
 import simulation as sim
@@ -13,17 +14,22 @@ from mean_data import mean_data
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense
+from keras.layers import Dropout
 from keras.wrappers.scikit_learn import KerasRegressor
+from keras import backend as K
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 import pickle
+import tensorflow as tf
 
 def baseline_model():
     # create model
     model = Sequential()
-    model.add(Dense(128, input_dim=168, init='normal', activation='relu'))
-    model.add(Dense(1, init='normal'))
+    model.add(Dense(128, input_dim=168, init='he_normal', activation='relu'))
+    #model.add(Dropout(0.1))
+    #model.add(Dense(128, init='he_normal'))
+    model.add(Dense(1, init='he_normal'))
     # Compile model
     model.compile(loss='mean_squared_error', optimizer='adam')
     return model
@@ -329,6 +335,8 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
             if len(X_train) < 10:
                 res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
             else:
+                #X_scaler = StandardScaler()
+                #X_train = X_scaler.fit_transform(X_train)
                 print("Start train model")
                 # fix random seed for reproducibility
                 X_train = np.array(X_train)
@@ -353,6 +361,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 fname_result = '../data/weekly_keras_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
                 X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016.csv', course, kind, nData=nData)
+                #X_test = X_scaler.transform(X_test)
                 print("%d data is fully loaded" % (len(X_test)))
                 res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
                 if len(X_test) == 0:
@@ -477,6 +486,12 @@ if __name__ == '__main__':
     train_ed = datetime.date(2016, 10, 31)
     test_bd = datetime.date(2016, 6, 10)
     test_ed = datetime.date(2016, 12, 31)
+    #Tensorflow GPU optimization
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    sess = tf.Session(config=config)
+    K.set_session(sess)
+
     for delta_year in [4,6,8]:
         for nData in [186]:
             simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[1000, 1200, 1300, 1400, 1700, 0], nData=nData)
