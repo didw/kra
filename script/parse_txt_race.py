@@ -12,7 +12,7 @@ from sklearn.externals import joblib
 from get_race_detail import RaceDetail
 import get_weekly_clinic as wc
 
-NEXT = re.compile(unicode(r'마 체 중|단승식|복승식|매출액', 'utf-8').encode('utf-8'))
+NEXT = re.compile(r'마 체 중|단승식|복승식|매출액')
 WORD = re.compile(r"[^\s]+")
 DEBUG = False
 

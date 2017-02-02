@@ -7,8 +7,9 @@ import glob
 import parse_xml_entry as xe
 import datetime
 import train as tr
+import train_keras as tk
 from get_race_detail import RaceDetail
-
+import numpy as np
 
 def normalize_data(org_data, nData=47):
     data = org_data.dropna()
@@ -266,13 +267,15 @@ def predict_next(estimator, md, rd, meet, date, rcno, course=0, nData=47, year=4
     __DEBUG__ = True
     if __DEBUG__:
         X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
-    pred = pd.DataFrame(estimator.predict(X_data))
+    print(len(X_data.columns))
+    X_array = np.array(X_data)
+    pred = pd.DataFrame(estimator.predict(X_array))
     pred.columns = ['predict']
+    prev_rc = data['rcno'][0]
     __DEBUG__ = True
     if __DEBUG__:
         pd.concat([data_pre, pred], axis=1).to_csv('../log/predict_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
         X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
-    prev_rc = data['rcno'][0]
     rcdata = []
     for idx, row in data.iterrows():
         if int(data['hr_nt'][idx]) == 0 or int(data['jk_nt'][idx]) == 0 or int(data['tr_nt'][idx]) == 0:
@@ -318,14 +321,14 @@ if __name__ == '__main__':
     date = 20170122
     train_course = 0
     courses = [0,1000,1200,1300,1300,1000,1000,1200,1300,1700,0,0,1200]
-    rcno = 5
+    rcno = 1
     #for rcno in range(11, len(courses)):
     course = courses[rcno]
     test_course = course
     rd = get_race_detail(date)
     fname = '../result/1701/%d_%d.txt' % (date%100, rcno)
-    for nData, year, train_course in zip([186], [4], [0]):
+    for nData, year, train_course in zip([186,186,186], [4,6,8], [0]):
         if train_course == 1: train_course = course
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
-        estimator, md, umd = tr.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
+        estimator, md = tk.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
         predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
