@@ -9,7 +9,7 @@ import datetime
 import train as tr
 import train_keras as tk
 from get_race_detail import RaceDetail
-
+import numpy as np
 
 def normalize_data(org_data, nData=47):
     data = org_data.dropna()
@@ -268,12 +268,13 @@ def predict_next(estimator, md, rd, meet, date, rcno, course=0, nData=47, year=4
     if __DEBUG__:
         X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
     print(len(X_data.columns))
-    pred = pd.DataFrame(estimator.predict(X_data))
-    pred.columns = ['predict']
     __DEBUG__ = True
     if __DEBUG__:
         pd.concat([data_pre, pred], axis=1).to_csv('../log/predict_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
         X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
+    X_data = np.array(X_data)
+    pred = pd.DataFrame(estimator.predict(X_data))
+    pred.columns = ['predict']
     prev_rc = data['rcno'][0]
     rcdata = []
     for idx, row in data.iterrows():
