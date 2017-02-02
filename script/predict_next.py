@@ -7,6 +7,7 @@ import glob
 import parse_xml_entry as xe
 import datetime
 import train as tr
+import train_keras as tk
 from get_race_detail import RaceDetail
 
 
@@ -266,6 +267,7 @@ def predict_next(estimator, md, rd, meet, date, rcno, course=0, nData=47, year=4
     __DEBUG__ = True
     if __DEBUG__:
         X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
+    print(len(X_data.columns))
     pred = pd.DataFrame(estimator.predict(X_data))
     pred.columns = ['predict']
     __DEBUG__ = True
@@ -318,14 +320,14 @@ if __name__ == '__main__':
     date = 20170122
     train_course = 0
     courses = [0,1000,1200,1300,1300,1000,1000,1200,1300,1700,0,0,1200]
-    rcno = 5
+    rcno = 1
     #for rcno in range(11, len(courses)):
     course = courses[rcno]
     test_course = course
     rd = get_race_detail(date)
     fname = '../result/1701/%d_%d.txt' % (date%100, rcno)
-    for nData, year, train_course in zip([186], [4], [0]):
+    for nData, year, train_course in zip([186,186,186], [4,6,8], [0]):
         if train_course == 1: train_course = course
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
-        estimator, md, umd = tr.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
+        estimator, md = tk.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
         predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
