@@ -22,7 +22,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 import pickle
 import tensorflow as tf
-import multiprocessing as mp
 import Queue
 import time
 
@@ -307,16 +306,12 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
     f_result.close()
 
 
-def build_model(model_queue, X, Y):
-    estimator = KerasRegressor(build_fn=baseline_model, nb_epoch=10, batch_size=32, verbose=0)
-    estimator.fit(X, Y)
-    model_queue.put(estimator, True)
-
-
 def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, courses=[0], kinds=[0], nData=47):
     remove_outlier = False
     today = begin_date
-    sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10 = {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+    def m():
+        return [{0:0} for _ in range(MODEL_NUM+1)]
+    sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10, score_sum = m(),m(),m(),m(),m(),m(),m(),m(),m(),m(),m()
     while today <= end_date:
         while today.weekday() != 3:
             today = today + datetime.timedelta(days=1)
@@ -337,12 +332,14 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         model_name = "../model_tf/%d_%d/model_v1.h5" % (train_bd_i, train_ed_i)
         os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
 
+        estimators = [0] * MODEL_NUM
         if os.path.exists(model_name):
             print("model exist. try to loading.. %s - %s" % (str(train_bd), str(train_ed)))
             # loading model
             from keras.models import model_from_json
-            estimator = model_from_json(open(model_name.replace('h5', 'json')).read())
-            estimator.load_weights(model_name)
+            for i in range(MODEL_NUM):
+                estimators[i] = model_from_json(open(model_name.replace('h5', 'json')).read())
+                estimators[i].load_weights(model_name)
         else:
             print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
             X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', 0, nData=nData)
@@ -359,19 +356,11 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 seed = 7
                 np.random.seed(seed)
                 # evaluate model with standardized dataset
-                #estimator = KerasRegressor(build_fn=baseline_model, nb_epoch=20, batch_size=32, verbose=0)
-                #estimator.fit(X_train, Y_train)
-                estimators = [0, 0, 0]
-                model_queue = mp.Queue()
-                for _ in range(3):
-                    proc = mp.Process(target=build_model, args=(model_queue, X_train, Y_train))
-                    proc.start()
-                    time.sleep(10)
-                while model_queue.qsize() != 3:
-                    continue
+                for i in range(MODEL_NUM):
+                    estimators = KerasRegressor(build_fn=baseline_model, nb_epoch=20, batch_size=32, verbose=0)
+                    estimators.fit(X_train, Y_train)
                 # saving model
-                for i in range(3):
-                    estimators[i] = model_queue.get(True, 10)
+                for i in range(MODEL_NUM):
                     json_model = estimators[i].model.to_json()
                     open(model_name.replace('h5', 'json'), 'w').write(json_model)
                     # saving weights
@@ -388,6 +377,12 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.csv', course, kind, nData=nData)
                 #X_test = X_scaler.transform(X_test)
                 print("%d data is fully loaded" % (len(X_test)))
+
+                print("train data: %s - %s" % (str(train_bd), str(train_ed)))
+                print("test data: %s - %s" % (str(test_bd), str(test_ed)))
+                print("course: %d[%d]" % (course, kind))
+                print("%15s%10s%10s%10s%10s%10s%10s%10s" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+
                 res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
                 if len(X_test) == 0:
                     res1, res2, res3, res4, res5, res6, res7, res8 = 0, 0, 0, 0, 0, 0, 0, 0
@@ -401,6 +396,26 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     pred = [0, 0, 0]
                     for i in range(3):
                         pred = estimators[i].predict(X_test)
+                        print("pred[%d] test: ", (i+1, pred[0:4]))
+                        print("result[%d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                                i+1, score, res1, res2, res3, res4, res5, res6, res7))
+                        try:
+                            sr1[i][course] += res1
+                            sr2[i][course] += res2
+                            sr3[i][course] += res3
+                            sr4[i][course] += res4
+                            sr5[i][course] += res5
+                            sr6[i][course] += res6
+                            sr7[i][course] += res7
+                            score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
+                        except KeyError:
+                            sr1[i][course] = res1
+                            sr2[i][course] = res2
+                            sr3[i][course] = res3
+                            sr4[i][course] = res4
+                            sr5[i][course] = res5
+                            sr6[i][course] = res6
+                            sr7[i][course] = res7
                     pred = np.mean(pred, axis=0)
                     print("pred test: ", pred[0:4])
                     score = 0
@@ -477,10 +492,6 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                         sr6[course] = res6
                         sr7[course] = res7
 
-                print("train data: %s - %s" % (str(train_bd), str(train_ed)))
-                print("test data: %s - %s" % (str(test_bd), str(test_ed)))
-                print("course: %d[%d]" % (course, kind))
-                print("%15s%10s%10s%10s%10s%10s%10s%10s" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
                 print("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
                         score, res1, res2, res3, res4, res5, res6, res7))
                 print("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
