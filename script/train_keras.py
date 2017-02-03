@@ -156,7 +156,7 @@ def training(train_bd, train_ed, course=0, nData=47):
         seed = 7
         np.random.seed(seed)
         # evaluate model with standardized dataset
-        estimator = KerasRegressor(build_fn=baseline_model, nb_epoch=5, batch_size=32, verbose=0)
+        estimator = KerasRegressor(build_fn=baseline_model, nb_epoch=40, batch_size=32, verbose=0)
         estimator.fit(X_train, Y_train)
         # saving model
         json_model = estimator.model.to_json()

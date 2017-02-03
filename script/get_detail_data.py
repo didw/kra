@@ -367,33 +367,42 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
                 continue
             if racekind == '주' and len(race_sum[0]) == 0:
                 race_sum[0].append(record)
-                race_sum[6].append(record * md.course_record[6] / md.course_record[0])
+                race_sum[6].append(record * md.race_score[0][month_-1][humidity] / md.race_score[900][month_-1][humidity])
                 if first_attend:
                     md.update_race_score_qual(month_-1, humidity, record)
                 first_attend = False
             elif racekind == '일':
                 if distance == 1000:
                     race_sum[1].append(record)
-                    race_sum[6].append(record * md.course_record[6] / md.course_record[1])
+                    race_sum[6].append(record * md.race_score[0][month_-1][humidity] / md.race_score[1000][month_-1][humidity])
                 elif distance == 1200:
                     race_sum[2].append(record)
-                    race_sum[6].append(record * md.course_record[6] / md.course_record[2])
+                    race_sum[6].append(record * md.race_score[0][month_-1][humidity] / md.race_score[1200][month_-1][humidity])
                 elif distance == 1300:
                     race_sum[3].append(record)
-                    race_sum[6].append(record * md.course_record[6] / md.course_record[3])
+                    race_sum[6].append(record * md.race_score[0][month_-1][humidity] / md.race_score[1300][month_-1][humidity])
                 elif distance == 1400:
                     race_sum[4].append(record)
-                    race_sum[6].append(record * md.course_record[6] / md.course_record[4])
+                    race_sum[6].append(record * md.race_score[0][month_-1][humidity] / md.race_score[1400][month_-1][humidity])
                 elif distance == 1700:
                     race_sum[5].append(record)
-                    race_sum[6].append(record * md.course_record[6] / md.course_record[5])
+                    race_sum[6].append(record * md.race_score[0][month_-1][humidity] / md.race_score[1700][month_-1][humidity])
                 if course == distance:
                     race_same_dist.append(record)
             #print("%d, %s, %s, %d" % (date, racekind, distance, record))
 
 
+    course_score = [0,0,0,0,0,0,0]
+    course_score[0] = np.mean(md.race_score[900])
+    course_score[1] = np.mean(md.race_score[1000])
+    course_score[2] = np.mean(md.race_score[1200])
+    course_score[3] = np.mean(md.race_score[1300])
+    course_score[4] = np.mean(md.race_score[1400])
+    course_score[5] = np.mean(md.race_score[1700])
+    course_score[6] = np.mean(md.race_score[0])
+
     if len(race_sum[6]) == 0:
-        result[6] = float(md.course_record[6])
+        result[6] = float(course_score[6])
     else:
         result[6] = np.mean(race_sum[6])
         race_sum[6].reverse()
@@ -402,12 +411,12 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
     for i in range(len(race_sum)-1):
         if len(race_sum[i]) == 0:
             #result[i] = -1
-            result[i] = float(result[6] * md.course_record[i] / md.course_record[6])
+            result[i] = float(result[6] * course_score[i] / course_score[6])
         else:
             result[i] = np.mean(race_sum[i])
             race_sum[i].reverse()
             for r in race_sum[i]:
-                result[i] += 0.5 * (r - result[i])
+                result[i] += 0.2 * (r - result[i])
             result[i] = float(result[i])
     if len(race_same_dist) > 0:
         result.append(float(np.min(race_same_dist)))

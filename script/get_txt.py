@@ -57,6 +57,8 @@ def download_txt(bd, ed, meet, overwrite=False):
             request = "%s%d%s&meet=%d" % (race_url, date_s, line[2], meet)
             try:
                 fname = "../txt/%d/%s/%s_%d_%d.txt" % (meet, line[1], line[1], meet, date_s)
+                if os.path.getsize(fname) < 100:
+                    os.remove(fname)
                 if not overwrite and os.path.exists(fname):
                     continue
                 response_body = urlopen(request).read()

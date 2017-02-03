@@ -15,25 +15,10 @@ import numpy as np
 PROCESS_NUM = 3
 
 def load_worker(worker_idx, filename_queue, output_queue, md=mean_data(), rd=RaceDetail()):
-    while True:
-        for i in [900, 1000, 1200, 1300, 1400, 1700, 0]:
-            print("%f" % np.mean(md.race_score[i]), end=' ')
-        print()
-        for i in [900, 1000, 1200, 1300, 1400, 1700]:
-            print("[%.0f %.0f %.0f]" % (md.race_detail[i][0], md.race_detail[i][1], md.race_detail[i][2]), end=', ')
-        print()
-        print("[W%d] Current File/Feature Queue Size = %d/%d" % (worker_idx, filename_queue.qsize(), output_queue.qsize()))
-
-        if worker_idx - filename_queue.qsize() >= PROCESS_NUM:
-            print("too many worker.. break")
-            break
-        try:
-            afile = filename_queue.get(True, 10)
-            adata = pr.get_data(afile, md, rd)
-            output_queue.put(adata, True)
-        except Queue.Empty:
-            print("[W%d] File Queue Empty. Worker finished" % worker_idx)
-            break
+    print("[W%d] Current File/Feature Queue Size = %d/%d" % (worker_idx, filename_queue.qsize(), output_queue.qsize()))
+    afile = filename_queue.get(True, 10)
+    adata = pr.get_data(afile, md, rd)
+    output_queue.put(adata, True)
 
 
 def get_data(begin_date, end_date, fname_csv):
@@ -77,25 +62,30 @@ def get_data(begin_date, end_date, fname_csv):
 
     while True:
         print("current index: %d" % worker_num)
-        proc = mp.Process(target=load_worker, args=(worker_num, filename_queue, data_queue, md, rd))
-        proc.start()
+        if worker_num < filename_queue.qsize() + PROCESS_NUM and filename_queue.qsize() > 0:
+            proc = mp.Process(target=load_worker, args=(worker_num, filename_queue, data_queue, md, rd))
+            proc.start()
         try:
             adata = data_queue.get(True, 10)
             if first:
-                md.update_data(adata)
                 data = adata
                 first = False
             else:
-                md.update_data(adata)
                 data = data.append(adata, ignore_index=True)
             worker_num -= 1
             print("data get: %d" % worker_num)
+            md.update_data(adata)
+            for i in [900, 1000, 1200, 1300, 1400, 1700, 0]:
+                print("%f" % np.mean(md.race_score[i]), end=' ')
+            print()
+            for i in [900, 1000, 1200, 1300, 1400, 1700]:
+                print("[%.0f %.0f %.0f]" % (md.race_detail[i][0], md.race_detail[i][1], md.race_detail[i][2]), end=', ')
+            print()
         except Queue.Empty:
             print("queue empty.. nothing to get data %d" % filename_queue.qsize())
-            if filename_queue.qsize() <= 0:
-                print("Feature Extraction Finished")
-                break
-    proc.join()
+        if worker_num == 0:
+            print("feature extraction finished")
+            break
     data.to_csv(fname_csv, index=False)
     joblib.dump(md, fname_csv.replace('.csv', '_md.pkl'))
     return data
