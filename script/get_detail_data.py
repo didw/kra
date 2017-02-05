@@ -7,6 +7,7 @@ import datetime
 import re
 import numpy as np
 from mean_data import mean_data
+import time
 
 DEBUG = False
 
@@ -301,9 +302,15 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
         return default_res
     fname = '../txt/%d/racehorse/racehorse_%d_%06d.txt' % (meet, meet, hrno)
     #print("racehorse: %s" % fname)
-    if os.path.exists(fname) and mode == 'File':
+    if os.path.exists(fname) and mode is 'File':
         response_body = open(fname).read()
     else:
+        #fname_mdate = time.localtime(os.stat(fname).st_mtime)
+        #fname_mdate_ = int("%d%02d%02d" % (fname_mdate.tm_year, fname_mdate.tm_mon, fname_mdate.tm_mday))
+        #print(fname_mdate_, _date)
+        #if os.path.exists(fname) and fname_mdate_ == _date:
+        #    response_body = open(fname).read()
+        #else:
         base_url = "http://race.kra.co.kr/racehorse/profileRaceScore.do?Act=02&Sub=1&"
         url = base_url + "meet=%d&hrNo=%06d" % (meet, hrno)
         response_body = urlopen(url).read()

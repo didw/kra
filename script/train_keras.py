@@ -137,18 +137,22 @@ def training(train_bd, train_ed, course=0, nData=47):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    sess = tf.Session(config=config)
+    K.set_session(sess)
+    
     os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
-    model_name = "../model_tf/%d_%d/model_%d_0.h5" % (train_bd_i, train_ed_i, course)
+    model_name = "../model_tf/%d_%d/model_%d_2.h5" % (train_bd_i, train_ed_i, course)
     md_name = "../model_tf/%d_%d/md_%d.pkl" % (train_bd_i, train_ed_i, course)
-    if os.path.exists(model_name):
+    if os.path.exists(model_name.replace('h5', '1.h5')):
         print("model exist. try to loading..")
         from keras.models import model_from_json
         estimator = model_from_json(open(model_name.replace('h5', 'json')).read())
         estimator.load_weights(model_name)
     else:
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', course, nData=nData)
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v2.csv', course, nData=nData)
         print("%d data is fully loaded" % len(X_train))
         print("Start train model")
         X_train = np.array(X_train)
@@ -156,7 +160,7 @@ def training(train_bd, train_ed, course=0, nData=47):
         seed = 7
         np.random.seed(seed)
         # evaluate model with standardized dataset
-        estimator = KerasRegressor(build_fn=baseline_model, nb_epoch=40, batch_size=32, verbose=0)
+        estimator = KerasRegressor(build_fn=baseline_model, nb_epoch=50, batch_size=32, verbose=0)
         estimator.fit(X_train, Y_train)
         # saving model
         json_model = estimator.model.to_json()

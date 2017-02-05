@@ -57,7 +57,7 @@ def download_txt(bd, ed, meet, overwrite=False):
             request = "%s%d%s&meet=%d" % (race_url, date_s, line[2], meet)
             try:
                 fname = "../txt/%d/%s/%s_%d_%d.txt" % (meet, line[1], line[1], meet, date_s)
-                if os.path.getsize(fname) < 100:
+                if os.path.exists(fname) and os.path.getsize(fname) < 100:
                     os.remove(fname)
                 if not overwrite and os.path.exists(fname):
                     continue
@@ -68,7 +68,7 @@ def download_txt(bd, ed, meet, overwrite=False):
                 if os.path.getsize(fname) < 100:
                     os.remove(fname)
                 print "[%s] data is downloaded" % request
-            except:
+            except KeyError:
                 print '[%s] data downloading failed' % request
                 print 'or fail to save %s' % fname
     print "job has completed"
@@ -104,7 +104,7 @@ def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
         base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfo"
         race_url = base_url + line[0]
         date = bd + datetime.timedelta(days=-1)
-        while date < ed:
+        while date <= ed:
             date += datetime.timedelta(days=1)
             if date.weekday() not in line[2]:
                 continue
@@ -159,6 +159,6 @@ def download_racehorse(hrno_b, hrno_e, meet, overwrite=False):
 if __name__ == '__main__':
     for i in range(1, 2):
         #download_racehorse(29301, 29301, i, False)
-        download_chulmaDetailInfo(datetime.date(2017, 1, 1), datetime.date.today(), i, False)
-        download_txt(datetime.date(2017, 1, 1), datetime.date.today(), i, False)
+        #download_chulmaDetailInfo(datetime.date(2017, 2, 1), datetime.date.today(), i, True)
+        download_txt(datetime.date(2017, 2, 1), datetime.date.today(), i, True)
 
