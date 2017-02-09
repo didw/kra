@@ -7,6 +7,7 @@ import os.path
 import glob
 from sklearn.externals import joblib
 from mean_data import mean_data
+from operator import itemgetter
 
 def printu(data):
     print(unicode(data, 'utf-8'))
@@ -138,40 +139,49 @@ class RaceDetail:
         res = []
         rs = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]
         course_list = [300, 400, 800, 900, 1000, 1200]
-        for c in range(len(course_list)):
-            try:
-                for data in self.data[name]:
-                    if data[0] < date and data[1] == course_list[c]:
-                        humidity = int(data[2])
-                        if data[3] != -1:
-                            rs[3*c+0].append(norm_racescore(data[0]/100%100-1, humidity, data[3], md))  # s1f
-                        if data[4] != -1:
-                            rs[3*c+1].append(norm_racescore(data[0]/100%100-1, humidity, data[4], md))  # g1f
-                        if data[5] != -1:
-                            rs[3*c+2].append(norm_racescore(data[0]/100%100-1, humidity, data[5], md))  # g3f
-            except KeyError:
-                print("can not find %s in race detail" % name)
-                continue
         means_course = [[], [], []]
+        if self.data.has_key(name):
+            self.data[name] = sorted(self.data[name], key=itemgetter(0))
+            for data in self.data[name]:
+                if data[0] < date and data[1] in course_list:
+                    c = course_list.index(data[1])
+                    humidity = int(data[2])
+                    if data[3] != -1:
+                        value = norm_racescore(data[0]/100%100-1, humidity, data[3], md)
+                        rs[3*c+0].append(value)  # s1f
+                        means_course[0].append(value / md.race_detail[data[1]][0])
+                    if data[4] != -1:
+                        value = norm_racescore(data[0]/100%100-1, humidity, data[4], md)
+                        rs[3*c+1].append(value)  # g1f
+                        means_course[1].append(value / md.race_detail[data[1]][1])
+                    if data[5] != -1:
+                        value = norm_racescore(data[0]/100%100-1, humidity, data[5], md)
+                        rs[3*c+2].append(value)  # g3f
+                        means_course[2].append(value / md.race_detail[data[1]][2])
+        else:
+            print("%s is not in race_detail" % name)
         m_course = [0, 0, 0]
         for i in range(len(rs)):
             if len(rs[i]) == 0:
                 res.append(-1)
             else:
-                means_course[i%3].append(np.mean(rs[i]) / md.race_detail[course_list[i/3]][i%3])
                 res.append(np.mean(rs[i]))
+        if len(means_course[0]) == 0:
+            print("can not find race_detail of %s" % name)
         for i in range(len(means_course)):
             if len(means_course[i]) == 0:
                 m_course[i] = 1.0
             else:
                 m_course[i] = np.mean(means_course[i])
+                for j in range(len(means_course[i])):
+                    m_course[i] += 0.2*(means_course[i][j] - m_course[i])
 
         for i in range(len(rs)):
-            rs[i].reverse()
             for j in rs[i]:
-                res[i] += 0.1*(j - res[i])
-                m_course[i%3] += 0.1*(j/md.race_detail[course_list[i/3]][i%3] - m_course[i%3])
+                res[i] += 0.2*(j - res[i])
             if res[i] == -1:
+                #res[i] = -1
+                #res[i] = md.race_detail[course_list[i/3]][i%3]
                 res[i] = m_course[i%3] * md.race_detail[course_list[i/3]][i%3]
         return map(lambda x: float(x), res)  # len: 18
 
