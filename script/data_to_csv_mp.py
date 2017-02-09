@@ -8,6 +8,18 @@ import os.path
 from mean_data import mean_data
 from sklearn.externals import joblib
 from get_race_detail import RaceDetail
+import multiprocessing as mp
+import Queue
+import numpy as np
+
+PROCESS_NUM = 3
+
+def load_worker(worker_idx, filename_queue, output_queue, md=mean_data(), rd=RaceDetail()):
+    print("[W%d] Current File/Feature Queue Size = %d/%d" % (worker_idx, filename_queue.qsize(), output_queue.qsize()))
+    afile = filename_queue.get(True, 10)
+    adata = pr.get_data(afile, md, rd)
+    output_queue.put(adata, True)
+
 
 def get_data(begin_date, end_date, fname_csv):
     train_bd = begin_date
@@ -32,6 +44,10 @@ def get_data(begin_date, end_date, fname_csv):
         for fname in filelist2:
             print("processed rc in %s" % fname)
             rd.parse_race_detail(fname)
+
+    filename_queue = mp.Queue()
+    data_queue = mp.Queue()
+
     joblib.dump(rd, fname_csv.replace('.csv', '_rd.pkl'))
     while date < train_ed:
         date += datetime.timedelta(days=1)
@@ -40,21 +56,36 @@ def get_data(begin_date, end_date, fname_csv):
         filename = "../txt/3/rcresult/rcresult_3_%02d%02d%02d.txt" % (date.year, date.month, date.day)
         if not os.path.isfile(filename):
             continue
-        for i in [900, 1000, 1200, 1300, 1400, 1600, 0]:
-            print("%f" % md.race_score[i][0][20], end=' ')
-        print()
-        for i in [900, 1000, 1200, 1300, 1400, 1600]:
-            print("[%.0f %.0f %.0f]" % (md.race_detail[i][0], md.race_detail[i][1], md.race_detail[i][2]), end=', ')
-        print()
-        if first:
-            adata = pr.get_data(filename, md, rd)
+        filename_queue.put(filename)
+
+    worker_num = filename_queue.qsize()
+
+    while True:
+        print("current index: %d" % worker_num)
+        if worker_num < filename_queue.qsize() + PROCESS_NUM and filename_queue.qsize() > 0:
+            proc = mp.Process(target=load_worker, args=(worker_num, filename_queue, data_queue, md, rd))
+            proc.start()
+        try:
+            adata = data_queue.get(True, 10)
+            if first:
+                data = adata
+                first = False
+            else:
+                data = data.append(adata, ignore_index=True)
+            worker_num -= 1
+            print("data get: %d" % worker_num)
             md.update_data(adata)
-            data = adata
-            first = False
-        else:
-            adata = pr.get_data(filename, md, rd)
-            md.update_data(adata)
-            data = data.append(adata, ignore_index=True)
+            for i in [900, 1000, 1200, 1300, 1400, 1600, 0]:
+                print("%f" % np.mean(md.race_score[i]), end=' ')
+            print()
+            for i in [900, 1000, 1200, 1300, 1400, 1600]:
+                print("[%.0f %.0f %.0f]" % (md.race_detail[i][0], md.race_detail[i][1], md.race_detail[i][2]), end=', ')
+            print()
+        except Queue.Empty:
+            print("queue empty.. nothing to get data %d" % filename_queue.qsize())
+        if worker_num == 0:
+            print("feature extraction finished")
+            break
     data.to_csv(fname_csv, index=False)
     joblib.dump(md, fname_csv.replace('.csv', '_md.pkl'))
     return data
@@ -113,7 +144,7 @@ if __name__ == '__main__':
     DEBUG = True
     fname_csv = '../data/3_2007_2016_v1.csv'
     bdate = datetime.date(2007, 1, 1)
-    edate = datetime.date(2016, 12, 31)
+    edate = datetime.date(2017, 2, 7)
     get_data(bdate, edate, fname_csv)
     #update_data(datetime.date.today(), fname_csv)
 

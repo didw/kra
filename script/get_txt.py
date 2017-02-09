@@ -15,36 +15,36 @@ import os
 # http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/weekly-jangu/20161222dacom71.rpt&meet=1
 def download_txt(bd, ed, meet, overwrite=False):
     data = [# seoul
-            [["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/rcresult/", "rcresult", "dacom11.rpt", [5, 6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/horse/", "horse", "sdb1.txt", [3, 6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/jockey/", "jockey", "sdb2.txt", [3, 6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/trainer/", "trainer", "sdb3.txt", [3, 6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/chulma/", "chulma", "dacom01.rpt", [3]],
+            [["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/rcresult/", "rcresult", "dacom11.rpt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/horse/", "horse", "sdb1.txt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/jockey/", "jockey", "sdb2.txt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/trainer/", "trainer", "sdb3.txt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/chulma/", "chulma", "dacom01.rpt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/daily-train/", "daily-train", "dacom55.rpt", [0,1,2,3,4,5,6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/ap-check-rslt/", "ap-check-rslt", "dacom23.rpt", [4]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/weekly-clinic/", "weekly-clinic", "dacom72.rpt", [3,6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/weekly-jangu/", "weekly-jangu", "dacom71.rpt", [3]]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/ap-check-rslt/", "ap-check-rslt", "dacom23.rpt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/weekly-clinic/", "weekly-clinic", "dacom72.rpt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/weekly-jangu/", "weekly-jangu", "dacom71.rpt", [0,1,2,3,4,5,6]]],
             # jeju
-            [["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/jungbo/rcresult/", "rcresult", "dacom11.rpt", [4, 5]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/jeju/horse/", "horse", "cdb1.txt", [2, 5]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/jeju/jockey/", "jockey", "cdb2.txt", [2, 5]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/jeju/trainer/", "trainer", "cdb3.txt", [2, 5]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/jungbo/chulma/", "chulma", "dacom01.rpt", [2]],
+            [["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/jungbo/rcresult/", "rcresult", "dacom11.rpt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/jeju/horse/", "horse", "cdb1.txt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/jeju/jockey/", "jockey", "cdb2.txt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/jeju/trainer/", "trainer", "cdb3.txt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/jungbo/chulma/", "chulma", "dacom01.rpt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/sokbo/daily-train/", "daily-train", "dacom55.rpt", [0,1,2,3,4,5,6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/jungbo/ap-check-rslt/", "ap-check-rslt", "dacom23.rpt", [3,4]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/sokbo/weekly-clinic/", "weekly-clinic", "dacom72.rpt", [3]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/sokbo/weekly-jangu/", "weekly-jangu", "dacom71.rpt", [2]]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/jungbo/ap-check-rslt/", "ap-check-rslt", "dacom23.rpt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/sokbo/weekly-clinic/", "weekly-clinic", "dacom72.rpt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/sokbo/weekly-jangu/", "weekly-jangu", "dacom71.rpt", [0,1,2,3,4,5,6]]],
             # busan
-            [["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/rcresult/", "rcresult", "dacom11.rpt", [4, 6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/busan/horse/", "horse", "pdb1.txt", [2, 4, 5, 6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/busan/jockey/", "jockey", "pdb2.txt", [2, 4, 5, 6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/busan/trainer/", "trainer", "pdb3.txt", [2, 4, 5, 6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/chulma/", "chulma", "dacom01.rpt", [2]],
+            [["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/rcresult/", "rcresult", "dacom11.rpt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/busan/horse/", "horse", "pdb1.txt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/busan/jockey/", "jockey", "pdb2.txt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/busan/trainer/", "trainer", "pdb3.txt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/chulma/", "chulma", "dacom01.rpt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/sokbo/daily-train/", "daily-train", "dacom55.rpt", [0,1,2,3,4,5,6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/ap-check-rslt/", "ap-check-rslt", "dacom23.rpt", [5]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/sokbo/weekly-clinic/", "weekly-clinic", "dacom72.rpt", [2,6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/sokbo/weekly-jangu/", "weekly-jangu", "dacom71.rpt", [2]]]
-            ]
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/ap-check-rslt/", "ap-check-rslt", "dacom23.rpt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/sokbo/weekly-clinic/", "weekly-clinic", "dacom72.rpt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/sokbo/weekly-jangu/", "weekly-jangu", "dacom71.rpt", [0,1,2,3,4,5,6]]]
+            ] 
 
     for line in data[meet-1]:
         race_url = line[0]
@@ -57,6 +57,8 @@ def download_txt(bd, ed, meet, overwrite=False):
             request = "%s%d%s&meet=%d" % (race_url, date_s, line[2], meet)
             try:
                 fname = "../txt/%d/%s/%s_%d_%d.txt" % (meet, line[1], line[1], meet, date_s)
+                if os.path.exists(fname) and os.path.getsize(fname) < 100:
+                    os.remove(fname)
                 if not overwrite and os.path.exists(fname):
                     continue
                 response_body = urlopen(request).read()
@@ -66,7 +68,7 @@ def download_txt(bd, ed, meet, overwrite=False):
                 if os.path.getsize(fname) < 100:
                     os.remove(fname)
                 print "[%s] data is downloaded" % request
-            except:
+            except KeyError:
                 print '[%s] data downloading failed' % request
                 print 'or fail to save %s' % fname
     print "job has completed"

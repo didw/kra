@@ -128,8 +128,8 @@ def get_game_info(date, rcno):
     fname = '../txt/3/chulma/chulma_3_%d%02d%02d.txt' % (file_date.year, file_date.month, file_date.day)
     #print(fname)
     finput = open(fname)
-    date_s = "%d[.]%02d[.]%02d" % (date.year % 100, date.month, date.day)
-    exp = "%s.*%d" % (date_s, rcno)
+    date_s = "%02d[.]%02d[.]%02d" % (date.year % 100, date.month, date.day)
+    exp = "%s.*%d경주" % (date_s, rcno)
     #print("%s" % exp)
     found = False
     for _ in range(3000):
@@ -148,13 +148,14 @@ def get_game_info(date, rcno):
             break
         line = unicode(line, 'euc-kr').encode('utf-8')
         #print("%s" % line)
-        num = re.search(unicode(r'(?<=출전:)[\s\d]+(?=두)', 'utf-8').encode('utf-8'), line)
-        kind = re.search(unicode(r'\d+(?=등급)', 'utf-8').encode('utf-8'), line)
+        num = re.search(unicode(r'(?<=출주:)[\s\d]+(?=두)', 'utf-8').encode('utf-8'), line)
+        kind = re.search(unicode(r'(?<=[국혼])[\d\s]+(?=\()', 'utf-8').encode('utf-8'), line)
         if num is not None:
             if kind is None:
                 kind = 0
+				print("can not parsing kind in %s" % fname)
             else:
-                kind = kind.group()[-1]
+                kind = int(kind.group())
             return [num.group(), kind]
     return [-1, -1]
 
@@ -195,7 +196,7 @@ def parse_xml_entry(meet, date_i, number, md=mean_data(), rd=RaceDetail()):
         jk_win = get_jk_win(data_jk, itemElm.jkname.string, course, md)
         tr_win = get_tr_win(data_tr, itemElm.trname.string, course, md)
 		
-        hrname = unicode(itemElm.hrname.string)
+        hrname = unicode(itemElm.hrname.string).encode('utf-8')
         dbudam = gdd.get_dbudam(meet, date_i, int(rcno), hrname)
         drweight = gdd.get_drweight(meet, date_i, int(rcno), hrname)
         lastday = gdd.get_lastday(meet, date_i, int(rcno), hrname)
