@@ -123,7 +123,7 @@ def training(train_bd, train_ed, course=0, nData=47):
         updated_md = joblib.load(md_name)
     else:
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016.csv', course, nData=nData)
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', course, nData=nData)
         print("%d data is fully loaded" % len(X_train))
 
         estimator = RandomForestRegressor(random_state=0, n_estimators=100, n_jobs=-1)
@@ -178,7 +178,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "../model%d/%d_%d/model_%d_%d.pkl" % (nData, train_bd_i, train_ed_i, course, 0)
+        model_name = "../model%d/%d_%d/model_v1_%d_%d.pkl" % (nData, train_bd_i, train_ed_i, course, 0)
 
         if os.path.exists(model_name):
             print("model exist. try to loading..")
@@ -186,7 +186,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
             #X_scaler = joblib.load(model_name.replace('model.', 'scaler.'))
         else:
             print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016.csv', course, 0, nData=nData)
+            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', course, 0, nData=nData)
             print("%d data is fully loaded" % len(X_train))
             if len(X_train) < 10:
                 res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
@@ -212,7 +212,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
 
         print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
-        X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016.csv', course, kind, nData=nData)
+        X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.csv', course, kind, nData=nData)
         print("%d data is fully loaded" % (len(X_test)))
         res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         if len(X_test) == 0:
@@ -285,7 +285,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "../model%d/%d_%d/model.pkl" % (nData, train_bd_i, train_ed_i)
+        model_name = "../model%d/%d_%d/model_v1.pkl" % (nData, train_bd_i, train_ed_i)
 
         if os.path.exists(model_name):
             print("model exist. try to loading.. %s - %s" % (str(train_bd), str(train_ed)))
@@ -293,7 +293,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
             #X_scaler = joblib.load(model_name.replace('model.', 'scaler.'))
         else:
             print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016.csv', 0, nData=nData)
+            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', 0, nData=nData)
             print("%d data is fully loaded" % len(X_train))
             if len(X_train) < 10:
                 res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
@@ -318,9 +318,9 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
 
         for course in courses:
             for kind in kinds:
-                fname_result = '../data/weekly_result_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+                fname_result = '../data/weekly_result_v1_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
-                X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016.csv', course, kind, nData=nData)
+                X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.csv', course, kind, nData=nData)
                 print("%d data is fully loaded" % (len(X_test)))
                 res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
                 if len(X_test) == 0:
@@ -426,7 +426,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 f_result.close()
     for course in courses:
         for kind in kinds:
-            fname_result = '../data/weekly_result_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+            fname_result = '../data/weekly_result_v1_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
             f_result = open(fname_result, 'a')
             f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
             f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
@@ -446,5 +446,5 @@ if __name__ == '__main__':
             simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[1000, 1200, 1300, 1400, 1700, 0], nData=nData)
             for c in [1000, 1200, 1300, 1400, 1700]:
                 for k in [0]:
-                    outfile = '../data/weekly_result_m1_nd%d_y%d_c%d_0_k%d.txt' % (nData, delta_year, c, k)
+                    outfile = '../data/weekly_result_v1_m1_nd%d_y%d_c%d_0_k%d.txt' % (nData, delta_year, c, k)
                     simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c, k, nData=nData)

@@ -302,7 +302,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
         return default_res
     fname = '../txt/%d/racehorse/racehorse_%d_%06d.txt' % (meet, meet, hrno)
     #print("racehorse: %s" % fname)
-    if os.path.exists(fname) and mode is 'File':
+    if os.path.exists(fname) and mode == 'File':
         response_body = open(fname).read()
     else:
         #fname_mdate = time.localtime(os.stat(fname).st_mtime)
@@ -423,7 +423,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
             result[i] = np.mean(race_sum[i])
             race_sum[i].reverse()
             for r in race_sum[i]:
-                result[i] += 0.2 * (r - result[i])
+                result[i] += 0.5 * (r - result[i])
             result[i] = float(result[i])
     if len(race_same_dist) > 0:
         result.append(float(np.min(race_same_dist)))

@@ -143,16 +143,16 @@ def training(train_bd, train_ed, course=0, nData=47):
     K.set_session(sess)
     
     os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
-    model_name = "../model_tf/%d_%d/model_%d_2.h5" % (train_bd_i, train_ed_i, course)
+    model_name = "../model_tf/%d_%d/model_%d_0.h5" % (train_bd_i, train_ed_i, course)
     md_name = "../model_tf/%d_%d/md_%d.pkl" % (train_bd_i, train_ed_i, course)
-    if os.path.exists(model_name.replace('h5', '1.h5')):
+    if os.path.exists(model_name):
         print("model exist. try to loading..")
         from keras.models import model_from_json
         estimator = model_from_json(open(model_name.replace('h5', 'json')).read())
         estimator.load_weights(model_name)
     else:
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v2.csv', course, nData=nData)
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', course, nData=nData)
         print("%d data is fully loaded" % len(X_train))
         print("Start train model")
         X_train = np.array(X_train)

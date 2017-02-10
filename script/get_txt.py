@@ -104,7 +104,7 @@ def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
         base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfo"
         race_url = base_url + line[0]
         date = bd + datetime.timedelta(days=-1)
-        while date <= ed:
+        while date < ed:
             date += datetime.timedelta(days=1)
             if date.weekday() not in line[2]:
                 continue
@@ -159,6 +159,6 @@ def download_racehorse(hrno_b, hrno_e, meet, overwrite=False):
 if __name__ == '__main__':
     for i in range(1, 2):
         #download_racehorse(29301, 29301, i, False)
-        #download_chulmaDetailInfo(datetime.date(2017, 2, 1), datetime.date.today(), i, True)
-        download_txt(datetime.date(2017, 2, 1), datetime.date.today(), i, True)
+        download_chulmaDetailInfo(datetime.date(2017, 1, 1), datetime.date.today(), i, True)
+        download_txt(datetime.date(2017, 1, 1), datetime.date.today(), i, True)
 
