@@ -153,7 +153,7 @@ def get_game_info(date, rcno):
         if num is not None:
             if kind is None:
                 kind = 0
-				print("can not parsing kind in %s" % fname)
+                print("can not parsing kind in %s" % fname)
             else:
                 kind = int(kind.group())
             return [num.group(), kind]

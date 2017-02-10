@@ -263,11 +263,11 @@ class RaceDetail:
             else:
                 m_course[i] = np.mean(means_course[i])
                 for j in range(len(means_course[i])):
-                    m_course[i] += 0.2*(means_course[i][j] - m_course[i])
+                    m_course[i] += 0.5*(means_course[i][j] - m_course[i])  # v1: 0.2, v2: 0.5, v3: 0.2
 
         for i in range(len(rs)):
             for j in rs[i]:
-                res[i] += 0.2*(j - res[i])
+                res[i] += 0.5*(j - res[i]) # v1: 0.2, v2: 0.5, v3: 0.2
             if res[i] == -1:
                 #res[i] = -1
                 #res[i] = md.race_detail[course_list[i/3]][i%3]

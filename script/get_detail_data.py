@@ -409,7 +409,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
         result[6] = np.mean(race_sum[6])
         race_sum[6].reverse()
         for r in race_sum[6]:
-            result[6] += 0.5 * (r - result[6])
+            result[6] += 0.5 * (r - result[6])   # v1,v2: 0.5, v3: 0.2
     for i in range(len(race_sum)-1):
         if len(race_sum[i]) == 0:
             #result[i] = -1
@@ -418,7 +418,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
             result[i] = np.mean(race_sum[i])
             race_sum[i].reverse()
             for r in race_sum[i]:
-                result[i] += 0.5 * (r - result[i])
+                result[i] += 0.5 * (r - result[i])  # v1,v2: 0.5, v3: 0.2
             result[i] = float(result[i])
     if len(race_same_dist) > 0:
         result.append(float(np.min(race_same_dist)))
