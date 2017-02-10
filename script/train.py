@@ -132,7 +132,7 @@ def training(train_bd, train_ed, course=0, nData=47):
         updated_md = mean_data()
         #updated_md.update_data(X_train)
 
-        os.system('mkdir ..\model%d\%d_%d' % (nData, train_bd_i, train_ed_i))
+        os.system('mkdir ../model%d/%d_%d' % (nData, train_bd_i, train_ed_i))
         joblib.dump(estimator, model_name)
         joblib.dump(updated_md, md_name)
     md = joblib.load('../data/1_2007_2016_md.pkl')
@@ -198,7 +198,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
                 print("Start train model")
                 estimator = RandomForestRegressor(random_state=0, n_estimators=100, n_jobs=-1)
                 estimator.fit(X_train, Y_train)
-                os.system('mkdir ..\model%d\%d_%d' % (nData, train_bd_i, train_ed_i))
+                os.system('mkdir ../model%d/%d_%d' % (nData, train_bd_i, train_ed_i))
                 joblib.dump(estimator, model_name)
                 #joblib.dump(X_scaler, model_name.replace('model.', 'scaler.'))
                 print("Finish train model")
@@ -306,7 +306,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
 
                 estimator = RandomForestRegressor(random_state=0, n_estimators=100, n_jobs=-1)
                 estimator.fit(X_train, Y_train)
-                os.system('mkdir ..\model%d\%d_%d' % (nData, train_bd_i, train_ed_i))
+                os.system('mkdir ../model%d/%d_%d' % (nData, train_bd_i, train_ed_i))
                 joblib.dump(estimator, model_name)
                 #joblib.dump(X_scaler, model_name.replace('model.', 'scaler.'))
                 print("Finish train model")
@@ -441,7 +441,7 @@ if __name__ == '__main__':
     train_ed = datetime.date(2016, 10, 31)
     test_bd = datetime.date(2016, 6, 1)
     test_ed = datetime.date(2016, 12, 31)
-    for delta_year in [4]:
+    for delta_year in [8]:
         for nData in [186]:
             simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[1000, 1200, 1300, 1400, 1700, 0], nData=nData)
             for c in [1000, 1200, 1300, 1400, 1700]:

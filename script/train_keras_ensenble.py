@@ -148,7 +148,7 @@ def training(train_bd, train_ed, course=0, nData=47):
     K.set_session(sess)
 
     os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
-    model_name = "../model_tf/%d_%d/model_%d_0.h5" % (train_bd_i, train_ed_i, course)
+    model_name = "../model_tf/%d_%d/model_v1_%d_0.h5" % (train_bd_i, train_ed_i, course)
     md_name = "../model_tf/%d_%d/md_%d.pkl" % (train_bd_i, train_ed_i, course)
     estimators = [0] * MODEL_NUM
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
@@ -230,7 +230,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
             estimator.load_weights(model_name)
         else:
             print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', course, 0, nData=nData)
+            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v3.csv', course, 0, nData=nData)
             print("%d data is fully loaded" % len(X_train))
             if len(X_train) < 10:
                 res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
@@ -259,7 +259,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
 
         print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
-        X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.csv', course, kind, nData=nData)
+        X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v3.csv', course, kind, nData=nData)
         print("%d data is fully loaded" % (len(X_test)))
         res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         if len(X_test) == 0:
@@ -339,7 +339,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "../model_tf/%d_%d/model_v1.h5" % (train_bd_i, train_ed_i)
+        model_name = "../model_tf/%d_%d/model_v3.h5" % (train_bd_i, train_ed_i)
         os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
 
         estimators = [0] * MODEL_NUM
@@ -352,7 +352,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 estimators[i].load_weights(model_name.replace('h5', '%d.h5'%i))
         else:
             print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', 0, nData=nData)
+            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v3.csv', 0, nData=nData)
             print("%d data is fully loaded" % len(X_train))
             if len(X_train) < 10:
                 res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
@@ -383,9 +383,9 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
 
         for course in courses:
             for kind in kinds:
-                fname_result = '../data/weekly_keras_nsb_v1_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+                fname_result = '../data/weekly_keras_nsb_v3_ss_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
-                X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.csv', course, kind, nData=nData)
+                X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v3.csv', course, kind, nData=nData)
                 #X_test = X_scaler.transform(X_test)
                 print("%d data is fully loaded" % (len(X_test)))
 
@@ -409,15 +409,14 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                         pred[i] = estimators[i].predict(X_test).flatten()
                         score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
 
-                        res1 = sim.simulation7(pred[i], R_test, [[1], [2], [3]])
-                        res2 = sim.simulation7(pred[i], R_test, [[1, 2], [1, 2, 3], [1, 2, 3]])
-                        res3 = sim.simulation7(pred[i], R_test, [[1, 2, 3], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5, 6]])
-                        res4 = sim.simulation7(pred[i], R_test, [[1, 2, 3, 4], [1, 2, 3, 4, 5, 6], [3, 4, 5, 6]])
-                        res5 = sim.simulation7(pred[i], R_test, [[4, 5, 6], [4, 5, 6], [4, 5, 6]])
-                        res6 = sim.simulation7(pred[i], R_test, [[4, 5, 6, 7, 8], [4, 5, 6, 7, 8], [4, 5, 6, 7, 8]])
-                        res7 = sim.simulation7(pred[i], R_test,
-                                               [[5, 6, 7, 8, 9, 10], [5, 6, 7, 8, 9, 10], [5, 6, 7, 8, 9, 10]])
-
+                        res1 = sim.simulation7(pred[i], R_test, [[1],[2],[3]])
+                        res2 = sim.simulation7(pred[i], R_test, [[1,2],[1,2,3],[1,2,3]])
+                        res3 = sim.simulation7(pred[i], R_test, [[1,2,3],[1,2,3],[1,2,3]])
+                        res4 = sim.simulation7(pred[i], R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
+                        res5 = sim.simulation7(pred[i], R_test, [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]])
+                        res6 = sim.simulation7(pred[i], R_test, [[4,5,6],[4,5,6],[4,5,6]])
+                        res7 = sim.simulation7(pred[i], R_test, [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]])
+                        
                         print("pred[%d] test: " % (i+1), pred[i][0:4])
                         print("result[%d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
                                 i+1, score, res1, res2, res3, res4, res5, res6, res7))
@@ -443,15 +442,14 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     print("pred test: ", pred[0:4])
                     score = np.sqrt(np.mean((pred - Y_test)*(pred - Y_test)))
 
-                    res1 = sim.simulation7(pred, R_test, [[1], [2], [3]])
-                    res2 = sim.simulation7(pred, R_test, [[1, 2], [1, 2, 3], [1, 2, 3]])
-                    res3 = sim.simulation7(pred, R_test, [[1, 2, 3], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5, 6]])
-                    res4 = sim.simulation7(pred, R_test, [[1, 2, 3, 4], [1, 2, 3, 4, 5, 6], [3, 4, 5, 6]])
-                    res5 = sim.simulation7(pred, R_test, [[4, 5, 6], [4, 5, 6], [4, 5, 6]])
-                    res6 = sim.simulation7(pred, R_test, [[4, 5, 6, 7, 8], [4, 5, 6, 7, 8], [4, 5, 6, 7, 8]])
-                    res7 = sim.simulation7(pred, R_test,
-                                           [[5, 6, 7, 8, 9, 10], [5, 6, 7, 8, 9, 10], [5, 6, 7, 8, 9, 10]])
-
+                    res1 = sim.simulation7(pred, R_test, [[1],[2],[3]])
+                    res2 = sim.simulation7(pred, R_test, [[1,2],[1,2,3],[1,2,3]])
+                    res3 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3],[1,2,3]])
+                    res4 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
+                    res5 = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]])
+                    res6 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6]])
+                    res7 = sim.simulation7(pred, R_test, [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]])
+                    
                     """
                     res1 = sim.simulation1(pred, R_test, 1)
                     res2 = sim.simulation2(pred, R_test, 1)
@@ -533,7 +531,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
     for m in range(MODEL_NUM+1):
         for course in courses:
             for kind in kinds:
-                fname_result = '../data/weekly_keras_nsb_v1_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+                fname_result = '../data/weekly_keras_nsb_v3_ss_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 f_result = open(fname_result, 'a')
                 f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
                 f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
@@ -546,7 +544,7 @@ if __name__ == '__main__':
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2017, 1, 1)
+    test_bd = datetime.date(2016, 6, 5)
     test_ed = datetime.date(2017, 2, 10)
     #Tensorflow GPU optimization
     config = tf.ConfigProto()
@@ -554,7 +552,7 @@ if __name__ == '__main__':
     sess = tf.Session(config=config)
     K.set_session(sess)
 
-    for delta_year in [4,6,8]:
+    for delta_year in [6,8]:
         for nData in [186]:
             simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[1000, 1200, 1300, 1400, 1700, 0], nData=nData)
             #for c in [1000, 1200, 1300, 1400, 1700]:
