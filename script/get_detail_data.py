@@ -54,7 +54,7 @@ def get_dbudam(meet, date, rcno, name):
 def get_weight(meet, date, rcno, name, course):
     name = name.replace('★', '')
     fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
-    if os.path.exists(fname) and False:
+    if os.path.exists(fname):
         response_body = open(fname).read()
     else:
         base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&"
@@ -64,9 +64,12 @@ def get_weight(meet, date, rcno, name, course):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            print("name:%s, target:%s" % (name, unicode(itemList[1].string).encode('utf-8')))
             if name in unicode(itemList[1].string).encode('utf-8'):
-                return float(unicode(itemList[2].string))
+                try:
+                    return float(unicode(itemList[2].string))
+                except ValueError:
+                    print("could not convert string to float %s, %s" % (name, unicode(itemList[2].string)))
+                    continue
     return {1000: 461, 1100: 460, 1200: 463, 1300: 464, 1400: 466, 1700: 466, 1800: 471, 1900: 475, 2000: 482, 2300: 492}[course]
 
 
