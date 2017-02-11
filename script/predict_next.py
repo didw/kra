@@ -117,10 +117,10 @@ def print_detail(players, cand, fresult, mode):
         print("%s,%s,%s, %s: 500" % (players[1], players[0], players[2], mode))
         print("%s,%s,%s, %s: 500" % (players[1], players[2], players[0], mode))
 
-        fresult.write("\n%s,%s,%s, %s: 500" % (players[0], players[1], players[2], mode))
-        fresult.write("\n%s,%s,%s, %s: 500" % (players[1], players[0], players[2], mode))
-        fresult.write("\n%s,%s,%s, %s: 500" % (players[1], players[2], players[0], mode))
-        fresult.write("\n%s,%s,%s, %s: 500" % (players[0], players[2], players[1], mode))
+        fresult.write("\n%s,%s,%s, %s: 5000" % (players[0], players[1], players[2], mode))
+        fresult.write("\n%s,%s,%s, %s: 2000" % (players[0], players[2], players[1], mode))
+        fresult.write("\n%s,%s,%s, %s: 2000" % (players[1], players[0], players[2], mode))
+        fresult.write("\n%s,%s,%s, %s: 2000" % (players[1], players[2], players[0], mode))
     elif cand == [[4,5,6],[4,5,6],[4,5,6]]:
         print("bet: 2000")  # 14200 / 6 = 2366
         print("%s,%s,%s" % (players[3], players[4], players[5]))
@@ -252,7 +252,7 @@ def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
     fresult = open(fname, 'a')
     fresult.write("%s,%s,%s,%s,%s,%s\n" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
     print_detail(rcdata['idx'], [[1,2],[1,2,3],[1,2,3]], fresult, "ss")
-    print_detail(rcdata['idx'], [1,2,3], fresult, "sb")
+    #print_detail(rcdata['idx'], [1,2,3], fresult, "sb")
 
     fresult.close()
 
@@ -384,7 +384,7 @@ if __name__ == '__main__':
     date = 20170211
     train_course = 0
     courses = [0,1000,1200,1300,1300,1000,1000,1200,1300,1700,0,0,1200]
-    rcno = 0
+    rcno = 1
     #for rcno in range(11, len(courses)):
     course = courses[rcno]
     test_course = course
@@ -399,3 +399,5 @@ if __name__ == '__main__':
         estimators, md = tkn.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
         predict_next_ens(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course)
 
+# Strategy
+# v1 y6 1,2,3: 10k
