@@ -10,6 +10,7 @@ import parse_txt_jk as tj
 import parse_xml_hr as xh
 import parse_txt_hr as th
 import parse_xml_tr as xt
+import parse_txt_tr as tt
 import parse_xml_train as xtr
 import datetime
 import sys
@@ -76,14 +77,14 @@ def get_hr_win(data, name, course, md=mean_data()):
             res[6] = y1 = int(line['ord1Y'])
             res[7] = y2 = int(line['ord2Y'])
             if int(tt) != 0:
-                res[3] = int(t1) * 100 / int(tt)
-                res[4] = int(t2) * 100 / int(tt)
+                res[3] = float(t1) * 100 / int(tt)
+                res[4] = float(t2) * 100 / int(tt)
             else:
                 res[3] = md.jk_history_total[course][3]
                 res[4] = md.jk_history_total[course][4]
             if int(yt) != 0:
-                res[8] = int(y1) * 100 / int(yt)
-                res[9] = int(y2) * 100 / int(yt)
+                res[8] = float(y1) * 100 / int(yt)
+                res[9] = float(y2) * 100 / int(yt)
             else:
                 res[8] = md.jk_history_year[course][3]
                 res[9] = md.jk_history_year[course][4]
@@ -331,7 +332,8 @@ def parse_xml_entry(meet, date_i, number, md=mean_data(), rd=RaceDetail()):
     data_hr = th.parse_txt_hr(meet, date_i)
     #data_jk = xj.parse_xml_jk(meet)
     data_jk = tj.parse_txt_jk(meet, date_i)
-    data_tr = xt.parse_xml_tr(meet)
+    #data_tr = xt.parse_xml_tr(meet)
+    data_tr = tt.parse_txt_tr(meet, date_i)
     date_m = date_i / 100
     date = datetime.date(date_i/10000, date_i/100%100, date_i%100)
     data = []
@@ -416,16 +418,16 @@ def parse_xml_entry(meet, date_i, number, md=mean_data(), rd=RaceDetail()):
                  date_i / 100 % 100,
                  hr_days,
 
-                 itemElm.cntt.string,
-                 itemElm.ord1t.string,
-                 itemElm.ord2t.string,
                  hr_win[0],
                  hr_win[1],
-                 itemElm.cnty.string,
-                 itemElm.ord1y.string,
-                 itemElm.ord2y.string,
                  hr_win[2],
                  hr_win[3],
+                 hr_win[4],
+                 hr_win[5],
+                 hr_win[6],
+                 hr_win[7],
+                 hr_win[8],
+                 hr_win[9],
 
                  hr_dist_rec[0],
                  hr_dist_rec[1],

@@ -25,7 +25,7 @@ def parse_txt_hr(meet, date_i):
     print "process in %s" % filename
     for line in file_input.readlines():
         line = unicode(line, 'euc-kr').encode('utf-8')
-        p = re.search(unicode(r'\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().replace(',', '').split()
+        p = re.search(unicode(r'\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+', 'utf-8').encode('utf-8'), line).group().replace(',', '').split()
         try:
             gender = re.search(r'(?<=\s)[가-힣]+(?=\d{4})', line).group()
         except:
@@ -34,14 +34,14 @@ def parse_txt_hr(meet, date_i):
         name = re.search(r'[가-힣]+', line).group()
         birth = re.search(r'\d{4}/\d{2}/\d{2}', line).group()
         hr_days = (date - datetime.date(int(birth[0:4]), int(birth[5:7]), int(birth[8:10]))).days
-        cntt, cnty, ord1t, ord2t, ord1y, ord2y = p[0], p[1], p[2], p[3], p[4], p[5]
-        data.append([name, gender[3:], hr_days, cntt, cnty, ord1t, ord2t, ord1y, ord2y])
+        cntt, ord1t, ord2t, cnty, ord1y, ord2y = p[0], p[1], p[2], p[3], p[4], p[5]
+        data.append([name, gender[3:], hr_days, cntt, ord1t, ord2t, cnty, ord1y, ord2y])
 
     df = pd.DataFrame(data)
-    df.columns = ["hrName", "gender", "hr_days", "cntT", "cntY", "ord1T", "ord2T", "ord1Y", "ord2Y"]
+    df.columns = ["hrName", "gender", "hr_days", "cntT", "ord1T", "ord2T", "cntY", "ord1Y", "ord2Y"]
     return df
 
 if __name__ == '__main__':
     meet = 2
-    data = parse_xml_hr(meet)
+    data = parse_txt_hr(meet)
     print(data)
