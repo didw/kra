@@ -147,12 +147,13 @@ def training(train_bd, train_ed, course=0, nData=47):
     sess = tf.Session(config=config)
     K.set_session(sess)
 
+    #os.system('rm -r \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
     os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
-    model_name = "../model_tf/%d_%d/model_v1_%d_0.h5" % (train_bd_i, train_ed_i, course)
+    model_name = "../model_tf/%d_%d/model_v2_%d_0.h5" % (train_bd_i, train_ed_i, course)
     md_name = "../model_tf/%d_%d/md_%d.pkl" % (train_bd_i, train_ed_i, course)
     estimators = [0] * MODEL_NUM
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-    X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', 0, nData=nData)
+    X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v2.csv', 0, nData=nData)
     print("%d data is fully loaded" % len(X_train))
     #X_scaler = StandardScaler()
     #X_train = X_scaler.fit_transform(X_train)
@@ -176,7 +177,7 @@ def training(train_bd, train_ed, course=0, nData=47):
             json_model = estimators[i].model.to_json()
             open(model_name.replace('h5', 'json'), 'w').write(json_model)
             estimators[i].model.save_weights(model_name.replace('h5', '%d.h5'%i), overwrite=True)
-    md = joblib.load('../data/1_2007_2016_v1_md.pkl')
+    md = joblib.load('../data/1_2007_2016_v2_md.pkl')
     return estimators, md
 
 def print_log(data, pred, fname):
