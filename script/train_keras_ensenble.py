@@ -412,15 +412,14 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                         pred[i] = estimators[i].predict(X_test).flatten()
                         score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
 
-                        res1 = sim.simulation7(pred[i], R_test, [[1], [2], [3]])
-                        res2 = sim.simulation7(pred[i], R_test, [[1, 2], [1, 2, 3], [1, 2, 3]])
-                        res3 = sim.simulation7(pred[i], R_test, [[1, 2, 3], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5, 6]])
-                        res4 = sim.simulation7(pred[i], R_test, [[1, 2, 3, 4], [1, 2, 3, 4, 5, 6], [3, 4, 5, 6]])
-                        res5 = sim.simulation7(pred[i], R_test, [[4, 5, 6], [4, 5, 6], [4, 5, 6]])
-                        res6 = sim.simulation7(pred[i], R_test, [[4, 5, 6, 7, 8], [4, 5, 6, 7, 8], [4, 5, 6, 7, 8]])
-                        res7 = sim.simulation7(pred[i], R_test,
-                                               [[5, 6, 7, 8, 9, 10], [5, 6, 7, 8, 9, 10], [5, 6, 7, 8, 9, 10]])
-
+                        res1 = sim.simulation7(pred[i], R_test, [[1],[2],[3]])
+                        res2 = sim.simulation7(pred[i], R_test, [[1,2],[1,2,3],[1,2,3]])
+                        res3 = sim.simulation7(pred[i], R_test, [[1,2,3],[1,2,3],[1,2,3]])
+                        res4 = sim.simulation7(pred[i], R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
+                        res5 = sim.simulation7(pred[i], R_test, [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]])
+                        res6 = sim.simulation7(pred[i], R_test, [[4,5,6],[4,5,6],[4,5,6]])
+                        res7 = sim.simulation7(pred[i], R_test, [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]])
+                        
                         print("pred[%d] test: " % (i+1), pred[i][0:4])
                         print("result[%d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
                                 i+1, score, res1, res2, res3, res4, res5, res6, res7))
@@ -446,15 +445,14 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     print("pred test: ", pred[0:4])
                     score = np.sqrt(np.mean((pred - Y_test)*(pred - Y_test)))
 
-                    res1 = sim.simulation7(pred, R_test, [[1], [2], [3]])
-                    res2 = sim.simulation7(pred, R_test, [[1, 2], [1, 2, 3], [1, 2, 3]])
-                    res3 = sim.simulation7(pred, R_test, [[1, 2, 3], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5, 6]])
-                    res4 = sim.simulation7(pred, R_test, [[1, 2, 3, 4], [1, 2, 3, 4, 5, 6], [3, 4, 5, 6]])
-                    res5 = sim.simulation7(pred, R_test, [[4, 5, 6], [4, 5, 6], [4, 5, 6]])
-                    res6 = sim.simulation7(pred, R_test, [[4, 5, 6, 7, 8], [4, 5, 6, 7, 8], [4, 5, 6, 7, 8]])
-                    res7 = sim.simulation7(pred, R_test,
-                                           [[5, 6, 7, 8, 9, 10], [5, 6, 7, 8, 9, 10], [5, 6, 7, 8, 9, 10]])
-
+                    res1 = sim.simulation7(pred, R_test, [[1],[2],[3]])
+                    res2 = sim.simulation7(pred, R_test, [[1,2],[1,2,3],[1,2,3]])
+                    res3 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3],[1,2,3]])
+                    res4 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
+                    res5 = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]])
+                    res6 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6]])
+                    res7 = sim.simulation7(pred, R_test, [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]])
+                        
                     """
                     res1 = sim.simulation1(pred, R_test, 1)
                     res2 = sim.simulation2(pred, R_test, 1)
@@ -549,7 +547,7 @@ if __name__ == '__main__':
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2017, 2, 7)
+    test_bd = datetime.date(2016, 6, 5)
     test_ed = datetime.date(2017, 2, 11)
     #Tensorflow GPU optimization
     config = tf.ConfigProto()
