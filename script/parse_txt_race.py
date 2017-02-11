@@ -321,27 +321,27 @@ def parse_txt_horse(date, rcno, name, course, md=mean_data()):
             #print(participates)
             if int(participates[0]) == 0:
                 #data.extend([0, -1, -1, -1, -1])
-                data.extend([0] + map(lambda x: int(x), md.hr_history_total[course][1:]))
+                data.extend([0] + md.hr_history_total[course][1:])
             else:
                 data.append(int(participates[0]))
                 data.append(int(participates[1]))
                 data.append(int(participates[2]))
-                data.append(int(int(participates[1])*100/int(participates[0])))
-                data.append(int(int(participates[2])*100/int(participates[0])))
+                data.append(float(participates[1])*100/float(participates[0]))
+                data.append(float(participates[2])*100/float(participates[0]))
 
             if int(participates[3]) == 0:
                 #data.extend([0, -1, -1, -1, -1])
-                data.extend([0] + map(lambda x: int(x), md.hr_history_year[course][1:]))
+                data.extend([0] + md.hr_history_year[course][1:])
             else:
                 data.append(int(participates[3]))
                 data.append(int(participates[4]))
                 data.append(int(participates[5]))
-                data.append(int(int(participates[4])*100/int(participates[3])))
-                data.append(int(int(participates[5])*100/int(participates[3])))
+                data.append(float(participates[4])*100/float(participates[3]))
+                data.append(float(participates[5])*100/float(participates[3]))
 
             data.extend(dist_rec)
             assert len(data) == 17
-            data = map(lambda x: int(x), data)
+            #data = map(lambda x: int(x), data)
             return data
     print("can not find %s in %s" % (name, filename))
     #return [-1] + [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1, -1]
@@ -373,8 +373,8 @@ def parse_txt_jockey(date, name, course, md=mean_data()):
                 data.append(int(participates[0]))
                 data.append(int(participates[1]))
                 data.append(int(participates[2]))
-                data.append(int(participates[1])*100/int(participates[0]))
-                data.append(int(participates[2])*100/int(participates[0]))
+                data.append(float(participates[1])*100/float(participates[0]))
+                data.append(float(participates[2])*100/float(participates[0]))
 
             if int(participates[3]) == 0:
                 data.extend([0] + md.jk_history_year[course][1:])
@@ -382,10 +382,10 @@ def parse_txt_jockey(date, name, course, md=mean_data()):
                 data.append(int(participates[3]))
                 data.append(int(participates[4]))
                 data.append(int(participates[5]))
-                data.append(int(participates[4])*100/int(participates[3]))
-                data.append(int(participates[5])*100/int(participates[3]))
+                data.append(float(participates[4])*100/float(participates[3]))
+                data.append(float(participates[5])*100/float(participates[3]))
 
-            data = map(lambda x: int(x), data)
+            #data = map(lambda x: int(x), data)
             return data
     print("can not find %s in %s" % (name, filename))
     #return [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1]
@@ -418,8 +418,8 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
                 data.append(int(participates[0]))
                 data.append(int(participates[1]))
                 data.append(int(participates[2]))
-                data.append(int(participates[1])*100/int(participates[0]))
-                data.append(int(participates[2])*100/int(participates[0]))
+                data.append(float(participates[1])*100/float(participates[0]))
+                data.append(float(participates[2])*100/float(participates[0]))
 
             if int(participates[3]) == 0:
                 data.extend([0] + md.tr_history_year[course][1:])
@@ -427,10 +427,10 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
                 data.append(int(participates[3]))
                 data.append(int(participates[4]))
                 data.append(int(participates[5]))
-                data.append(int(participates[4])*100/int(participates[3]))
-                data.append(int(participates[5])*100/int(participates[3]))
+                data.append(float(participates[4])*100/float(participates[3]))
+                data.append(float(participates[5])*100/float(participates[3]))
 
-            data = map(lambda x: int(x), data)
+            #data = map(lambda x: int(x), data)
             return data
     print("can not find %s in %s" % (name, filename))
     #return [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1]
@@ -474,7 +474,7 @@ def get_data(filename, md=mean_data(), rd=RaceDetail()):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/3/rcresult/rcresult_3_20070106.txt'
+    filename = '../txt/3/rcresult/rcresult_3_20170210.txt'
     rd = RaceDetail()
     import glob
     year_ = int(re.search(r'\d{8}', filename).group())/10000
@@ -488,7 +488,7 @@ if __name__ == '__main__':
             print("processed rc in %s" % fname)
             rd.parse_race_detail(fname)
     #md = mean_data()
-    md = joblib.load('../data/3_2007_2016_md.pkl')
+    md = joblib.load('../data/3_2007_2016_v1_md.pkl')
 
     data = get_data(filename, md, rd)
 
