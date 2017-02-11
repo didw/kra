@@ -43,7 +43,7 @@ def dict_test(fname, rcno=1):
         print(k, v)
 
 if __name__ == '__main__':
-    fname = '../result/1702/10_0.txt'
+    fname = '../result/1702/12_0.txt'
     for i in range(1,12):
         print("===%d===" % i)
         dict_test(fname, i)
