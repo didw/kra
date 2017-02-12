@@ -54,7 +54,7 @@ def get_dbudam(meet, date, rcno, name):
 def get_weight(meet, date, rcno, name, course):
     name = name.replace('★', '')
     fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
-    if os.path.exists(fname):
+    if os.path.exists(fname) and True:
         response_body = open(fname).read()
     else:
         base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&"
@@ -66,9 +66,10 @@ def get_weight(meet, date, rcno, name, course):
             itemList = itemElm2.findAll('td')
             if name in unicode(itemList[1].string).encode('utf-8'):
                 try:
-                    return float(float(unicode(itemList[2].string)))
+                    return float(unicode(itemList[2].string))
                 except ValueError:
-                    return {1000: 461, 1200: 463, 1300: 464, 1400: 466, 1500: 466, 1600: 466, 1800: 471, 1900: 475, 2000: 482, 2200: 492}[course]
+                    print("could not convert string to float %s, %s" % (name, unicode(itemList[2].string)))
+                    continue
     return -1
     return {1000: 461, 1200: 463, 1300: 464, 1400: 466, 1500: 466, 1600: 466, 1800: 471, 1900: 475, 2000: 482, 2200: 492}[course]
 
@@ -76,7 +77,7 @@ def get_weight(meet, date, rcno, name, course):
 def get_dweight(meet, date, rcno, name):
     name = name.replace('★', '')
     fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
-    if os.path.exists(fname):
+    if os.path.exists(fname) and True:
         response_body = open(fname).read()
     else:
         base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&"
@@ -87,7 +88,11 @@ def get_dweight(meet, date, rcno, name):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
             if name in unicode(itemList[1].string).encode('utf-8'):
-                return float(unicode(itemList[3].string))
+                try:
+                    return float(unicode(itemList[3].string))
+                except ValueError:
+                    print("could not convert string to float %s, %s" % (name, unicode(itemList[2].string)))
+                    continue
     print("can not find dweight %s in %s" % (name, fname))
     return 0
 
@@ -95,7 +100,7 @@ def get_dweight(meet, date, rcno, name):
 def get_drweight(meet, date, rcno, name):
     name = name.replace('★', '')
     fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
-    if os.path.exists(fname):
+    if os.path.exists(fname) and True:
         response_body = open(fname).read()
     else:
         base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&"
@@ -301,7 +306,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
     race_sum = [[], [], [], [], [], [], []]
     race_same_dist = []
     if hrno == -1:
-        return default_res
+        return default_res, weight
     fname = '../txt/%d/racehorse/racehorse_%d_%06d.txt' % (meet, meet, hrno)
     #print("racehorse: %s" % fname)
     if os.path.exists(fname) and mode == 'File':
@@ -320,7 +325,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
         xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
     except UnicodeDecodeError:
         print("decode error: %s", fname)
-        return default_res
+        return default_res, weight
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr')[2:]:
             itemList = itemElm2.findAll('td')
@@ -413,7 +418,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
         result[6] = np.mean(race_sum[6])
         race_sum[6].reverse()
         for r in race_sum[6]:
-            result[6] += 0.2 * (r - result[6])   # v1,v2: 0.5, v3: 0.2
+            result[6] += 0.5 * (r - result[6])   # v1,v2: 0.5, v3: 0.2
     for i in range(len(race_sum)-1):
         if len(race_sum[i]) == 0:
             #result[i] = -1
@@ -422,7 +427,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
             result[i] = np.mean(race_sum[i])
             race_sum[i].reverse()
             for r in race_sum[i]:
-                result[i] += 0.2 * (r - result[i])  # v1,v2: 0.5, v3: 0.2
+                result[i] += 0.5 * (r - result[i])  # v1,v2: 0.5, v3: 0.2
             result[i] = float(result[i])
     if len(race_same_dist) > 0:
         result.append(float(np.min(race_same_dist)))

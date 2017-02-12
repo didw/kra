@@ -19,7 +19,7 @@ def parse_xml_hr(meet):
             data.append([unicode(itemElm.birth.string),
                          unicode(itemElm.cntt.string),
                          unicode(itemElm.cnty.string),
-                         unicode(itemElm.hrname.string),
+                         unicode(itemElm.hrname.string).replace('★', ''),
                          unicode(itemElm.ord1t.string),
                          unicode(itemElm.ord1y.string),
                          unicode(itemElm.ord2t.string),
