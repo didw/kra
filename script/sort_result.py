@@ -8,8 +8,11 @@ def dict_test(fname, rcno=1):
     data_ss = {}
     data_sb = {}
     fInput = open(fname)
+    first = True
     while True:
-        line = fInput.readline()
+        if first or re.search(r'rcno: %d,'%rcno, line) is None:
+            line = fInput.readline()
+            first = False
         if line == None or len(line) == 0:
             break
         if re.search(r'rcno: %d,'%rcno, line) is not None:
@@ -43,7 +46,7 @@ def dict_test(fname, rcno=1):
         print(k, v)
 
 if __name__ == '__main__':
-    fname = '../result/1702/12_0.txt'
+    fname = '../result/1702/12_1.txt'
     for i in range(1,13):
         print("===%d==="%i)
         dict_test(fname, i)
