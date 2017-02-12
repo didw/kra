@@ -11,6 +11,7 @@ import train_keras as tk
 import train_keras_ensenble as tkn
 from get_race_detail import RaceDetail
 import numpy as np
+import os
 
 def normalize_data(org_data, nData=47):
     data = org_data.dropna()
@@ -381,7 +382,7 @@ def get_race_detail(date):
 
 if __name__ == '__main__':
     meet = 1
-    date = 20170211
+    date = 20170212
     train_course = 0
     courses = [0,1000,1200,1300,1300,1000,1000,1200,1300,1700,0,0,1200]
     rcno = 0
@@ -390,6 +391,7 @@ if __name__ == '__main__':
     test_course = course
     rd = get_race_detail(date)
     fname = '../result/1702/%d_%d.txt' % (date%100, rcno)
+    os.system("rm %s" % fname)
     for nData, year, train_course in zip([186,186,186], [6], [0,0,0]):
         if train_course == 1: train_course = course
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
