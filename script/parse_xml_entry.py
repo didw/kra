@@ -50,19 +50,25 @@ def get_hr_data(data, name):
 
 
 def get_hr_win(tt, t1, t2, yt, y1, y2, course, md=mean_data()):
-    res = [-1, -1, -1, -1]
+    res = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
     if int(tt) != 0:
-        res[0] = int(t1) * 100 / int(tt)
-        res[1] = int(t2) * 100 / int(tt)
+        res[0], res[1], res[2] = int(tt), int(t1), int(t2)
+        res[3] = int(t1) * 100 / int(tt)
+        res[4] = int(t2) * 100 / int(tt)
     else:
-        res[0] = md.hr_history_total[course][3]
-        res[1] = md.hr_history_total[course][4]
+        res[1] = md.hr_history_total[course][1]
+        res[2] = md.hr_history_total[course][2]
+        res[3] = md.hr_history_total[course][3]
+        res[4] = md.hr_history_total[course][4]
     if int(yt) != 0:
-        res[2] = int(y1) * 100 / int(yt)
-        res[3] = int(y2) * 100 / int(yt)
+        res[5], res[6], res[7] = int(yt), int(y1), int(y2)
+        res[8] = int(y1) * 100 / int(yt)
+        res[9] = int(y2) * 100 / int(yt)
     else:
-        res[2] = md.hr_history_year[course][3]
-        res[3] = md.hr_history_year[course][4]
+        res[6] = md.hr_history_year[course][1]
+        res[7] = md.hr_history_year[course][2]
+        res[8] = md.hr_history_year[course][3]
+        res[9] = md.hr_history_year[course][4]
     return res
 
 
@@ -154,7 +160,7 @@ def get_game_info(date, rcno):
             if kind is None:
                 kind = 0
             else:
-                kind = kind.group()[-1]
+                kind = int(kind.group()[-1])
             return [num.group(), kind]
     return [-1, -1]
 
@@ -251,16 +257,16 @@ def parse_xml_entry(meet, date_i, number, md=mean_data(), rd=RaceDetail()):
                  date_i / 100 % 100,
                  hr_days,
 
-                 itemElm.cntt.string,
-                 itemElm.ord1t.string,
-                 itemElm.ord2t.string,
                  hr_win[0],
                  hr_win[1],
-                 itemElm.cnty.string,
-                 itemElm.ord1y.string,
-                 itemElm.ord2y.string,
                  hr_win[2],
                  hr_win[3],
+                 hr_win[4],
+                 hr_win[5],
+                 hr_win[6],
+                 hr_win[7],
+                 hr_win[8],
+                 hr_win[9],
 
                  hr_dist_rec[0],
                  hr_dist_rec[1],

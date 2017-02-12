@@ -91,7 +91,7 @@ def parse_txt_race(filename, md=mean_data()):
             lastday = gdd.get_lastday(1, date, int(rcno), hrname)
             train_state = gdd.get_train_state(1, date, int(rcno), hrname)
             hr_no = gdd.get_hrno(1, date, int(rcno), hrname)
-            race_score = gdd.get_hr_racescore(1, hr_no, date, month, course, 'File', md)
+            race_score, w_ = gdd.get_hr_racescore(1, hr_no, date, month, course, 'File', md)
 
             assert len(words) >= 10
             adata = [course, humidity, kind, dbudam, drweight, lastday]
@@ -427,27 +427,27 @@ def parse_txt_horse(date, rcno, name, course, md=mean_data()):
             #print(participates)
             if int(participates[0]) == 0:
                 #data.extend([0, -1, -1, -1, -1])
-                data.extend([0] + map(lambda x: int(x), md.hr_history_total[course][1:]))
+                data.extend([0] + md.hr_history_total[course][1:])
             else:
                 data.append(int(participates[0]))
                 data.append(int(participates[1]))
                 data.append(int(participates[2]))
-                data.append(int(int(participates[1])*100/int(participates[0])))
-                data.append(int(int(participates[2])*100/int(participates[0])))
+                data.append(float(participates[1])*100/float(participates[0]))
+                data.append(float(participates[2])*100/float(participates[0]))
 
             if int(participates[3]) == 0:
                 #data.extend([0, -1, -1, -1, -1])
-                data.extend([0] + map(lambda x: int(x), md.hr_history_year[course][1:]))
+                data.extend([0] + md.hr_history_year[course][1:])
             else:
                 data.append(int(participates[3]))
                 data.append(int(participates[4]))
                 data.append(int(participates[5]))
-                data.append(int(int(participates[4])*100/int(participates[3])))
-                data.append(int(int(participates[5])*100/int(participates[3])))
+                data.append(float(participates[4])*100/float(participates[3]))
+                data.append(float(participates[5])*100/float(participates[3]))
 
             data.extend(dist_rec)
             assert len(data) == 17
-            data = map(lambda x: int(x), data)
+            #data = map(lambda x: int(x), data)
             return data
     print("can not find %s in %s" % (name, filename))
     #return [-1] + [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1, -1]
@@ -479,8 +479,8 @@ def parse_txt_jockey(date, name, course, md=mean_data()):
                 data.append(int(participates[0]))
                 data.append(int(participates[1]))
                 data.append(int(participates[2]))
-                data.append(int(participates[1])*100/int(participates[0]))
-                data.append(int(participates[2])*100/int(participates[0]))
+                data.append(float(participates[1])*100/float(participates[0]))
+                data.append(float(participates[2])*100/float(participates[0]))
 
             if int(participates[3]) == 0:
                 data.extend([0] + md.jk_history_year[course][1:])
@@ -488,10 +488,10 @@ def parse_txt_jockey(date, name, course, md=mean_data()):
                 data.append(int(participates[3]))
                 data.append(int(participates[4]))
                 data.append(int(participates[5]))
-                data.append(int(participates[4])*100/int(participates[3]))
-                data.append(int(participates[5])*100/int(participates[3]))
+                data.append(float(participates[4])*100/float(participates[3]))
+                data.append(float(participates[5])*100/float(participates[3]))
 
-            data = map(lambda x: int(x), data)
+            #data = map(lambda x: int(x), data)
             return data
     print("can not find %s in %s" % (name, filename))
     #return [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1]
@@ -524,8 +524,8 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
                 data.append(int(participates[0]))
                 data.append(int(participates[1]))
                 data.append(int(participates[2]))
-                data.append(int(participates[1])*100/int(participates[0]))
-                data.append(int(participates[2])*100/int(participates[0]))
+                data.append(float(participates[1])*100/float(participates[0]))
+                data.append(float(participates[2])*100/float(participates[0]))
 
             if int(participates[3]) == 0:
                 data.extend([0] + md.tr_history_year[course][1:])
@@ -533,10 +533,10 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
                 data.append(int(participates[3]))
                 data.append(int(participates[4]))
                 data.append(int(participates[5]))
-                data.append(int(participates[4])*100/int(participates[3]))
-                data.append(int(participates[5])*100/int(participates[3]))
+                data.append(float(participates[4])*100/float(participates[3]))
+                data.append(float(participates[5])*100/float(participates[3]))
 
-            data = map(lambda x: int(x), data)
+            #data = map(lambda x: int(x), data)
             return data
     print("can not find %s in %s" % (name, filename))
     #return [-1, -1, -1, -1, -1] + [-1, -1, -1, -1, -1]
@@ -548,7 +548,6 @@ def get_data(filename, md=mean_data(), rd=RaceDetail()):
     date_i = re.search(unicode(r'\d{8}', 'utf-8').encode('utf-8'), filename).group()
     date = datetime.date(int(date_i[:4]), int(date_i[4:6]), int(date_i[6:]))
     data = parse_txt_race(filename, md)
-
     jangu_clinic = wc.parse_hr_clinic(date)
 
     for i in range(len(data)):
@@ -600,18 +599,18 @@ def get_data2(filename, _date, _rcno):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/1/rcresult/rcresult_1_20170211.txt'
-    rd = RaceDetail()
+    filename = '../txt/1/rcresult/rcresult_1_20070113.txt'
+    rd = RaceDetail() 
     import glob
     year_ = int(re.search(r'\d{8}', filename).group())/10000
     for year in range(year_-3, year_+1):
         filelist1 = glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_%d*.txt' % year)
         filelist2 = glob.glob('../txt/1/rcresult/rcresult_1_%d*.txt' % year)
+        print("processed ap in %d" % year)
         for fname in filelist1:
-            print("processed ap %s" % fname)
             rd.parse_ap_rslt(fname)
+        print("processed rc in %d" % year)
         for fname in filelist2:
-            print("processed rc in %s" % fname)
             rd.parse_race_detail(fname)
     #md = mean_data()
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')

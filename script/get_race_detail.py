@@ -250,8 +250,8 @@ class RaceDetail:
                 res[i] += 0.2*(j - res[i])
             if res[i] == -1:
                 #res[i] = -1
-                res[i] = md.race_detail[course_list[i/3]][i%3]
-                #res[i] = m_course[i%3] * md.race_detail[course_list[i/3]][i%3]
+                #res[i] = md.race_detail[course_list[i/3]][i%3]
+                res[i] = m_course[i%3] * md.race_detail[course_list[i/3]][i%3]
         return map(lambda x: float(x), res)  # len: 18
 
 

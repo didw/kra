@@ -220,7 +220,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "../model_tf/%d_%d/model_%d_%d.h5" % (train_bd_i, train_ed_i, course, 0)
+        model_name = "../model_tf/%d_%d/model_v1_%d_%d.h5" % (train_bd_i, train_ed_i, course, 0)
 
         os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
         if os.path.exists(model_name):
@@ -268,7 +268,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         else:
             DEBUG = False
             if DEBUG:
-                X_test.to_csv('../log/2016_7_9.csv', index=False)
+                X_test.to_csv('../log/2016_7_9_v1.csv', index=False)
             score = 0
             X_test = np.array(X_test)
             Y_test = np.array(Y_test)
@@ -341,7 +341,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
         model_name = "../model_tf/%d_%d/model_v1.h5" % (train_bd_i, train_ed_i)
-        os.system('rm -r \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
+        #os.system('rm -r \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
         os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
 
         estimators = [0] * MODEL_NUM
