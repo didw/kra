@@ -93,7 +93,7 @@ def parse_txt_race(filename, md=mean_data()):
             lastday = gdd.get_lastday(2, date, int(rcno), hrname)
             train_state = gdd.get_train_state(2, date, int(rcno), hrname)
             hr_no = gdd.get_hrno(2, date, int(rcno), hrname)
-            race_score = gdd.get_hr_racescore(2, hr_no, date, month, course, 'File', md)
+            race_score, w_ = gdd.get_hr_racescore(2, hr_no, date, month, course, 'File', md)
 
             assert len(words) >= 10
             adata = [course, humidity, kind, dbudam, drweight, lastday]

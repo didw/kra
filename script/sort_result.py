@@ -8,8 +8,11 @@ def dict_test(fname, rcno=1):
     data_ss = {}
     data_sb = {}
     fInput = open(fname)
+    first = True
     while True:
-        line = fInput.readline()
+        if first or re.search(r'rcno: %d,'%rcno, line) is None:
+            line = fInput.readline()
+            first = False
         if line == None or len(line) == 0:
             break
         if re.search(r'rcno: %d,'%rcno, line) is not None:

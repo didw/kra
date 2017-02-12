@@ -222,7 +222,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "../model_tf/%d_%d/model_%d_%d.h5" % (train_bd_i, train_ed_i, course, 0)
+        model_name = "../model_tf/%d_%d/model_v2_%d_%d.h5" % (train_bd_i, train_ed_i, course, 0)
 
         os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
         if os.path.exists(model_name):

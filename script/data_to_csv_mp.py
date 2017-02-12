@@ -12,7 +12,7 @@ import multiprocessing as mp
 import Queue
 import numpy as np
 
-PROCESS_NUM = 3
+PROCESS_NUM = 4
 
 def load_worker(worker_idx, filename_queue, output_queue, md=mean_data(), rd=RaceDetail()):
     print("[W%d] Current File/Feature Queue Size = %d/%d" % (worker_idx, filename_queue.qsize(), output_queue.qsize()))
@@ -133,9 +133,9 @@ def update_md(fname):
 
 if __name__ == '__main__':
     DEBUG = True
-    fname_csv = '../data/2_2007_2016.csv'
+    fname_csv = '../data/2_2007_2016_v1.csv'
     bdate = datetime.date(2007, 1, 1)
-    edate = datetime.date(2016, 12, 31)
+    edate = datetime.date(2017, 2, 12)
     get_data(bdate, edate, fname_csv)
     #update_data(datetime.date.today(), fname_csv)
 
