@@ -69,6 +69,7 @@ def get_weight(meet, date, rcno, name, course):
                     return float(float(unicode(itemList[2].string)))
                 except ValueError:
                     return {1000: 461, 1200: 463, 1300: 464, 1400: 466, 1500: 466, 1600: 466, 1800: 471, 1900: 475, 2000: 482, 2200: 492}[course]
+    return -1
     return {1000: 461, 1200: 463, 1300: 464, 1400: 466, 1500: 466, 1600: 466, 1800: 471, 1900: 475, 2000: 482, 2200: 492}[course]
 
 
@@ -292,6 +293,7 @@ def norm_racescore(course, month, humidity, value, md=mean_data()):
 
 def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data()):
     first_attend = True
+    weight = 0
     course = int(course)
     result = [-1, -1, -1, -1, -1, -1, -1] # 주, 1000, 1200, 1300, 1400, 1700, 0
     default_res = map(lambda x: float(np.mean(np.array(x)[:,20])), [md.race_score[900], md.race_score[1000], md.race_score[1200], md.race_score[1300], md.race_score[1400], md.race_score[1600], md.race_score[0]])
@@ -347,6 +349,8 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
                     continue
             try:
                 record = unicode(itemList[10].string).strip().encode('utf-8')
+                if weight == 0:
+                    weight = int(unicode(itemList[11].string).strip().encode('utf-8').split('(')[0])
             except:
                 print("unicode error")
                 continue
@@ -436,7 +440,7 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
         result.append(float(md.dist_rec[course][3]))
         result.append(float(md.dist_rec[course][4]))
         result.append(float(md.dist_rec[course][5]))
-    return result
+    return result, weight
 
 
 if __name__ == '__main__':

@@ -212,7 +212,11 @@ def parse_xml_entry(meet, date_i, number, md=mean_data(), rd=RaceDetail()):
         lastday = gdd.get_lastday(meet, date_i, int(rcno), hrname)
         train_state = gdd.get_train_state(meet, date_i, int(rcno), hrname)
         hr_no = gdd.get_hrno(meet, date_i, int(rcno), hrname)
-        race_score = gdd.get_hr_racescore(meet, hr_no, date_i, month, course, 'url', md)
+        race_score, weight_past = gdd.get_hr_racescore(meet, hr_no, date_i, month, course, 'url', md)
+        if hr_weight == -1:
+            hr_weight = weight_past
+        if hr_weight == 0:
+            hr_weight = {1000: 461, 1200: 463, 1300: 464, 1400: 466, 1500: 466, 1600: 466, 1800: 471, 1900: 475, 2000: 482, 2200: 492}[course]
         rd_data = rd.get_data(hrname, date_i, md)
         jc_data = wc.get_jangu_clinic(jangu_clinic, hrname)
 
