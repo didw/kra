@@ -26,7 +26,7 @@ import Queue
 import time
 from keras.models import model_from_json
 
-MODEL_NUM = 3
+MODEL_NUM = 10
 
 def baseline_model():
     # create model
@@ -345,40 +345,24 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
 
         estimators = [0] * MODEL_NUM
-        if os.path.exists(model_name.replace('h5', '1.h5')):
-            print("model exist. try to loading.. %s - %s" % (str(train_bd), str(train_ed)))
-            # loading model
-            from keras.models import model_from_json
-            for i in range(MODEL_NUM):
+        print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/3_2007_2016_v1.csv', 0, nData=nData)
+        X_train = np.array(X_train)
+        Y_train = np.array(Y_train)
+        for i in range(MODEL_NUM):
+            if os.path.exists(model_name.replace('h5', '%d.h5'%i)):
+                print("model[%d] exist. try to loading.. %s - %s" % (i, str(train_bd), str(train_ed)))
                 estimators[i] = model_from_json(open(model_name.replace('h5', 'json')).read())
                 estimators[i].load_weights(model_name.replace('h5', '%d.h5'%i))
-        else:
-            print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/3_2007_2016_v1.csv', 0, nData=nData)
-            print("%d data is fully loaded" % len(X_train))
-            if len(X_train) < 10:
-                res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
             else:
-                #X_scaler = StandardScaler()
-                #X_train = X_scaler.fit_transform(X_train)
-                print("Start train model")
-                # fix random seed for reproducibility
-                X_train = np.array(X_train)
-                Y_train = np.array(Y_train)
-                seed = 7
-                np.random.seed(seed)
-                # evaluate model with standardized dataset
-                for i in range(MODEL_NUM):
-                    print("model[%d] training.." % (i+1))
-                    estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=50, batch_size=32, verbose=0)
-                    estimators[i].fit(X_train, Y_train)
+                print("model[%d] training.." % (i+1))
+                estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=50, batch_size=32, verbose=0)
+                estimators[i].fit(X_train, Y_train)
                 # saving model
-                for i in range(MODEL_NUM):
-                    json_model = estimators[i].model.to_json()
-                    open(model_name.replace('h5', 'json'), 'w').write(json_model)
-                    # saving weights
-                    estimators[i].model.save_weights(model_name.replace('h5', '%d.h5'%i), overwrite=True)
-                print("Finish train model")
+                json_model = estimators[i].model.to_json()
+                open(model_name.replace('h5', 'json'), 'w').write(json_model)
+                estimators[i].model.save_weights(model_name.replace('h5', '%d.h5'%i), overwrite=True)
+        print("Finish train model")
 
         test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
         test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
@@ -406,8 +390,8 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                         X_test.to_csv('../log/weekly_train0_%s.csv' % today, index=False)
                     X_test = np.array(X_test)
                     Y_test = np.array(Y_test)
-                    pred = [0, 0, 0]
-                    for i in range(3):
+                    pred = [0] * MODEL_NUM
+                    for i in range(MODEL_NUM):
                         pred[i] = estimators[i].predict(X_test).flatten()
                         score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
 
