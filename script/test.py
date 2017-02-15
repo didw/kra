@@ -575,7 +575,13 @@ def test():
     list = [[1,2,3],[3,4,5]]
     print(np.mean(np.array(list)[:,1]))
 
+def make_list_of_dict():
+    MODEL_NUM = 10
+    def m():
+        return [{0:0} for _ in range(MODEL_NUM+1)]
+    list_of_dict = m()
+    for 
 
 if __name__ == '__main__':
-    test()
+    make_list_of_dict()
 
