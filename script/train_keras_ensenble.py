@@ -173,7 +173,7 @@ def training(train_bd, train_ed, course=0, nData=47):
             estimators[i].load_weights(model_name.replace('h5', '%d.h5'%i))
         else:
             print("model[%d] training.." % (i+1))
-            estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=50, batch_size=32, verbose=0)
+            estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=200, batch_size=32, verbose=0)
             estimators[i].fit(X_train, Y_train)
             # saving model
             json_model = estimators[i].model.to_json()
@@ -358,7 +358,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 estimators[i].load_weights(model_name.replace('h5', '%d.h5'%i))
             else:
                 print("model[%d] training.." % (i+1))
-                estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=50, batch_size=32, verbose=0)
+                estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=200, batch_size=32, verbose=0)
                 estimators[i].fit(X_train, Y_train)
                 # saving model
                 json_model = estimators[i].model.to_json()
@@ -371,7 +371,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
 
         for course in courses:
             for kind in kinds:
-                fname_result = '../data/weekly_keras_nsb_v1_train0_m2_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+                fname_result = '../data/weekly_keras_nsb_v3_train0_m2_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
                 X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/2_2007_2016_v1.csv', course, kind, nData=nData)
                 #X_test = X_scaler.transform(X_test)
@@ -389,7 +389,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 else:
                     DEBUG = False
                     if DEBUG:
-                        X_test.to_csv('../log/weekly_train0_%s_v1.csv' % today, index=False)
+                        X_test.to_csv('../log/weekly_train0_%s_v3.csv' % today, index=False)
                     X_test = np.array(X_test)
                     Y_test = np.array(Y_test)
                     pred = [0] * MODEL_NUM
@@ -519,7 +519,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
     for m in range(MODEL_NUM+1):
         for course in courses:
             for kind in kinds:
-                fname_result = '../data/weekly_keras_nsb_v1_train0_m2_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+                fname_result = '../data/weekly_keras_nsb_v3_train0_m2_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 f_result = open(fname_result, 'a')
                 f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
                 f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (

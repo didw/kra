@@ -211,26 +211,11 @@ def print_detail(players, cand, fresult, mode):
         print("%s,%s,{%s,%s}" % (players[3], players[5], players[2], players[4]))
 
         fresult.write("\n\nbet: 100")  # 14200 / 55 = 258
-        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[0], players[1], players[2], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[0], players[2], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[0], players[3], players[2], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[0], players[4], players[2], players[3], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[0], players[5], players[2], players[3], players[4]))
-        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[1], players[0], players[2], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[1], players[2], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[1], players[3], players[2], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[1], players[4], players[2], players[3], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[1], players[5], players[2], players[3], players[4]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[2], players[0], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[2], players[1], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (players[2], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (players[2], players[4], players[3], players[5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (players[2], players[5], players[3], players[4]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[3], players[0], players[2], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (players[3], players[1], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (players[3], players[2], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (players[3], players[4], players[2], players[5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (players[3], players[5], players[2], players[4]))
+        for x in [1,2,3,4]:
+            for y in [1,2,3,4,5,6]:
+                for z in [3,4,5,6]:
+                    if x == y or x == z or y ==z: continue
+                    fresult.write("\n%d,%d,%d, %s: 50" % (x,y,z, mode))
 
 
 def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
@@ -252,7 +237,7 @@ def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
     global fname
     fresult = open(fname, 'a')
     fresult.write("%s,%s,%s,%s,%s,%s\n" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-    print_detail(rcdata['idx'], [[1,2,3],[1,2,3],[1,2,3]], fresult, "ss")
+    print_detail(rcdata['idx'], [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]], fresult, "ss")
     fresult.close()
 
 
@@ -377,10 +362,10 @@ def get_race_detail(date):
 
 if __name__ == '__main__':
     meet = 2
-    date = 20170211
+    date = 20170216
     train_course = 0
     courses = [0,0,0,0,0,0,0,0,0,0,0,0]
-    rcno = 0
+    rcno = 1
     #for rcno in range(len(courses)):
     course = courses[rcno]
     test_course = course
