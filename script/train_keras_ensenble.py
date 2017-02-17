@@ -170,7 +170,7 @@ def training(train_bd, train_ed, course=0, nData=47):
             estimators[i].load_weights(model_name.replace('h5', '%d.h5'%i))
         else:
             print("model[%d] training.." % (i+1))
-            estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=50, batch_size=32, verbose=0)
+            estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=200, batch_size=32, verbose=0)
             estimators[i].fit(X_train, Y_train)
             # saving model
             json_model = estimators[i].model.to_json()
@@ -356,7 +356,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 estimators[i].load_weights(model_name.replace('h5', '%d.h5'%i))
             else:
                 print("model[%d] training.." % (i+1))
-                estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=50, batch_size=32, verbose=0)
+                estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=200, batch_size=32, verbose=0)
                 estimators[i].fit(X_train, Y_train)
                 # saving model
                 json_model = estimators[i].model.to_json()
