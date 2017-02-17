@@ -215,7 +215,7 @@ def print_detail(players, cand, fresult, mode):
             for y in [1,2,3,4,5,6]:
                 for z in [3,4,5,6]:
                     if x == y or x == z or y ==z: continue
-                    fresult.write("\n%d,%d,%d, %s: 50" % (x,y,z, mode))
+                    fresult.write("\n%s,%s,%s, %s: 50" % (players[x-1],players[y-1],players[z-1], mode))
 
 
 def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
@@ -362,10 +362,10 @@ def get_race_detail(date):
 
 if __name__ == '__main__':
     meet = 2
-    date = 20170216
+    date = 20170217
     train_course = 0
     courses = [0,0,0,0,0,0,0,0,0,0,0,0]
-    rcno = 1
+    rcno = 0
     #for rcno in range(len(courses)):
     course = courses[rcno]
     test_course = course
