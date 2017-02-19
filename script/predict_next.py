@@ -122,10 +122,12 @@ def print_detail(players, cand, fresult, mode):
         print("%s,%s,%s, %s: 500" % (players[1], players[0], players[2], mode))
         print("%s,%s,%s, %s: 500" % (players[1], players[2], players[0], mode))
 
-        fresult.write("\n%s,%s,%s, %s: 1500" % (players[0], players[1], players[2], mode))
-        fresult.write("\n%s,%s,%s, %s: 1500" % (players[1], players[0], players[2], mode))
-        fresult.write("\n%s,%s,%s, %s: 1500" % (players[1], players[2], players[0], mode))
-        fresult.write("\n%s,%s,%s, %s: 1500" % (players[0], players[2], players[1], mode))
+        fresult.write("\n%s,%s,%s, %s: 500" % (players[0], players[1], players[2], mode))
+        fresult.write("\n%s,%s,%s, %s: 300" % (players[0], players[2], players[1], mode))
+        fresult.write("\n%s,%s,%s, %s: 300" % (players[1], players[0], players[2], mode))
+        fresult.write("\n%s,%s,%s, %s: 300" % (players[1], players[2], players[0], mode))
+        fresult.write("\n%s,%s,%s, %s: 200" % (players[2], players[0], players[1], mode))
+        fresult.write("\n%s,%s,%s, %s: 200" % (players[2], players[1], players[0], mode))
     elif cand == [[1,2,3],[1,2,3],[1,2,3]] and mode == "ss":
         print("%s,%s,%s, %s: 500" % (players[0], players[1], players[2], mode))
         print("%s,%s,%s, %s: 500" % (players[0], players[2], players[1], mode))
@@ -240,7 +242,8 @@ def print_bet(rcdata, course=0, year=4, nData=47, train_course=0, tried=0):
     global fname
     fresult = open(fname, 'a')
     fresult.write("%s,%s,%s,%s,%s,%s\n" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-    print_detail(rcdata['idx'], [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]], fresult, "ss")
+    print_detail(rcdata['idx'], [[1,2],[1,2,3],[1,2,3]], fresult, "ss")
+    #print_detail(rcdata['idx'], [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]], fresult, "ss")
 
     fresult.close()
 
@@ -369,7 +372,7 @@ def get_race_detail(date):
 
 if __name__ == '__main__':
     meet = 3
-    date = 20170217
+    date = 20170219
     train_course = 0
     courses = [0,1000,1200,1300,1300,1000,1000,1200,1300,1700,0,0,1200]
     rcno = 0
