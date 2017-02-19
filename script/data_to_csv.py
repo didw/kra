@@ -104,7 +104,7 @@ def update_md(fname):
 
 if __name__ == '__main__':
     DEBUG = True
-    fname_csv = '../data/2_2007_2016_v2.csv'
+    fname_csv = '../data/2_2007_2016_v1.csv'
     bdate = datetime.date(2007, 1, 1)
     edate = datetime.date(2016,12,31)
     #get_data(bdate, edate, fname_csv)

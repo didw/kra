@@ -342,7 +342,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "../model_tf/%d_%d/model_v1.h5" % (train_bd_i, train_ed_i)
+        model_name = "../model_tf/%d_%d/model_v3.h5" % (train_bd_i, train_ed_i)
         #os.system('rm -r \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
         os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
 
