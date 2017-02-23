@@ -540,7 +540,7 @@ if __name__ == '__main__':
 
     for delta_year in [8]:
         for nData in [192]:
-            simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[1000, 1200, 1300, 1400, 1600, 0], nData=nData)
+            simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[0], nData=nData)
             #for c in [1000, 1200, 1300, 1400, 1700]:
             #    for k in [0]:
             #        outfile = '../data/weekly_keras_m3_nd%d_y%d_c%d_0_k%d.txt' % (nData, delta_year, c, k)
