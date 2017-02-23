@@ -149,7 +149,7 @@ def training(train_bd, train_ed, course=0, nData=47):
 
     #os.system('rm -r \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
     os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
-    model_name = "../model_tf/%d_%d/model_v1_%d_0.h5" % (train_bd_i, train_ed_i, course)
+    model_name = "../model_tf/%d_%d/model_v1.h5" % (train_bd_i, train_ed_i)
     md_name = "../model_tf/%d_%d/md_%d.pkl" % (train_bd_i, train_ed_i, course)
     estimators = [0] * MODEL_NUM
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))

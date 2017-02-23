@@ -382,9 +382,10 @@ def get_race_detail(date):
             rd.parse_race_detail(fname)
     return rd
 
+
 if __name__ == '__main__':
     meet = 1
-    date = 20170218
+    date = 20170225
     train_course = 0
     courses = [0,1000,1200,1300,1300,1000,1000,1200,1300,1700,0,0,1200]
     rcno = 0
