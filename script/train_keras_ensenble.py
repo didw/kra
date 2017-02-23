@@ -340,7 +340,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "../model_tf/%d_%d/model_v1_0_0.h5" % (train_bd_i, train_ed_i)
+        model_name = "../model_tf/%d_%d/model_v1.h5" % (train_bd_i, train_ed_i)
         #os.system('rm -r \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
         os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
 
@@ -530,8 +530,8 @@ if __name__ == '__main__':
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2017, 2, 13)
-    test_ed = datetime.date(2017, 2, 18)
+    test_bd = datetime.date(2016, 6, 5)
+    test_ed = datetime.date(2017, 2, 20)
     #Tensorflow GPU optimization
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
