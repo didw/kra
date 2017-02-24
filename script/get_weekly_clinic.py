@@ -8,9 +8,11 @@ import glob
 from sklearn.externals import joblib
 
 DEBUG = False
+gJangu = dict()
+gClinic = dict()
 def make_one_hot(data):
-    jangu_list = ["망사눈가면", "눈가면", "계란형큰고리재갈", "눈귀가면", "망사가면", "반가지큰고리재갈", "혀보정끈", "눈가리개", "양털코굴레", "가지재갈", "구각자극판", "진입보조", "주립보조", "보조", "재갈보정밴드", "반가지재갈", "고정마팅게일변형", "진입밴드", "혀보정재갈", "양털뺨굴레", "양뒷다리편자미착", "견인용재갈", "보조선진입마", "나비재갈", "양앞다리편자미착"]
-    clinic_list = ["각막염", "감기", "건단열", "견파행", "계인대염", "계질환", "골막염", "골연골증", "골절", "관골막염", "관절염종장", "관파행", "교돌상", "구절염", "굴건염", "기관지염", "담마진", "마비성근색소뇨", "봉와직염", "비절내종", "비절후종", "산통", "식욕부진", "양견파행", "양전구절염", "열사병", "열제", "열창", "완골", "완관절염", "완관절염", "요배통", "우견파행", "우후답창", "임파관염", "자창", "전지구절염", "전지굴건염", "전지답창", "전지제구염", "전지제염", "전지제차부란", "제구염", "제염", "종자골골절", "좌상", "중수골골절", "찰과상", "천지굴건염", "퇴행성관절염", "파행", "폐출혈", "피로회복", "활막염", "후두염", "후지파행"]
+    jangu_list = ["가지재갈", "계란형큰고리재갈", "고정마팅게일변형", "구각자극판", "눈가리개", "눈가면", "눈귀가면", "망사가면", "망사눈가면", "반가지재갈", "반가지큰고리재갈", "보조선진입마", "보조후진입마", "양털뺨굴레", "양털코굴레", "자력선진입마", "재갈보정밴드", "진입밴드", "혀보정끈", "혀보정재갈"] # 20
+    clinic_list = ["운동기인성 피로회복", "좌후 구절부 찰과상", "우후 구절부 찰과상", "양제3중수골골막염", "좌제3중수골골막염", "우제3중수골골막염", "일본뇌염예방접종", "인푸렌자예방접종", "운동기질환 기타", "좌중수부 찰과상", "우비절부 찰과상", "식이성 식욕부진", "좌완슬부 찰과상", "거세술 후 처치", "우중족부찰과상", "좌중족부찰과상", "우중수부찰과상", "좌전지 근육통", "우전지 근육통", "양전지 근육통", "좌후계부찰과상", "좌비절부찰과상", "우전구절찰과상", "우후계부찰과상", "호흡기질환기타", "좌전구절찰과상", "우완슬부찰과상", "선역예방접종", "좌전지 부종", "우전지 부종", "좌각막찰과상", "우각막찰과상", "좌후지 부종", "진정(장제)", "우후지 부종", "양후지 부종", "양각막찰과상", "좌전지파행", "우전지파행", "좌후지파행", "우후지파행", "양전지파행", "양전구절염", "좌전구절염", "건강검진", "마체검사", "외상기타", "술후처치", "의사선역", "근육통", "찰과상", "요배통", "담마진", "각막염", "피부염", "교돌상", "거세술", "정치", "발치", "감기", "산통"]
     res = np.zeros(len(jangu_list) + len(clinic_list))
     for i in range(len(jangu_list)):
         for j in data[0]:
@@ -69,8 +71,16 @@ def parse_hr_clinic(date):
                     clinic = []
                 if re.search(r'(?<=\s{3})[가-힣]+(?=\s+\d{4})', line) is not None:
                     jangu.append(re.search(r'(?<=\s{3})[가-힣]+(?=\s+\d{4})', line).group().strip())
+                    try:
+                        gJangu[jangu[-1]] += 1
+                    except KeyError:
+                        gJangu[jangu[-1]] = 1
                 if re.search(r'(?<=\d{4}\.\d{2}\.\d{2})\S+', line) is not None:
                     clinic.extend(re.search(r'(?<=\d{4}\.\d{2}\.\d{2})\S+.+', line).group().strip().split(','))
+                    try:
+                        gClinic[clinic[-1]] += 1
+                    except KeyError:
+                        gClinic[clinic[-1]] = 1
     data[name] = make_one_hot([jangu, clinic])
     return data  # len: 81
 
@@ -83,25 +93,22 @@ def get_jangu_clinic(data, name):
         print("Unexpected error in jangu clinic of %s" % unicode(name, 'utf-8'))
 
 
+def print_all_data():
+    print('===jangu===')
+    for k, v in gJangu.iteritems():
+        print('%s, %d' % (k, v))
+    print('===clinic===')
+    for k, v in gClinic.iteritems():
+        print('%s, %d' % (k, v))
+
 if __name__ == '__main__':
     DEBUG = False
     jangus = []
     clinics = []
-    for year in range(201601, 201602):
+    for year in range(2007, 2017):
         flist = glob.glob('../txt/3/weekly-jangu/weekly-jangu_3_%d*' % year)
         for fname in flist:
             print("process %s" % fname)
             date_i = int(re.search(r'\d{8}', fname).group())
             data = parse_hr_clinic(datetime.date(date_i/10000, date_i/100%100, date_i%100))
-            for k,v in data.iteritems():
-                print("%s" % unicode(k, 'utf-8'))
-                print(v)
-                print(len(v))
-    #data = parse_hr_clinic(datetime.date(2010, 4, 22))
-    #for k,v in data.iteritems():
-    #    print("name: %s" % unicode(k, 'utf-8'))
-    #    print("jangu")
-    #    for j in v[0]: print(unicode(j, 'utf-8'))
-    #    print("clinic")
-    #    for c in v[1]: print(unicode(c, 'utf-8'))
-
+    print_all_data()
