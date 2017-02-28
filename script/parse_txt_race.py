@@ -478,8 +478,7 @@ def get_data(filename, md=mean_data(), rd=RaceDetail()):
                   'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2',  #10
                   'rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
                   'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',  # 30
-                  'jc31', 'jc32', 'jc33', 'jc34', 'jc35', 'jc36', 'jc37', 'jc38', 'jc39', 'jc40', 'jc41', 'jc42', 'jc43', 'jc44', 'jc45', 'jc46', 'jc47', 'jc48', 'jc49', 'jc50', 'jc51', 'jc52', 'jc53', 'jc54', 'jc55', 'jc56', 'jc57', 'jc58', 'jc59', 'jc60',  # 30
-                  'jc61', 'jc62', 'jc63', 'jc64', 'jc65', 'jc66', 'jc67', 'jc68', 'jc69', 'jc70', 'jc71', 'jc72', 'jc73', 'jc74', 'jc75', 'jc76', 'jc77', 'jc78', 'jc79', 'jc80', 'jc81',  # 21
+                  'jc31', 'jc32',
                   'date'] # 11
     return df
 
@@ -488,17 +487,17 @@ def get_data(filename, md=mean_data(), rd=RaceDetail()):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/2/rcresult/rcresult_2_20170210.txt'
+    filename = '../txt/2/rcresult/rcresult_2_20170217.txt'
     rd = RaceDetail()
     import glob
     year_ = int(re.search(r'\d{8}', filename).group())/10000
     for year in range(year_-3, year_+1):
         filelist2 = glob.glob('../txt/2/rcresult/rcresult_2_%d*.txt' % year)
+        print("processed rc in %d" % year)
         for fname in filelist2:
-            print("processed rc in %s" % fname)
             rd.parse_race_detail(fname)
     #md = mean_data()
-    md = joblib.load('../data/2_2007_2016_v2_md.pkl')
+    md = joblib.load('../data/2_2007_2016_v1_md.pkl')
     data = get_data(filename, md, rd)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)
     del data['name']

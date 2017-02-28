@@ -373,7 +373,7 @@ if __name__ == '__main__':
     course = courses[rcno]
     test_course = course
     rd = get_race_detail(date)
-    for nData, year, train_course in zip([186], [8], [0]):
+    for nData, year, train_course in zip([137], [8], [0]):
         if train_course == 1: train_course = course
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
         #estimator, md = tk.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
