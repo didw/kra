@@ -382,25 +382,25 @@ def get_race_detail(date):
 
 if __name__ == '__main__':
     meet = 3
-    date = 20170224
+    date = 20170303
     train_course = 0
     courses = [0,1000,1200,1300,1300,1000,1000,1200,1300,1700,0,0,1200]
     rcno = 0
     course = courses[rcno]
     test_course = course
     rd = get_race_detail(date)
-    for nData, year, train_course in zip([192], [8], [0]):
+    for nData, year, train_course in zip([212], [8], [0]):
         if train_course == 1: train_course = course
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
         #estimator, md = tk.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
         #predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
 
         estimators, md = tkn.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
-        fname = '../result/1702/%d_%d.txt' % (date%100, rcno)
+        fname = '../result/1703/%d_%d.txt' % (date%100, rcno)
         os.system("rm %s" % fname)
         predict_next_ens(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course)
         date += 2
-        fname = '../result/1702/%d_%d.txt' % (date%100, rcno)
+        fname = '../result/1703/%d_%d.txt' % (date%100, rcno)
         os.system("rm %s" % fname)
         predict_next_ens(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course)
 

@@ -13,8 +13,7 @@ import simulation as sim
 from mean_data import mean_data
 import numpy as np
 from keras.models import Sequential
-from keras.layers import Dense
-from keras.layers import Dropout
+from keras.layers import Dense, Dropout, normalization
 from keras.wrappers.scikit_learn import KerasRegressor
 from keras import backend as K
 from sklearn.model_selection import KFold
@@ -158,11 +157,11 @@ def training(train_bd, train_ed, course=0, nData=47):
     K.set_session(sess)
 
     os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
-    model_name = "../model_tf/%d_%d/model_v2.h5" % (train_bd_i, train_ed_i)
+    model_name = "../model_tf/%d_%d/model_v1.h5" % (train_bd_i, train_ed_i)
     md_name = "../model_tf/%d_%d/md_%d.pkl" % (train_bd_i, train_ed_i, course)
     estimators = [0] * MODEL_NUM
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-    X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/3_2007_2016_v2.csv', 0, nData=nData)
+    X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/3_2007_2016_v1.csv', 0, nData=nData)
     print("%d data is fully loaded" % len(X_train))
     #X_scaler = StandardScaler()
     #X_train = X_scaler.fit_transform(X_train)
@@ -180,13 +179,13 @@ def training(train_bd, train_ed, course=0, nData=47):
             estimators[i].load_weights(model_name.replace('h5', '%d.h5'%i))
         else:
             print("model[%d] training.." % (i+1))
-            estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=200, batch_size=32, verbose=0)
+            estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=200, batch_size=64, verbose=0)
             estimators[i].fit(X_train, Y_train)
             # saving model
             json_model = estimators[i].model.to_json()
             open(model_name.replace('h5', 'json'), 'w').write(json_model)
             estimators[i].model.save_weights(model_name.replace('h5', '%d.h5'%i), overwrite=True)
-    md = joblib.load('../data/3_2007_2016_v2_md.pkl')
+    md = joblib.load('../data/3_2007_2016_v1_md.pkl')
     return estimators, md
 
 def print_log(data, pred, fname):
@@ -229,7 +228,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "../model_tf/%d_%d/model_v2_%d_%d.h5" % (train_bd_i, train_ed_i, course, 0)
+        model_name = "../model_tf/%d_%d/model_v1_%d_%d.h5" % (train_bd_i, train_ed_i, course, 0)
 
         #os.system('rm -r \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
         os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
@@ -241,7 +240,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
             estimator.load_weights(model_name)
         else:
             print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/3_2007_2016_v2.csv', course, 0, nData=nData)
+            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/3_2007_2016_v1.csv', course, 0, nData=nData)
             print("%d data is fully loaded" % len(X_train))
             if len(X_train) < 10:
                 res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
@@ -270,7 +269,7 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
 
         print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
-        X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/3_2007_2016_v2.csv', course, kind, nData=nData)
+        X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/3_2007_2016_v1.csv', course, kind, nData=nData)
         print("%d data is fully loaded" % (len(X_test)))
         res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         if len(X_test) == 0:
@@ -351,12 +350,12 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "../model_tf/%d_%d/model_v2.h5" % (train_bd_i, train_ed_i)
+        model_name = "../model_tf/%d_%d/model_v1.h5" % (train_bd_i, train_ed_i)
         os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
 
         estimators = [0] * MODEL_NUM
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/3_2007_2016_v2.csv', 0, nData=nData)
+        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/3_2007_2016_v1.csv', 0, nData=nData)
         X_train = np.array(X_train)
         Y_train = np.array(Y_train)
         for i in range(MODEL_NUM):
@@ -379,9 +378,9 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
 
         for course in courses:
             for kind in kinds:
-                fname_result = '../data/weekly_keras_nsb_v2_ss_train0_m3_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+                fname_result = '../data/weekly_keras_nsb_v1_ss_train0_m3_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
-                X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/3_2007_2016_v2.csv', course, kind, nData=nData)
+                X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/3_2007_2016_v1.csv', course, kind, nData=nData)
                 #X_test = X_scaler.transform(X_test)
                 print("%d data is fully loaded" % (len(X_test)))
 
@@ -527,7 +526,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
     for m in range(MODEL_NUM+1):
         for course in courses:
             for kind in kinds:
-                fname_result = '../data/weekly_keras_nsb_v2_ss_train0_m3_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+                fname_result = '../data/weekly_keras_nsb_v1_ss_train0_m3_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 f_result = open(fname_result, 'a')
                 f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
                 f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
