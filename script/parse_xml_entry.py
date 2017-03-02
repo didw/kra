@@ -175,7 +175,7 @@ def parse_xml_entry(meet, date_i, number, md=mean_data(), rd=RaceDetail()):
     data = []
     filename = '../xml/entry/get_entry_%d_%d.xml' % (meet, date_m)
     file_input = open(filename)
-    print "process in %s" % filename
+    print("process in %s" % filename)
     response_body = file_input.read()
     xml_text = BeautifulSoup(response_body, 'html.parser')
     humidity = get_humidity()
@@ -327,4 +327,4 @@ if __name__ == '__main__':
     date = 20161224
     data = parse_xml_entry(meet, date, rcno)
     data.to_csv('../log/xml_%d_%d.csv' % (date, rcno))
-    print data
+    print(data)
