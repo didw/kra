@@ -33,9 +33,10 @@ def baseline_model():
     model = Sequential()
     #model.add(Dense(128, input_dim=174, init='he_normal', activation='relu'))
     model.add(Dense(128, input_dim=194, init='he_normal', activation='relu'))
+    model.add(normalization.BatchNormalization(epsilon=0.001, mode=0, axis=-1, momentum=0.99, weights=None, beta_init='zero', gamma_init='one', gamma_regularizer=None, beta_regularizer=None))
 
     #model.add(Dropout(0.1))
-    #model.add(Dense(128, init='he_normal'))
+    model.add(Dense(128, init='he_normal'))
     model.add(Dense(1, init='he_normal'))
     # Compile model
     model.compile(loss='mean_squared_error', optimizer='adam')

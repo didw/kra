@@ -36,6 +36,16 @@ def normalize_data(org_data, nData=47):
     data.loc[data['cntry'] == '인', 'cntry'] = 14
     data.loc[data['cntry'] == '아', 'cntry'] = 15
     data.loc[data['cntry'] == '프', 'cntry'] = 16
+
+    oh_gen = [[0]*3 for _ in range(len(data))]
+    oh_cnt = [[0]*17 for _ in range(len(data))]
+    for i in range(len(data)):
+        oh_gen[i][data['gender'][i]] = 1
+        oh_cnt[i][data['cntry'][i]] = 1
+    df_gen = pd.DataFrame(oh_gen, columns=['g1', 'g2', 'g3'])
+    df_cnt = pd.DataFrame(oh_cnt, columns=['c%d'%i for i in range(1,18)])
+    data = pd.concat([data, df_gen, df_cnt], axis=1)
+
     if nData == 47:
         data = data.drop(['ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', 'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl'], axis=1)
         data = data.drop(['rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
