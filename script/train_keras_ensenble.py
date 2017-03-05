@@ -535,8 +535,8 @@ if __name__ == '__main__':
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2016, 6, 5)
-    test_ed = datetime.date(2017, 2, 20)
+    test_bd = datetime.date(2017, 2, 25)
+    test_ed = datetime.date(2017, 3, 5)
     #Tensorflow GPU optimization
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
@@ -545,7 +545,7 @@ if __name__ == '__main__':
 
     for delta_year in [6]:
         for nData in [186]:
-            simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[1000, 1200, 1300, 1400, 1700, 0], nData=nData)
+            simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[0], nData=nData)
             #for c in [1000, 1200, 1300, 1400, 1700]:
             #    for k in [0]:
             #        outfile = '../data/weekly_keras_m1_nd%d_y%d_c%d_0_k%d.txt' % (nData, delta_year, c, k)
