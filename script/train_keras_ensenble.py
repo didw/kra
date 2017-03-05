@@ -539,8 +539,8 @@ if __name__ == '__main__':
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2016, 6, 5)
-    test_ed = datetime.date(2017, 2, 20)
+    test_bd = datetime.date(2017, 3, 1)
+    test_ed = datetime.date(2017, 3, 5)
     #Tensorflow GPU optimization
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
