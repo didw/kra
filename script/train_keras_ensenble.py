@@ -160,7 +160,7 @@ def training(train_bd, train_ed, course=0, nData=47):
     K.set_session(sess)
 
     os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
-    model_name = "../model_tf/%d_%d/model_v1.h5" % (train_bd_i, train_ed_i)
+    model_name = "../model_tf/%d_%d/model_v1_%d.h5" % (train_bd_i, train_ed_i, course)
     md_name = "../model_tf/%d_%d/md_%d.pkl" % (train_bd_i, train_ed_i, course)
     estimators = [0] * MODEL_NUM
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
@@ -352,7 +352,6 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
         model_name = "../model_tf/%d_%d/model_v1.h5" % (train_bd_i, train_ed_i)
-        #os.system('rm %s*' % model_name.replace('.h5', ''))
         os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
 
         estimators = [0] * MODEL_NUM
@@ -361,6 +360,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         X_train = np.array(X_train)
         Y_train = np.array(Y_train)
         for i in range(MODEL_NUM):
+            os.system('rm %s' % model_name.replace('h5', '%d.h5'%i))
             if os.path.exists(model_name.replace('h5', '%d.h5'%i)):
                 print("model[%d] exist. try to loading.. %s - %s" % (i, str(train_bd), str(train_ed)))
                 estimators[i] = model_from_json(open(model_name.replace('h5', 'json')).read())
@@ -541,8 +541,8 @@ if __name__ == '__main__':
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2017, 3, 1)
-    test_ed = datetime.date(2017, 3, 5)
+    test_bd = datetime.date(2016, 6, 5)
+    test_ed = datetime.date(2017, 2, 25)
     #Tensorflow GPU optimization
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True

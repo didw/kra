@@ -131,12 +131,12 @@ def print_detail(players, cand, fresult, mode):
         print("%s,%s,%s, %s: 500" % (players[1], players[0], players[2], mode))
         print("%s,%s,%s, %s: 500" % (players[1], players[2], players[0], mode))
 
-        fresult.write("\n%s,%s,%s, %s: 500" % (players[0], players[1], players[2], mode))
-        fresult.write("\n%s,%s,%s, %s: 300" % (players[0], players[2], players[1], mode))
-        fresult.write("\n%s,%s,%s, %s: 300" % (players[1], players[0], players[2], mode))
-        fresult.write("\n%s,%s,%s, %s: 300" % (players[1], players[2], players[0], mode))
-        fresult.write("\n%s,%s,%s, %s: 200" % (players[2], players[0], players[1], mode))
-        fresult.write("\n%s,%s,%s, %s: 200" % (players[2], players[1], players[0], mode))
+        fresult.write("\n%s,%s,%s, %s: 2000" % (players[0], players[1], players[2], mode))
+        fresult.write("\n%s,%s,%s, %s: 2000" % (players[0], players[2], players[1], mode))
+        fresult.write("\n%s,%s,%s, %s: 1000" % (players[1], players[0], players[2], mode))
+        fresult.write("\n%s,%s,%s, %s: 1000" % (players[1], players[2], players[0], mode))
+        fresult.write("\n%s,%s,%s, %s: 1000" % (players[2], players[0], players[1], mode))
+        fresult.write("\n%s,%s,%s, %s: 1000" % (players[2], players[1], players[0], mode))
     elif cand == [[1,2,3],[1,2,3],[1,2,3]] and mode == "ss":
         print("%s,%s,%s, %s: 500" % (players[0], players[1], players[2], mode))
         print("%s,%s,%s, %s: 500" % (players[0], players[2], players[1], mode))
