@@ -30,12 +30,12 @@ MODEL_NUM = 10
 def baseline_model():
     # create model
     model = Sequential()
-    #model.add(Dense(128, input_dim=174, init='he_normal', activation='relu'))
-    model.add(Dense(128, input_dim=194, init='he_normal', activation='relu'))
-    model.add(normalization.BatchNormalization(epsilon=0.001, mode=0, axis=-1, momentum=0.99, weights=None, beta_init='zero', gamma_init='one', gamma_regularizer=None, beta_regularizer=None))
+    model.add(Dense(128, input_dim=174, init='he_normal', activation='relu'))  # w/o onehot vector
+    #model.add(Dense(128, input_dim=194, init='he_normal', activation='relu'))  # with onehot vector
+    #model.add(normalization.BatchNormalization(epsilon=0.001, mode=0, axis=-1, momentum=0.99, weights=None, beta_init='zero', gamma_init='one', gamma_regularizer=None, beta_regularizer=None))
 
     #model.add(Dropout(0.1))
-    model.add(Dense(128, init='he_normal'))
+    #model.add(Dense(128, init='he_normal'))
     model.add(Dense(1, init='he_normal'))
     # Compile model
     model.compile(loss='mean_squared_error', optimizer='adam')
@@ -65,14 +65,17 @@ def normalize_data(org_data):
     data.loc[data['cntry'] == '인', 'cntry'] = 14
     data.loc[data['cntry'] == '아', 'cntry'] = 15
     data.loc[data['cntry'] == '프', 'cntry'] = 16
-    oh_gen = [[0]*3 for _ in range(len(data))]
-    oh_cnt = [[0]*17 for _ in range(len(data))]
-    for i in range(len(data)):
-        oh_gen[i][data['gender'][i]] = 1
-        oh_cnt[i][data['cntry'][i]] = 1
-    df_gen = pd.DataFrame(oh_gen, columns=['g1', 'g2', 'g3'])
-    df_cnt = pd.DataFrame(oh_cnt, columns=['c%d'%i for i in range(1,18)])
-    return pd.concat([data, df_gen, df_cnt], axis=1)
+    
+    #oh_gen = [[0]*3 for _ in range(len(data))]
+    #oh_cnt = [[0]*17 for _ in range(len(data))]
+    #for i in range(len(data)):
+    #    oh_gen[i][data['gender'][i]] = 1
+    #    oh_cnt[i][data['cntry'][i]] = 1
+    #df_gen = pd.DataFrame(oh_gen, columns=['g1', 'g2', 'g3'])
+    #df_cnt = pd.DataFrame(oh_cnt, columns=['c%d'%i for i in range(1,18)])
+    #
+    #return pd.concat([data, df_gen, df_cnt], axis=1)
+    return data
 
 def get_data(begin_date, end_date):
     train_bd = begin_date
@@ -409,9 +412,9 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                         res2 = sim.simulation7(pred[i], R_test, [[1,2],[1,2,3],[1,2,3]])
                         res3 = sim.simulation7(pred[i], R_test, [[1,2,3],[1,2,3],[1,2,3]])
                         res4 = sim.simulation7(pred[i], R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
-                        res5 = sim.simulation7(pred[i], R_test, [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]])
-                        res6 = sim.simulation7(pred[i], R_test, [[4,5,6],[4,5,6],[4,5,6]])
-                        res7 = sim.simulation7(pred[i], R_test, [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]])
+                        res5 = sim.simulation7(pred[i], R_test, [[3,4,5],[4,5,6],[4,5,6]])
+                        res6 = sim.simulation7(pred[i], R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
+                        res7 = sim.simulation7(pred[i], R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
                         
                         print("pred[%d] test: " % (i+1), pred[i][0:4])
                         print("result[%d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
@@ -442,9 +445,9 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     res2 = sim.simulation7(pred, R_test, [[1,2],[1,2,3],[1,2,3]])
                     res3 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3],[1,2,3]])
                     res4 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
-                    res5 = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]])
-                    res6 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6]])
-                    res7 = sim.simulation7(pred, R_test, [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]])
+                    res5 = sim.simulation7(pred, R_test, [[3,4,5],[4,5,6],[4,5,6]])
+                    res6 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
+                    res7 = sim.simulation7(pred, R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
                     
                     """
                     res1 = sim.simulation1(pred, R_test, 1)
@@ -549,7 +552,7 @@ if __name__ == '__main__':
     K.set_session(sess)
 
     for delta_year in [8]:
-        for nData in [212]:
+        for nData in [192]:
             simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[0], nData=nData)
             #for c in [1000, 1200, 1300, 1400, 1700]:
             #    for k in [0]:
