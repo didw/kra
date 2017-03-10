@@ -398,7 +398,7 @@ def simulation7(pred, ans, targets=[[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]]):
         a = price*0.7 / r7
         r7 = (price+bet)*0.7 / (a+bet)
 
-        if r7 * bet > 200:
+        if r7 * bet > 200 or r7 > 100:
             r7 *= 0.8
         # if rack_data or total < total_player:
         #     continue
