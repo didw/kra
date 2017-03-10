@@ -126,12 +126,9 @@ def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
 
 def download_racehorse(hrno_b, hrno_e, meet, overwrite=False):
     data = [# seoul http://race.kra.co.kr/racehorse/profileRaceScore.do?Act=02&Sub=1&meet=1&hrNo=040000
-            ["profileRaceScore.do?Act=02&Sub=1&", "racehorse",
-             ],
-            ["profileRaceScore.do?Act=02&Sub=1&", "racehorse",
-             ],
-            ["profileRaceScore.do?Act=02&Sub=1&", "racehorse",
-             ]
+            ["profileRaceScore.do?Act=02&Sub=1&", "racehorse",],
+            ["profileRaceScore.do?Act=02&Sub=1&", "racehorse",],
+            ["profileRaceScore.do?Act=02&Sub=1&", "racehorse",]
     ]
     line = data[meet-1]
     base_url = "http://race.kra.co.kr/racehorse/"
@@ -156,6 +153,6 @@ def download_racehorse(hrno_b, hrno_e, meet, overwrite=False):
 if __name__ == '__main__':
     for i in range(3, 4):
         #download_racehorse(1, 40000, i, False)
-        download_chulmaDetailInfo(datetime.date(2017, 3, 1), datetime.date.today(), i, True)
-        download_txt(datetime.date(2017, 3, 1), datetime.date.today(), i, True)
+        download_chulmaDetailInfo(datetime.date(2017, 3, 8), datetime.date.today(), i, True)
+        download_txt(datetime.date(2017, 3, 8), datetime.date.today(), i, True)
 
