@@ -16,7 +16,7 @@ import sys, os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
 import tensorflow as tf
 
-MODEL_NUM = 10
+MODEL_NUM = 5
 
 class TensorflowRegressor():
     def __init__(self, s_date):
@@ -24,16 +24,18 @@ class TensorflowRegressor():
         #It then resizes it and processes it through four convolutional layers.
         # Create two variables.
         tf.reset_default_graph()
-        self.num_epoch = 50
+        self.num_epoch = 200
         self.lr = tf.placeholder(dtype=tf.float32)
-        self.W1 = tf.Variable(tf.random_normal([168, 128], stddev=0.35), name="W1")
+        #self.W1 = tf.Variable(tf.random_normal([168, 128], stddev=0.35), name="W1")
+        self.W1 = tf.get_variable('W1', shape=(168, 128), initializer=tf.contrib.layers.xavier_initializer()) 
         self.b1 = tf.Variable(tf.zeros([128]), name="b1")
-        self.W2 = tf.Variable(tf.random_normal([128, 1], stddev=0.35), name="W2")
+        #self.W2 = tf.Variable(tf.random_normal([128, 1], stddev=0.35), name="W2")
+        self.W2 = tf.get_variable('W2', shape=(128, 1), initializer=tf.contrib.layers.xavier_initializer()) 
         self.b2 = tf.Variable(tf.zeros([1]), name="b2")
 
         self.scalarInput =  tf.placeholder(shape=[None,168],dtype=tf.float32)
         self.out1 = tf.matmul(self.scalarInput, self.W1) + self.b1
-        self.stream1 = tf.layers.dropout(tf.nn.relu(self.out1), rate=0.5)
+        self.stream1 = tf.nn.relu(self.out1)
         #self.output = tf.layers.dense(self.stream1, 1)
         self.output = tf.matmul(self.stream1, self.W2) + self.b2
         
@@ -41,10 +43,10 @@ class TensorflowRegressor():
         self.target = tf.placeholder(shape=[None],dtype=tf.float32)
         self.error = tf.square(self.target - self.output)
         self.loss = tf.reduce_mean(self.error)
-        self.trainer = tf.train.AdamOptimizer(learning_rate=self.lr)
+        self.trainer = tf.train.RMSPropOptimizer(learning_rate=self.lr, decay = 0.9)
         self.updateModel = self.trainer.minimize(self.loss)
         self.saver = tf.train.Saver([self.W1, self.b1, self.W2, self.b2])
-        self.model_dir = '../model/tf/regression/%s/' % s_date
+        self.model_dir = '../model/tf/regression/%s' % s_date
 
         self.init_op = tf.global_variables_initializer()
         self.config = tf.ConfigProto()
@@ -53,28 +55,28 @@ class TensorflowRegressor():
     def fit(self, X_data, Y_data):
         # Add an op to initialize the variables.
         batch_size = 64
-        lr = 0.0005
+        lr = 0.001
         with tf.Session(config=self.config) as sess:
             sess.run(self.init_op)
+            bar = ProgressBar(len(X_data)/batch_size*self.num_epoch, max_width=80)
             for i in range(self.num_epoch):
                 lr *= 0.9
                 #print("\nEpoch %d/%d is started" % (i+1, self.num_epoch), end='\n')
-                bar = ProgressBar(len(X_data)/batch_size, max_width=80)
                 for j in range(int(len(X_data)/batch_size)-1):
                     X_batch = X_data[batch_size*j:batch_size*(j+1)]
                     Y_batch = Y_data[batch_size*j:batch_size*(j+1)]
                     _ = sess.run(self.updateModel, feed_dict={self.lr:lr, self.scalarInput: X_batch, self.target: Y_batch})
 
+                    bar.numerator += 1
                     if j%10 == 0:
                         loss = sess.run(self.loss, feed_dict={self.lr:lr, self.scalarInput: X_batch, self.target: Y_batch})
-                        bar.numerator = j+1
-                        #print("%s | loss: %f" % (bar, loss), end='\r')
+                        print("%s | loss: %f" % (bar, loss), end='\r')
                         sys.stdout.flush()
 
             if not os.path.exists(self.model_dir):
                 os.makedirs(self.model_dir)
             save_path = self.saver.save(sess,'%s/model.ckpt' % self.model_dir)
-            print("Model saved in file: %s" % save_path)
+            print("\nModel saved in file: %s" % save_path)
 
     def predict(self, X_data):
         with tf.Session(config=self.config) as sess:
@@ -283,15 +285,13 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_dir = "../model/tf/%d_%d/"
-
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
         X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', 0, nData=nData)
         X_train = np.array(X_train)
         Y_train = np.array(Y_train)
         for i in range(MODEL_NUM):
             print("model[%d] training.." % (i+1))
-            estimators = TensorflowRegressor("%s_%s/%d" % (begin_date, end_date, i))
+            estimators = TensorflowRegressor("%s_%s/%d" % (train_bd, train_ed, i))
             estimators.fit(X_train, Y_train)
         print("Finish train model")
 
@@ -336,6 +336,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                         res7 = sim.simulation7(pred[i], R_test, [[5,6,7,8,9,10],[5,6,7,8,9,10],[5,6,7,8,9,10]])
                         
                         print("pred[%d] test: " % (i+1), pred[i][0:4])
+                        print("Y_test[%d] test: " % (i+1), Y_test[0:4])
                         print("result[%d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
                                 i+1, score, res1, res2, res3, res4, res5, res6, res7))
                         try:
@@ -358,6 +359,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                             score_sum[i][course] = score
                     pred = np.mean(pred, axis=0)
                     print("pred test: ", pred[0:4])
+                    print("Y_test test: ", Y_test[0:4])
                     score = np.sqrt(np.mean((pred - Y_test)*(pred - Y_test)))
 
                     res1 = sim.simulation7(pred, R_test, [[1],[2],[3]])
