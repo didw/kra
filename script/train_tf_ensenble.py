@@ -10,10 +10,11 @@ from sklearn.externals import joblib
 import simulation as sim
 from mean_data import mean_data
 import numpy as np
-import tensorflow as tf
 import time
 from etaprogress.progress import ProgressBar
 import sys, os
+os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
+import tensorflow as tf
 
 MODEL_NUM = 10
 
