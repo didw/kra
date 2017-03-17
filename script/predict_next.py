@@ -8,7 +8,7 @@ import parse_xml_entry as xe
 import datetime
 import train as tr
 import train_keras as tk
-import train_keras_ensenble as tkn
+import train_tf_ensenble as tfn
 from get_race_detail import RaceDetail
 import numpy as np
 import os
@@ -40,14 +40,18 @@ def normalize_data(org_data, nData=47):
     data.loc[data['cntry'] == '산', 'cntry'] = 18
     data.loc[data['cntry'] == '래', 'cntry'] = 19
 
-    #oh_gen = [[0]*3 for _ in range(len(data))]
-    #oh_cnt = [[0]*20 for _ in range(len(data))]
-    #for i in range(len(data)):
-    #    oh_gen[i][data['gender'][i]] = 1
-    #    oh_cnt[i][data['cntry'][i]] = 1
-    #df_gen = pd.DataFrame(oh_gen, columns=['g1', 'g2', 'g3'])
-    #df_cnt = pd.DataFrame(oh_cnt, columns=['c%d'%i for i in range(1,21)])
-    #data = pd.concat([data, df_gen, df_cnt], axis=1)
+    oh_course = [[0]*10 for _ in range(len(data))]
+    oh_gen = [[0]*3 for _ in range(len(data))]
+    oh_cnt = [[0]*20 for _ in range(len(data))]
+    course_list = [400, 800, 900, 1000, 1110, 1200, 1400, 1610, 1700, 1800]
+    for i in range(len(data)):
+        oh_course[i][course_list.index(int(data['course'][i]))] = 1
+        oh_gen[i][data['gender'][i]] = 1
+        oh_cnt[i][data['cntry'][i]] = 1
+    df_course = pd.DataFrame(oh_course, columns=['cr%d'%i for i in range(1,11)])
+    df_gen = pd.DataFrame(oh_gen, columns=['g1', 'g2', 'g3'])
+    df_cnt = pd.DataFrame(oh_cnt, columns=['c%d'%i for i in range(1,21)])
+    return pd.concat([data, df_course, df_gen, df_cnt], axis=1)
 
     if nData == 47:
         data = data.drop(['ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', 'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl'], axis=1)
@@ -131,10 +135,10 @@ def print_detail(players, cand, fresult, mode):
         print("%s,%s,%s, %s: 500" % (players[1], players[0], players[2], mode))
         print("%s,%s,%s, %s: 500" % (players[1], players[2], players[0], mode))
 
-        fresult.write("\n%s,%s,%s, %s: 2000" % (players[0], players[1], players[2], mode))
-        fresult.write("\n%s,%s,%s, %s: 2000" % (players[0], players[2], players[1], mode))
-        fresult.write("\n%s,%s,%s, %s: 1000" % (players[1], players[0], players[2], mode))
-        fresult.write("\n%s,%s,%s, %s: 1000" % (players[1], players[2], players[0], mode))
+        fresult.write("\n%s,%s,%s, %s: 2500" % (players[0], players[1], players[2], mode))
+        fresult.write("\n%s,%s,%s, %s: 1500" % (players[0], players[2], players[1], mode))
+        fresult.write("\n%s,%s,%s, %s: 1500" % (players[1], players[0], players[2], mode))
+        fresult.write("\n%s,%s,%s, %s: 1500" % (players[1], players[2], players[0], mode))
         fresult.write("\n%s,%s,%s, %s: 1000" % (players[2], players[0], players[1], mode))
         fresult.write("\n%s,%s,%s, %s: 1000" % (players[2], players[1], players[0], mode))
     elif cand == [[1,2,3],[1,2,3],[1,2,3]] and mode == "ss":
@@ -251,8 +255,8 @@ def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
     global fname
     fresult = open(fname, 'a')
     fresult.write("%s,%s,%s,%s,%s,%s\n" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-    #print_detail(rcdata['idx'], [[1,2],[1,2,3],[1,2,3]], fresult, "ss")
-    print_detail(rcdata['idx'], [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]], fresult, "ss")
+    print_detail(rcdata['idx'], [[1,2],[1,2,3],[1,2,3]], fresult, "ss")
+    #print_detail(rcdata['idx'], [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]], fresult, "ss")
     fresult.close()
 
 
@@ -305,7 +309,7 @@ def predict_next(estimator, md, rd, meet, date, rcno, course=0, nData=47, year=4
     #print(X_data.columns)
     #print(estimator.feature_importances_)
 
-def predict_next_ens(estimators, md, rd, meet, date, rcno, course=0, nData=47, year=4, train_course=0):
+def predict_next_ens(estimators, md, rd, meet, date, rcno, course=0, nData=47, year=4, train_course=0, scaler=None):
     data_pre = xe.parse_xml_entry(meet, date, rcno, md, rd)
     data = normalize_data(data_pre, nData=nData)
     print(len(data.columns))
@@ -321,15 +325,17 @@ def predict_next_ens(estimators, md, rd, meet, date, rcno, course=0, nData=47, y
         X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
     print(len(X_data.columns))
     X_array = np.array(X_data)
+    X_array = scaler[0].transform(X_array)
     preds = [0]*len(estimators)
     for i in range(len(estimators)):
-        preds[i] = estimators[i].predict(X_array).flatten()
+        preds[i] = estimators[i].predict(X_array)
 
     for i in range(len(preds)+1):
         if i == len(preds):
             pred = np.mean(preds, axis=0)
         else:
             pred = preds[i]
+            pred = scaler[1].inverse_transform(pred)
         pred = pd.DataFrame(pred)
         pred.columns = ['predict']
         __DEBUG__ = True
@@ -377,7 +383,7 @@ def get_race_detail(date):
 
 if __name__ == '__main__':
     meet = 2
-    date = 20170310
+    date = 20170317
     train_course = 0
     courses = [0,0,0,0,0,0,0,0,0,0,0,0]
     rcno = 0
@@ -391,14 +397,14 @@ if __name__ == '__main__':
         #estimator, md = tk.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
         #predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
 
-        estimators, md = tkn.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
+        estimators, md, scaler = tfn.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
         fname = '../result/1703/%d_%d.txt' % (date%100, rcno)
         os.system("rm %s" % fname)
-        predict_next_ens(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course)
+        predict_next_ens(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course, scaler)
         date += 1
         fname = '../result/1703/%d_%d.txt' % (date%100, rcno)
         os.system("rm %s" % fname)
-        predict_next_ens(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course)
+        predict_next_ens(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course, scaler)
 
 # Strategy
 # v2 y8 1,2,3

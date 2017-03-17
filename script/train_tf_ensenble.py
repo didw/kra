@@ -1,31 +1,99 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+from __future__ import print_function
 import parse_txt_race as pr
 import datetime
 import pandas as pd
 import os.path
-from sklearn.ensemble.forest import RandomForestRegressor
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, StandardScaler
 from sklearn.externals import joblib
-import random
 import simulation as sim
 from mean_data import mean_data
 import numpy as np
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, normalization
-from keras.wrappers.scikit_learn import KerasRegressor
-from keras import backend as K
-from sklearn.model_selection import KFold
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
-import pickle
-import tensorflow as tf
-import Queue
 import time
-from keras.models import model_from_json
+from etaprogress.progress import ProgressBar
+import sys, os
+os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
+import tensorflow as tf
+from sklearn.metrics import mean_squared_error
+from sklearn.utils import shuffle
+from keras import backend as K
+import tflearn
 
-MODEL_NUM = 10
+MODEL_NUM = 4
+
+class TensorflowRegressor():
+    def __init__(self, s_date):
+        #The network recieves a frame from the game, flattened into an array.
+        #It then resizes it and processes it through four convolutional layers.
+        # Create two variables.
+        tf.reset_default_graph()
+        self.num_epoch = 50
+        self.lr = tf.placeholder(dtype=tf.float32)
+        #self.W1 = tf.get_variable('W1', shape=(204, 128), initializer=tf.contrib.layers.xavier_initializer()) 
+        #self.b1 = tf.Variable(tf.zeros([128]), name="b1")
+        #self.W2 = tf.get_variable('W2', shape=(128, 1), initializer=tf.contrib.layers.xavier_initializer()) 
+        #self.b2 = tf.Variable(tf.zeros([1]), name="b2")
+
+        self.scalarInput =  tf.placeholder(shape=[None,168],dtype=tf.float32)
+        #self.out1 = tf.matmul(self.scalarInput, self.W1) + self.b1
+        self.out1 = tf.layers.dense(self.scalarInput, 128, activation=tf.nn.relu, name='W1')
+        self.out2 = tf.layers.batch_normalization(self.out1)
+        #self.stream1 = tf.nn.sigmoid(self.out1)
+        #self.output = tf.layers.dense(self.stream1, 1)
+        #self.output = tf.matmul(self.out1, self.W2) + self.b2
+        self.output = tf.layers.dense(self.out2, 1, name='W2')
+        
+        #Below we obtain the loss by taking the sum of squares difference between the target and prediction Q values.
+        self.target = tf.placeholder(shape=[None],dtype=tf.float32)
+        self.error = tf.square(self.target - self.output)
+        self.loss = tf.reduce_mean(self.error)
+        self.trainer = tf.train.AdamOptimizer()
+        self.updateModel = self.trainer.minimize(self.loss)
+        self.saver = tf.train.Saver()
+        self.model_dir = '../model/tf/regression/%s' % s_date
+
+        self.init_op = tf.global_variables_initializer()
+        self.config = tf.ConfigProto()
+        self.config.gpu_options.allow_growth = True
+
+    def fit(self, X_data, Y_data, X_test=None):
+        # Add an op to initialize the variables.
+        batch_size = 64
+        lr = 0.001
+        with tf.Session(config=self.config) as sess:
+            sess.run(self.init_op)
+            bar = ProgressBar(len(X_data)/batch_size*self.num_epoch, max_width=80)
+            for i in range(self.num_epoch):
+                lr *= 0.9
+                #print("\nEpoch %d/%d is started" % (i+1, self.num_epoch), end='\n')
+                for j in range(int(len(X_data)/batch_size)-1):
+                    X_batch = X_data[batch_size*j:batch_size*(j+1)]
+                    Y_batch = Y_data[batch_size*j:batch_size*(j+1)]
+                    X_batch, Y_batch = shuffle(X_batch, Y_batch)
+                    _ = sess.run(self.updateModel, feed_dict={self.lr:lr, self.scalarInput: X_batch, self.target: Y_batch})
+
+                    bar.numerator += 1
+                    if j%10 == 0:
+                        loss = sess.run(self.loss, feed_dict={self.lr:lr, self.scalarInput: X_batch, self.target: Y_batch})
+                        print("%s | loss: %f" % (bar, loss), end='\r')
+                        sys.stdout.flush()
+
+            if not os.path.exists(self.model_dir):
+                os.makedirs(self.model_dir)
+            save_path = self.saver.save(sess,'%s/model.ckpt' % self.model_dir)
+            print("\nModel saved in file: %s" % save_path)
+            print("start test")
+            if X_test is not None:
+                return sess.run(self.output, feed_dict={self.scalarInput: X_test})
+
+    def predict(self, X_data):
+        with tf.Session(config=self.config) as sess:
+            sess.run(self.init_op)
+            ckpt = tf.train.get_checkpoint_state(self.model_dir)
+            self.saver.restore(sess, ckpt.model_checkpoint_path)
+            return sess.run(self.output, feed_dict={self.scalarInput: X_data})
+
 
 def baseline_model():
     # create model
@@ -68,14 +136,18 @@ def normalize_data(org_data):
     data.loc[data['cntry'] == '프', 'cntry'] = 17
     data.loc[data['cntry'] == '산', 'cntry'] = 18
     data.loc[data['cntry'] == '래', 'cntry'] = 19
-    #oh_gen = [[0]*3 for _ in range(len(data))]
-    #oh_cnt = [[0]*20 for _ in range(len(data))]
-    #for i in range(len(data)):
-    #    oh_gen[i][data['gender'][i]] = 1
-    #    oh_cnt[i][data['cntry'][i]] = 1
-    #df_gen = pd.DataFrame(oh_gen, columns=['g1', 'g2', 'g3'])
-    #df_cnt = pd.DataFrame(oh_cnt, columns=['c%d'%i for i in range(1,21)])
-    #return pd.concat([data, df_gen, df_cnt], axis=1)
+    oh_course = [[0]*10 for _ in range(len(data))]
+    oh_gen = [[0]*3 for _ in range(len(data))]
+    oh_cnt = [[0]*20 for _ in range(len(data))]
+    course_list = [400, 800, 900, 1000, 1110, 1200, 1400, 1610, 1700, 1800]
+    for i in range(len(data)):
+        oh_course[i][course_list.index(data['course'][i])] = 1
+        oh_gen[i][data['gender'][i]] = 1
+        oh_cnt[i][data['cntry'][i]] = 1
+    df_course = pd.DataFrame(oh_course, columns=['cr%d'%i for i in range(1,11)])
+    df_gen = pd.DataFrame(oh_gen, columns=['g1', 'g2', 'g3'])
+    df_cnt = pd.DataFrame(oh_cnt, columns=['c%d'%i for i in range(1,21)])
+    return pd.concat([data, df_course, df_gen, df_cnt], axis=1)
     return data
 
 def get_data(begin_date, end_date):
@@ -160,9 +232,11 @@ def training(train_bd, train_ed, course=0, nData=47):
     sess = tf.Session(config=config)
     K.set_session(sess)
 
-    os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
-    model_name = "../model_tf/%d_%d/model_v1_%d.h5" % (train_bd_i, train_ed_i, course)
-    md_name = "../model_tf/%d_%d/md_%d.pkl" % (train_bd_i, train_ed_i, course)
+    #os.system('rm -r \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
+    model_name = "../model/tflearn/%d_%d/model.tfl" % (train_bd_i, train_ed_i)
+    if not os.path.exists("../model/tflearn/%d_%d/" % (train_bd_i, train_ed_i)):
+        os.makedirs("../model/tflearn/%d_%d/" % (train_bd_i, train_ed_i))
+
     estimators = [0] * MODEL_NUM
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
     X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_2007_2016_v1.csv', 0, nData=nData)
@@ -173,24 +247,33 @@ def training(train_bd, train_ed, course=0, nData=47):
     # fix random seed for reproducibility
     X_train = np.array(X_train)
     Y_train = np.array(Y_train)
+    scaler_x = StandardScaler()
+    scaler_y = StandardScaler()
+    X_train = scaler_x.fit_transform(X_train)
+    Y_train = scaler_y.fit_transform(Y_train.reshape(-1,1)).reshape(-1)
     seed = 7
     np.random.seed(seed)
     # evaluate model with standardized dataset
     for i in range(MODEL_NUM):
-        if os.path.exists(model_name.replace('h5', '%d.h5'%i)):
+        tf.reset_default_graph()
+        tflearn.init_graph(gpu_memory_fraction=0.1)
+        input_layer = tflearn.input_data(shape=[None, 152], name='input')
+        dense1 = tflearn.fully_connected(input_layer, 128, name='dense1', activation='relu')
+        dense2 = tflearn.fully_connected(dense1, 1, name='dense2')
+        output = tflearn.single_unit(dense2)
+        regression = tflearn.regression(output, optimizer='adam', loss='mean_square',
+                                metric='R2', learning_rate=0.001)
+        estimators[i] = tflearn.DNN(regression)
+        if os.path.exists(model_name.replace('.tfl', '.%d.tfl.meta'%i)) and False:
             print("model[%d] exist. try to loading.. %s - %s" % (i, str(train_bd), str(train_ed)))
-            estimators[i] = model_from_json(open(model_name.replace('h5', 'json')).read())
-            estimators[i].load_weights(model_name.replace('h5', '%d.h5'%i))
+            estimators[i].load(model_name.replace('.tfl', '.%d.tfl'%i))
         else:
             print("model[%d] training.." % (i+1))
-            estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=200, batch_size=64, verbose=0)
-            estimators[i].fit(X_train, Y_train)
+            estimators[i].fit(X_train, Y_train, n_epoch=200, show_metric=True, snapshot_epoch=False)
             # saving model
-            json_model = estimators[i].model.to_json()
-            open(model_name.replace('h5', 'json'), 'w').write(json_model)
-            estimators[i].model.save_weights(model_name.replace('h5', '%d.h5'%i), overwrite=True)
+            estimators[i].save(model_name.replace('.tfl', '.%d.tfl'%i))
     md = joblib.load('../data/2_2007_2016_v1_md.pkl')
-    return estimators, md
+    return estimators, md, [scaler_x, scaler_y]
 
 def print_log(data, pred, fname):
     flog = open(fname, 'w')
@@ -209,124 +292,6 @@ def print_log(data, pred, fname):
         flog.write("%s\t%s\t%s\t%s\t%s\t%s\t" % (data['tr_nt'][idx], data['tr_nt1'][idx], data['tr_nt2'][idx], data['tr_ny'][idx], data['tr_ny1'][idx], data['tr_ny2'][idx]))
         flog.write("%f\n" % pred['predict'][idx])
     flog.close()
-
-
-def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_year=0, course=0, kind=0, nData=47):
-    today = begin_date
-    sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    while today <= end_date:
-        while today.weekday() != 3:
-            today = today + datetime.timedelta(days=1)
-
-        today = today + datetime.timedelta(days=1)
-        train_bd = today + datetime.timedelta(days=-365*delta_year)
-        #train_bd = datetime.date(2011, 1, 1)
-        train_ed = today + datetime.timedelta(days=-delta_day)
-        test_bd = today + datetime.timedelta(days=1)
-        test_ed = today + datetime.timedelta(days=2)
-        test_bd_s = "%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day)
-        test_ed_s = "%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day)
-        if not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_bd_s) and not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_ed_s):
-            continue
-        remove_outlier = False
-        train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
-        train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-
-        model_name = "../model_tf/%d_%d/model_v1_%d_%d.h5" % (train_bd_i, train_ed_i, course, 0)
-
-        os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
-        if os.path.exists(model_name):
-            print("model exist. try to loading..")
-            # loading model
-            from keras.models import model_from_json
-            estimator = model_from_json(open(model_name.replace('h5', 'json')).read())
-            estimator.load_weights(model_name)
-        else:
-            print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_2007_2016_v1.csv', course, 0, nData=nData)
-            print("%d data is fully loaded" % len(X_train))
-            if len(X_train) < 10:
-                res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
-            else:
-                if remove_outlier:
-                    X_train, Y_train = delete_lack_data(X_train, Y_train)
-                print("Start train model")
-                X_train = np.array(X_train)
-                Y_train = np.array(Y_train)
-                seed = 7
-                np.random.seed(seed)
-                # evaluate model with standardized dataset
-                estimator = KerasRegressor(build_fn=baseline_model, nb_epoch=20, batch_size=32, verbose=0)
-                estimator.fit(X_train, Y_train)
-                # saving model
-                json_model = estimator.model.to_json()
-                open(model_name.replace('h5', 'json'), 'w').write(json_model)
-                # saving weights
-                estimator.model.save_weights(model_name, overwrite=True)
-                print("Finish train model")
-                print("important factor")
-                score_train = estimator.score(X_train, Y_train)
-                print("Score with the entire training dataset = %.2f" % score_train)
-
-        test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
-        test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
-
-        print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
-        X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/2_2007_2016_v1.csv', course, kind, nData=nData)
-        print("%d data is fully loaded" % (len(X_test)))
-        res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        if len(X_test) == 0:
-            continue
-        else:
-            DEBUG = False
-            if DEBUG:
-                X_test.to_csv('../log/2016_7_9_v1.csv', index=False)
-            score = 0
-            X_test = np.array(X_test)
-            Y_test = np.array(Y_test)
-            pred = estimator.predict(X_test)
-            print("pred test: ", pred[0:4])
-
-            res1 = sim.simulation6(pred, R_test, [[1,2,3]])
-            res2 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,3,4], [2,3,4]])
-            res3 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5]])
-            res4 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5],
-                                                [1,2,6], [1,3,6], [1,4,6], [1,5,6], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
-            res5 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5],
-                                                [1,2,6], [1,3,6], [1,4,6], [1,5,6], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6],
-                                                [1,2,7], [1,3,7], [1,4,7], [1,5,7], [2,3,7], [2,4,7], [2,5,7], [3,4,7], [3,5,7], [4,5,7],
-                                                [1,6,7], [2,6,7], [3,6,7], [4,6,7], [5,6,7]
-                                                ])
-            res6 = sim.simulation6(pred, R_test, [[2,3,4], [2,3,5], [2,4,5], [3,4,5], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
-            res7 = sim.simulation6(pred, R_test, [[3,4,5], [3,4,6], [3,4,7], [3,5,6], [3,5,7], [3,6,7], [4,5,6], [4,5,7], [4,6,7], [5,6,7]])
-            
-            sr1 += res1
-            sr2 += res2
-            sr3 += res3
-            sr4 += res4
-            sr5 += res5
-            sr6 += res6
-            sr7 += res7
-        print("train data: %s - %s" % (str(train_bd), str(train_ed)))
-        print("test data: %s - %s" % (str(test_bd), str(test_ed)))
-        print("course: %d[%d]" % (course, kind))
-        print("%15s%10s%10s%10s%10s%10s%10s%10s" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
-        print("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                    score, res1, res2, res3, res4, res5, res6, res7))
-        print("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                score, sr1, sr2, sr3, sr4, sr5, sr6, sr7))
-        f_result = open(fname_result, 'a')
-        f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
-        f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
-        f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
-        f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                            score, res1, res2, res3, res4, res5, res6, res7))
-        f_result.close()
-    f_result = open(fname_result, 'a')
-    f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
-    f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                    score, sr1, sr2, sr3, sr4, sr5, sr6, sr7))
-    f_result.close()
 
 
 def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, courses=[0], kinds=[0], nData=47):
@@ -352,28 +317,32 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "../model_tf/%d_%d/model_v1.h5" % (train_bd_i, train_ed_i)
-        os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
-
-        estimators = [0] * MODEL_NUM
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
         X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_2007_2016_v1.csv', 0, nData=nData)
         X_train = np.array(X_train)
         Y_train = np.array(Y_train)
+        scaler_x = StandardScaler()
+        scaler_y = StandardScaler()
+        X_train = scaler_x.fit_transform(X_train)
+        Y_train = scaler_y.fit_transform(Y_train.reshape(-1,1)).reshape(-1)
         for i in range(MODEL_NUM):
-            #os.system('rm %s' % model_name.replace('h5', '%d.h5'%i))
-            if os.path.exists(model_name.replace('h5', '%d.h5'%i)):
-                print("model[%d] exist. try to loading.. %s - %s" % (i, str(train_bd), str(train_ed)))
-                estimators[i] = model_from_json(open(model_name.replace('h5', 'json')).read())
-                estimators[i].load_weights(model_name.replace('h5', '%d.h5'%i))
-            else:
-                print("model[%d] training.." % (i+1))
-                estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=200, batch_size=32, verbose=0)
-                estimators[i].fit(X_train, Y_train)
-                # saving model
-                json_model = estimators[i].model.to_json()
-                open(model_name.replace('h5', 'json'), 'w').write(json_model)
-                estimators[i].model.save_weights(model_name.replace('h5', '%d.h5'%i), overwrite=True)
+            tf.reset_default_graph()
+            tflearn.init_graph(gpu_memory_fraction=0.1)
+            input_layer = tflearn.input_data(shape=[None, 152], name='input')
+            dense1 = tflearn.fully_connected(input_layer, 128, name='dense1', activation='relu')
+            dense2 = tflearn.fully_connected(dense1, 1, name='dense2')
+            output = tflearn.single_unit(dense2)
+            regression = tflearn.regression(output, optimizer='adam', loss='mean_square',
+                                    metric='R2', learning_rate=0.001)
+            estimators = tflearn.DNN(regression)
+            print("model[%d] training.." % (i+1))
+            if os.path.exists('../model/tf/regression/%s_%s/%d/model.tfl.meta' % (train_bd, train_ed, i)):
+                print("loading exists model")
+                estimators.load('../model/tf/regression/%s_%s/%d/model.tfl' % (train_bd, train_ed, i))
+            estimators.fit(X_train, Y_train, n_epoch=100, show_metric=True, snapshot_epoch=False)
+            if not os.path.exists('../model/tf/regression/%s_%s/%d' % (train_bd, train_ed, i)):
+                os.makedirs('../model/tf/regression/%s_%s/%d' % (train_bd, train_ed, i))
+            estimators.save('../model/tf/regression/%s_%s/%d/model.tfl' % (train_bd, train_ed, i))
         print("Finish train model")
 
         test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
@@ -381,7 +350,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
 
         for course in courses:
             for kind in kinds:
-                fname_result = '../data/weekly_keras_nsb_v1_train0_m2_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+                fname_result = '../data/weekly_tf_nsb_v1_train0_m2_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
                 X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/2_2007_2016_v1.csv', course, kind, nData=nData)
                 #X_test = X_scaler.transform(X_test)
@@ -399,12 +368,15 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 else:
                     DEBUG = False
                     if DEBUG:
-                        X_test.to_csv('../log/weekly_train0_%s_v1.csv' % today, index=False)
+                        X_test.to_csv('../log/weekly_train0_%s.csv' % today, index=False)
                     X_test = np.array(X_test)
                     Y_test = np.array(Y_test)
+                    X_test = scaler_x.transform(X_test)
                     pred = [0] * MODEL_NUM
                     for i in range(MODEL_NUM):
-                        pred[i] = estimators[i].predict(X_test).flatten()
+                        estimators.load('../model/tf/regression/%s_%s/%d/model.tfl' % (train_bd, train_ed, i))
+                        pred[i] = estimators.predict(X_test)
+                        pred[i] = scaler_y.inverse_transform(pred[i])
                         score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
 
                         res1 = sim.simulation7(pred[i], R_test, [[1],[2],[3]])
@@ -415,8 +387,8 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                         res6 = sim.simulation7(pred[i], R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
                         res7 = sim.simulation7(pred[i], R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
                         
-                        print("pred[%d] test: " % (i+1), pred[i][50:54])
-                        print("Y_test test: ", Y_test[50:54])
+                        print("pred[%d] test: " % (i+1), pred[i][0:4])
+                        print("Y_test[%d] test: " % (i+1), Y_test[0:4])
                         print("result[%d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
                                 i+1, score, res1, res2, res3, res4, res5, res6, res7))
                         try:
@@ -438,8 +410,8 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                             sr7[i][course] = res7
                             score_sum[i][course] = score
                     pred = np.mean(pred, axis=0)
-                    print("pred test: ", pred[50:54])
-                    print("Y_test test: ", Y_test[50:54])
+                    print("pred test: ", pred[0:4])
+                    print("Y_test test: ", Y_test[0:4])
                     score = np.sqrt(np.mean((pred - Y_test)*(pred - Y_test)))
 
                     res1 = sim.simulation7(pred, R_test, [[1],[2],[3]])
@@ -531,7 +503,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
     for m in range(MODEL_NUM+1):
         for course in courses:
             for kind in kinds:
-                fname_result = '../data/weekly_keras_nsb_v1_train0_m2_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+                fname_result = '../data/weekly_tf_nsb_v1_train0_m2_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 f_result = open(fname_result, 'a')
                 f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
                 f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
