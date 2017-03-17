@@ -5,7 +5,7 @@ import parse_txt_race as pr
 import datetime
 import pandas as pd
 import os.path
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, StandardScaler
 from sklearn.externals import joblib
 import simulation as sim
 from mean_data import mean_data
@@ -15,8 +15,11 @@ from etaprogress.progress import ProgressBar
 import sys, os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
 import tensorflow as tf
+from sklearn.metrics import mean_squared_error
+from sklearn.utils import shuffle
+import tflearn
 
-MODEL_NUM = 5
+MODEL_NUM = 4
 
 class TensorflowRegressor():
     def __init__(self, s_date):
@@ -24,35 +27,36 @@ class TensorflowRegressor():
         #It then resizes it and processes it through four convolutional layers.
         # Create two variables.
         tf.reset_default_graph()
-        self.num_epoch = 200
+        self.num_epoch = 50
         self.lr = tf.placeholder(dtype=tf.float32)
-        #self.W1 = tf.Variable(tf.random_normal([168, 128], stddev=0.35), name="W1")
-        self.W1 = tf.get_variable('W1', shape=(168, 128), initializer=tf.contrib.layers.xavier_initializer()) 
-        self.b1 = tf.Variable(tf.zeros([128]), name="b1")
-        #self.W2 = tf.Variable(tf.random_normal([128, 1], stddev=0.35), name="W2")
-        self.W2 = tf.get_variable('W2', shape=(128, 1), initializer=tf.contrib.layers.xavier_initializer()) 
-        self.b2 = tf.Variable(tf.zeros([1]), name="b2")
+        #self.W1 = tf.get_variable('W1', shape=(204, 128), initializer=tf.contrib.layers.xavier_initializer()) 
+        #self.b1 = tf.Variable(tf.zeros([128]), name="b1")
+        #self.W2 = tf.get_variable('W2', shape=(128, 1), initializer=tf.contrib.layers.xavier_initializer()) 
+        #self.b2 = tf.Variable(tf.zeros([1]), name="b2")
 
         self.scalarInput =  tf.placeholder(shape=[None,168],dtype=tf.float32)
-        self.out1 = tf.matmul(self.scalarInput, self.W1) + self.b1
-        self.stream1 = tf.nn.relu(self.out1)
+        #self.out1 = tf.matmul(self.scalarInput, self.W1) + self.b1
+        self.out1 = tf.layers.dense(self.scalarInput, 128, activation=tf.nn.relu, name='W1')
+        self.out2 = tf.layers.batch_normalization(self.out1)
+        #self.stream1 = tf.nn.sigmoid(self.out1)
         #self.output = tf.layers.dense(self.stream1, 1)
-        self.output = tf.matmul(self.stream1, self.W2) + self.b2
+        #self.output = tf.matmul(self.out1, self.W2) + self.b2
+        self.output = tf.layers.dense(self.out2, 1, name='W2')
         
         #Below we obtain the loss by taking the sum of squares difference between the target and prediction Q values.
         self.target = tf.placeholder(shape=[None],dtype=tf.float32)
         self.error = tf.square(self.target - self.output)
         self.loss = tf.reduce_mean(self.error)
-        self.trainer = tf.train.RMSPropOptimizer(learning_rate=self.lr, decay = 0.9)
+        self.trainer = tf.train.AdamOptimizer()
         self.updateModel = self.trainer.minimize(self.loss)
-        self.saver = tf.train.Saver([self.W1, self.b1, self.W2, self.b2])
+        self.saver = tf.train.Saver()
         self.model_dir = '../model/tf/regression/%s' % s_date
 
         self.init_op = tf.global_variables_initializer()
         self.config = tf.ConfigProto()
         self.config.gpu_options.allow_growth = True
 
-    def fit(self, X_data, Y_data):
+    def fit(self, X_data, Y_data, X_test=None):
         # Add an op to initialize the variables.
         batch_size = 64
         lr = 0.001
@@ -65,6 +69,7 @@ class TensorflowRegressor():
                 for j in range(int(len(X_data)/batch_size)-1):
                     X_batch = X_data[batch_size*j:batch_size*(j+1)]
                     Y_batch = Y_data[batch_size*j:batch_size*(j+1)]
+                    X_batch, Y_batch = shuffle(X_batch, Y_batch)
                     _ = sess.run(self.updateModel, feed_dict={self.lr:lr, self.scalarInput: X_batch, self.target: Y_batch})
 
                     bar.numerator += 1
@@ -77,6 +82,9 @@ class TensorflowRegressor():
                 os.makedirs(self.model_dir)
             save_path = self.saver.save(sess,'%s/model.ckpt' % self.model_dir)
             print("\nModel saved in file: %s" % save_path)
+            print("start test")
+            if X_test is not None:
+                return sess.run(self.output, feed_dict={self.scalarInput: X_test})
 
     def predict(self, X_data):
         with tf.Session(config=self.config) as sess:
@@ -89,7 +97,7 @@ class TensorflowRegressor():
 def baseline_model():
     # create model
     model = Sequential()
-    model.add(Dense(128, input_dim=168, init='he_normal', activation='relu'))
+    model.add(Dense(128, input_dim=204, init='he_normal', activation='relu'))
     #model.add(Dense(128, input_dim=87, init='he_normal', activation='relu'))
     #model.add(Dropout(0.1))
     #model.add(Dense(128, init='he_normal'))
@@ -122,6 +130,18 @@ def normalize_data(org_data):
     data.loc[data['cntry'] == '인', 'cntry'] = 14
     data.loc[data['cntry'] == '아', 'cntry'] = 15
     data.loc[data['cntry'] == '프', 'cntry'] = 16
+    oh_course = [[0]*13 for _ in range(len(data))]
+    oh_gen = [[0]*3 for _ in range(len(data))]
+    oh_cnt = [[0]*20 for _ in range(len(data))]
+    course_list = [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2200, 2300]
+    for i in range(len(data)):
+        oh_course[i][course_list.index(data['course'][i])] = 1
+        oh_gen[i][data['gender'][i]] = 1
+        oh_cnt[i][data['cntry'][i]] = 1
+    df_course = pd.DataFrame(oh_course, columns=['cr%d'%i for i in range(1,14)])
+    df_gen = pd.DataFrame(oh_gen, columns=['g1', 'g2', 'g3'])
+    df_cnt = pd.DataFrame(oh_cnt, columns=['c%d'%i for i in range(1,21)])
+    return pd.concat([data, df_course, df_gen, df_cnt], axis=1)
     return data
 
 def get_data(begin_date, end_date):
@@ -268,10 +288,10 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
     def m():
         return [{0:0} for _ in range(MODEL_NUM+1)]
     sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10, score_sum = m(),m(),m(),m(),m(),m(),m(),m(),m(),m(),m()
+
     while today <= end_date:
         while today.weekday() != 3:
             today = today + datetime.timedelta(days=1)
-
         today = today + datetime.timedelta(days=1)
         train_bd = today + datetime.timedelta(days=-365*delta_year)
         #train_bd = datetime.date(2011, 1, 1)
@@ -289,10 +309,34 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', 0, nData=nData)
         X_train = np.array(X_train)
         Y_train = np.array(Y_train)
+        scaler_x = StandardScaler()
+        scaler_y = StandardScaler()
+        X_train = scaler_x.fit_transform(X_train)
+        Y_train = scaler_y.fit_transform(Y_train.reshape(-1,1)).reshape(-1)
+        from sklearn.model_selection import train_test_split
+        X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, random_state=0)
         for i in range(MODEL_NUM):
             print("model[%d] training.." % (i+1))
-            estimators = TensorflowRegressor("%s_%s/%d" % (train_bd, train_ed, i))
-            estimators.fit(X_train, Y_train)
+            tf.reset_default_graph()
+            tflearn.init_graph(gpu_memory_fraction=0.1)
+            input_layer = tflearn.input_data(shape=[None, 204], name='input')
+            dense1 = tflearn.fully_connected(input_layer, 128, name='dense1', activation='relu', weights_init='xavier_initializer')
+            dense1_n = tflearn.batch_normalization(dense1, name='BN1')
+            dense2 = tflearn.fully_connected(dense1_n, 128, name='dense2', activation='relu', weights_init='xavier_initializer')
+            dense2_n = tflearn.batch_normalization(dense2, name='BN2')
+            dense3 = tflearn.fully_connected(dense2_n, 1, name='dense3', weights_init='xavier_initializer')
+            output = tflearn.single_unit(dense3)
+            regression = tflearn.regression(output, optimizer='adam', loss='mean_square',
+                                    metric='R2', learning_rate=0.001)
+            estimators = tflearn.DNN(regression)
+            if os.path.exists('../model/tf/regression/%s_%s/%d/model.tfl.meta' % (train_bd, train_ed, i)):
+                print("loading exists model")
+                estimators.load('../model/tf/regression/%s_%s/%d/model.tfl' % (train_bd, train_ed, i))
+            else:
+                estimators.fit(X_train, Y_train, validation_set=(X_val,Y_val), n_epoch=300, show_metric=True, snapshot_epoch=False)
+            if not os.path.exists('../model/tf/regression/%s_%s/%d' % (train_bd, train_ed, i)):
+                os.makedirs('../model/tf/regression/%s_%s/%d' % (train_bd, train_ed, i))
+            estimators.save('../model/tf/regression/%s_%s/%d/model.tfl' % (train_bd, train_ed, i))
         print("Finish train model")
 
         test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
@@ -320,20 +364,22 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     if DEBUG:
                         X_test.to_csv('../log/weekly_train0_%s.csv' % today, index=False)
                     X_test = np.array(X_test)
-                    Y_test = np.array(Y_test)
+                    Y_test = np.array(Y_test.reshape(-1,1)).reshape(-1)
+                    X_test = scaler_x.transform(X_test)
                     pred = [0] * MODEL_NUM
                     for i in range(MODEL_NUM):
-                        estimators = TensorflowRegressor("%s_%s/%d" % (train_bd, train_ed, i))
-                        pred[i] = estimators.predict(X_test).flatten()
+                        estimators.load('../model/tf/regression/%s_%s/%d/model.tfl' % (train_bd, train_ed, i))
+                        pred[i] = estimators.predict(X_test)
+                        pred[i] = scaler_y.inverse_transform(pred[i])
                         score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
 
                         res1 = sim.simulation7(pred[i], R_test, [[1],[2],[3]])
                         res2 = sim.simulation7(pred[i], R_test, [[1,2],[1,2,3],[1,2,3]])
-                        res3 = sim.simulation7(pred[i], R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
-                        res4 = sim.simulation7(pred[i], R_test, [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]])
-                        res5 = sim.simulation7(pred[i], R_test, [[4,5,6],[4,5,6],[4,5,6]])
-                        res6 = sim.simulation7(pred[i], R_test, [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]])
-                        res7 = sim.simulation7(pred[i], R_test, [[5,6,7,8,9,10],[5,6,7,8,9,10],[5,6,7,8,9,10]])
+                        res3 = sim.simulation7(pred[i], R_test, [[1,2,3],[1,2,3],[1,2,3]])
+                        res4 = sim.simulation7(pred[i], R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
+                        res5 = sim.simulation7(pred[i], R_test, [[3,4,5],[4,5,6],[4,5,6]])
+                        res6 = sim.simulation7(pred[i], R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
+                        res7 = sim.simulation7(pred[i], R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
                         
                         print("pred[%d] test: " % (i+1), pred[i][0:4])
                         print("Y_test[%d] test: " % (i+1), Y_test[0:4])
@@ -364,11 +410,11 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
 
                     res1 = sim.simulation7(pred, R_test, [[1],[2],[3]])
                     res2 = sim.simulation7(pred, R_test, [[1,2],[1,2,3],[1,2,3]])
-                    res3 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
-                    res4 = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]])
-                    res5 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6]])
-                    res6 = sim.simulation7(pred, R_test, [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]])
-                    res7 = sim.simulation7(pred, R_test, [[5,6,7,8,9,10],[5,6,7,8,9,10],[5,6,7,8,9,10]])
+                    res3 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3],[1,2,3]])
+                    res4 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
+                    res5 = sim.simulation7(pred, R_test, [[3,4,5],[4,5,6],[4,5,6]])
+                    res6 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
+                    res7 = sim.simulation7(pred, R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
                     
                     """
                     res1 = sim.simulation1(pred, R_test, 1)
@@ -464,10 +510,10 @@ if __name__ == '__main__':
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2016, 6, 10)
+    test_bd = datetime.date(2016, 6, 5)
     test_ed = datetime.date(2017, 3, 13)
 
-    for delta_year in [6]:
+    for delta_year in [8]:
         for nData in [186]:
             simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[0], nData=nData)
             #for c in [1000, 1200, 1300, 1400, 1700]:

@@ -327,7 +327,7 @@ def predict_next_ens(estimators, md, rd, meet, date, rcno, course=0, nData=47, y
     X_array = np.array(X_data)
     preds = [0]*len(estimators)
     for i in range(len(estimators)):
-        preds[i] = estimators[i].predict(X_array).flatten()
+        preds[i] = estimators[i].predict(X_array)
 
     for i in range(len(preds)+1):
         if i == len(preds):
@@ -385,7 +385,7 @@ def get_race_detail(date):
 
 if __name__ == '__main__':
     meet = 1
-    date = 20170311
+    date = 20170318
     train_course = 0
     courses = [0,1000,1200,1300,1300,1000,1000,1200,1300,1700,0,0,1200]
     rcno = 0

@@ -408,7 +408,8 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                         res6 = sim.simulation7(pred[i], R_test, [[4,5,6],[4,5,6],[4,5,6]])
                         res7 = sim.simulation7(pred[i], R_test, [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]])
                         
-                        print("pred[%d] test: " % (i+1), pred[i][0:4])
+                        print("pred[%d] test: " % (i+1), pred[i][20:24])
+                        print("Y_test test: ", Y_test[20:24])
                         print("result[%d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
                                 i+1, score, res1, res2, res3, res4, res5, res6, res7))
                         try:
@@ -430,7 +431,8 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                             sr7[i][course] = res7
                             score_sum[i][course] = score
                     pred = np.mean(pred, axis=0)
-                    print("pred test: ", pred[0:4])
+                    print("pred test: ", pred[20:24])
+                    print("Y_test test: ", Y_test[20:24])
                     score = np.sqrt(np.mean((pred - Y_test)*(pred - Y_test)))
 
                     res1 = sim.simulation7(pred, R_test, [[1],[2],[3]])
@@ -535,8 +537,8 @@ if __name__ == '__main__':
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2017, 2, 25)
-    test_ed = datetime.date(2017, 3, 5)
+    test_bd = datetime.date(2017, 2, 22)
+    test_ed = datetime.date(2017, 3, 15)
     #Tensorflow GPU optimization
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
