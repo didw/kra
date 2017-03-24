@@ -19,7 +19,7 @@ from sklearn.metrics import mean_squared_error
 from sklearn.utils import shuffle
 import tflearn
 
-MODEL_NUM = 4
+MODEL_NUM = 10
 
 class TensorflowRegressor():
     def __init__(self, s_date):
@@ -93,18 +93,6 @@ class TensorflowRegressor():
             self.saver.restore(sess, ckpt.model_checkpoint_path)
             return sess.run(self.output, feed_dict={self.scalarInput: X_data})
 
-
-def baseline_model():
-    # create model
-    model = Sequential()
-    model.add(Dense(128, input_dim=174, init='he_normal', activation='relu'))
-    #model.add(Dense(128, input_dim=87, init='he_normal', activation='relu'))
-    #model.add(Dropout(0.1))
-    #model.add(Dense(128, init='he_normal'))
-    model.add(Dense(1, init='he_normal'))
-    # Compile model
-    model.compile(loss='mean_squared_error', optimizer='adam')
-    return model
 
 
 def normalize_data(org_data):
@@ -243,7 +231,7 @@ def training(train_bd, train_ed, course=0, nData=47):
     scaler_x = StandardScaler()
     scaler_y = StandardScaler()
     X_train = scaler_x.fit_transform(X_train)
-    Y_train = scaler_y.fit_transform(Y_train)
+    Y_train = scaler_y.fit_transform(Y_train.reshape(-1,1)).reshape(-1)
     seed = 7
     np.random.seed(seed)
     # evaluate model with standardized dataset
@@ -252,17 +240,18 @@ def training(train_bd, train_ed, course=0, nData=47):
         tflearn.init_graph(gpu_memory_fraction=0.1)
         input_layer = tflearn.input_data(shape=[None, 204], name='input')
         dense1 = tflearn.fully_connected(input_layer, 128, name='dense1', activation='relu')
-        dense2 = tflearn.fully_connected(dense1, 1, name='dense2')
+        dense1n = tflearn.batch_normalization(dense1, name='BN1')
+        dense2 = tflearn.fully_connected(dense1n, 1, name='dense2')
         output = tflearn.single_unit(dense2)
         regression = tflearn.regression(output, optimizer='adam', loss='mean_square',
                                 metric='R2', learning_rate=0.001)
         estimators[i] = tflearn.DNN(regression)
-        if os.path.exists(model_name.replace('.tfl', '.%d.tfl.meta'%i)) and False:
+        if False and os.path.exists(model_name.replace('.tfl', '.%d.tfl.meta'%i)):
             print("model[%d] exist. try to loading.. %s - %s" % (i, str(train_bd), str(train_ed)))
             estimators[i].load(model_name.replace('.tfl', '.%d.tfl'%i))
         else:
             print("model[%d] training.." % (i+1))
-            estimators[i].fit(X_train, Y_train, n_epoch=200, show_metric=True, snapshot_epoch=False)
+            estimators[i].fit(X_train, Y_train, n_epoch=300, show_metric=True, snapshot_epoch=False)
             # saving model
             estimators[i].save(model_name.replace('.tfl', '.%d.tfl'%i))
     md = joblib.load('../data/3_2007_2016_v1_md.pkl')
@@ -318,24 +307,28 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         scaler_y = StandardScaler()
         X_train = scaler_x.fit_transform(X_train)
         Y_train = scaler_y.fit_transform(Y_train.reshape(-1,1)).reshape(-1)
-        tf.reset_default_graph()
-        tflearn.init_graph(gpu_memory_fraction=0.1)
-        input_layer = tflearn.input_data(shape=[None, 204], name='input')
-        dense1 = tflearn.fully_connected(input_layer, 128, name='dense1', activation='relu')
-        dense2 = tflearn.fully_connected(dense1, 1, name='dense2')
-        output = tflearn.single_unit(dense2)
-        regression = tflearn.regression(output, optimizer='adam', loss='mean_square',
-                                metric='R2', learning_rate=0.001)
-        estimators = tflearn.DNN(regression)
+        #from sklearn.model_selection import train_test_split
+        #X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, random_state=0)
         for i in range(MODEL_NUM):
             print("model[%d] training.." % (i+1))
-            #if os.path.exists('../model/tf/regression/%s_%s/%d/model.tfl.meta' % (train_bd, train_ed, i)):
-            #    print("loading exists model")
-            #    estimators.load('../model/tf/regression/%s_%s/%d/model.tfl' % (train_bd, train_ed, i))
-            estimators.fit(X_train, Y_train, n_epoch=200, show_metric=True, snapshot_epoch=False)
-            if not os.path.exists('../model/tf/regression/%s_%s/%d' % (train_bd, train_ed, i)):
-                os.makedirs('../model/tf/regression/%s_%s/%d' % (train_bd, train_ed, i))
-            estimators.save('../model/tf/regression/%s_%s/%d/model.tfl' % (train_bd, train_ed, i))
+            tf.reset_default_graph()
+            tflearn.init_graph(gpu_memory_fraction=0.05)
+            input_layer = tflearn.input_data(shape=[None, 204], name='input')
+            dense1 = tflearn.fully_connected(input_layer, 150, name='dense1', activation='relu')
+            dense1n = tflearn.batch_normalization(dense1, name='BN1')
+            dense2 = tflearn.fully_connected(dense1n, 1, name='dense2')
+            output = tflearn.single_unit(dense2)
+            regression = tflearn.regression(output, optimizer='adam', loss='mean_square',
+                                    metric='R2', learning_rate=0.001)
+            estimators = tflearn.DNN(regression)
+            if os.path.exists('../model/tflearn/regression_l2_i204_bn_e50/%s_%s/model.%d.tfl.meta' % (train_bd, train_ed, i)):
+                print("loading exists model")
+                estimators.load('../model/tflearn/regression_l2_i204_bn_e50/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
+            else:
+                estimators.fit(X_train, Y_train, n_epoch=50, show_metric=True, snapshot_epoch=False, batch_size=128)
+            if not os.path.exists('../model/tflearn/regression_l2_i204_bn_e50/%s_%s' % (train_bd, train_ed)):
+                os.makedirs('../model/tflearn/regression_l2_i204_bn_e50/%s_%s' % (train_bd, train_ed))
+            estimators.save('../model/tflearn/regression_l2_i204_bn_e50/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
         print("Finish train model")
 
         test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
@@ -343,7 +336,9 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
 
         for course in courses:
             for kind in kinds:
-                fname_result = '../data/weekly_tf_nsb_v1_ss_train0_m3_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+                if not os.path.exists('../data/tflearn/regression_l2_i204_bn_e50'):
+                    os.makedirs('../data/tflearn/regression_l2_i204_bn_e50')
+                fname_result = '../data/tflearn/regression_l2_i204_bn_e50/weekly_tf_nsb_v1_ss_train0_m3_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
                 X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/3_2007_2016_v1.csv', course, kind, nData=nData)
                 #X_test = X_scaler.transform(X_test)
@@ -363,11 +358,11 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     if DEBUG:
                         X_test.to_csv('../log/weekly_train0_%s.csv' % today, index=False)
                     X_test = np.array(X_test)
-                    Y_test = np.array(Y_test)
+                    Y_test = np.array(Y_test.reshape(-1,1)).reshape(-1)
                     X_test = scaler_x.transform(X_test)
                     pred = [0] * MODEL_NUM
                     for i in range(MODEL_NUM):
-                        estimators.load('../model/tf/regression/%s_%s/%d/model.tfl' % (train_bd, train_ed, i))
+                        estimators.load('../model/tflearn/regression_l2_i204_bn_e50/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
                         pred[i] = estimators.predict(X_test)
                         pred[i] = scaler_y.inverse_transform(pred[i])
                         score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
@@ -375,7 +370,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                         res1 = sim.simulation7(pred[i], R_test, [[1],[2],[3]])
                         res2 = sim.simulation7(pred[i], R_test, [[1,2],[1,2,3],[1,2,3]])
                         res3 = sim.simulation7(pred[i], R_test, [[1,2,3],[1,2,3],[1,2,3]])
-                        res4 = sim.simulation7(pred[i], R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
+                        res4 = sim.simulation7(pred[i], R_test, [[1,2,3,4],[1,2,3,4],[1,2,3,4]])
                         res5 = sim.simulation7(pred[i], R_test, [[3,4,5],[4,5,6],[4,5,6]])
                         res6 = sim.simulation7(pred[i], R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
                         res7 = sim.simulation7(pred[i], R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
@@ -410,7 +405,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     res1 = sim.simulation7(pred, R_test, [[1],[2],[3]])
                     res2 = sim.simulation7(pred, R_test, [[1,2],[1,2,3],[1,2,3]])
                     res3 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3],[1,2,3]])
-                    res4 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
+                    res4 = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4],[1,2,3,4]])
                     res5 = sim.simulation7(pred, R_test, [[3,4,5],[4,5,6],[4,5,6]])
                     res6 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
                     res7 = sim.simulation7(pred, R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
@@ -496,7 +491,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
     for m in range(MODEL_NUM+1):
         for course in courses:
             for kind in kinds:
-                fname_result = '../data/weekly_tf_nsb_v1_ss_train0_m3_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+                fname_result = '../data/tflearn/regression_l2_i204_bn_e50/weekly_tf_nsb_v1_ss_train0_m3_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 f_result = open(fname_result, 'a')
                 f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
                 f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
