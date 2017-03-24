@@ -383,7 +383,7 @@ def get_race_detail(date):
 
 if __name__ == '__main__':
     meet = 2
-    date = 20170317
+    date = 20170324
     train_course = 0
     courses = [0,0,0,0,0,0,0,0,0,0,0,0]
     rcno = 0

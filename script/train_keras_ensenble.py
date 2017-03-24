@@ -410,13 +410,13 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                         res1 = sim.simulation7(pred[i], R_test, [[1],[2],[3]])
                         res2 = sim.simulation7(pred[i], R_test, [[1,2],[1,2,3],[1,2,3]])
                         res3 = sim.simulation7(pred[i], R_test, [[1,2,3],[1,2,3],[1,2,3]])
-                        res4 = sim.simulation7(pred[i], R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
+                        res4 = sim.simulation7(pred[i], R_test, [[1,2,3,4],[1,2,3,4],[1,2,3,4]])
                         res5 = sim.simulation7(pred[i], R_test, [[3,4,5],[4,5,6],[4,5,6]])
                         res6 = sim.simulation7(pred[i], R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
                         res7 = sim.simulation7(pred[i], R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
                         
-                        print("pred[%d] test: " % (i+1), pred[i][50:54])
-                        print("Y_test test: ", Y_test[50:54])
+                        print("pred[%d] test: " % (i+1), pred[i][0:4])
+                        print("Y_test[%d] test: " % (i+1), Y_test[0:4])
                         print("result[%d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
                                 i+1, score, res1, res2, res3, res4, res5, res6, res7))
                         try:
@@ -438,14 +438,14 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                             sr7[i][course] = res7
                             score_sum[i][course] = score
                     pred = np.mean(pred, axis=0)
-                    print("pred test: ", pred[50:54])
-                    print("Y_test test: ", Y_test[50:54])
+                    print("pred test: ", pred[0:4])
+                    print("Y_test test: ", Y_test[0:4])
                     score = np.sqrt(np.mean((pred - Y_test)*(pred - Y_test)))
 
                     res1 = sim.simulation7(pred, R_test, [[1],[2],[3]])
                     res2 = sim.simulation7(pred, R_test, [[1,2],[1,2,3],[1,2,3]])
                     res3 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3],[1,2,3]])
-                    res4 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
+                    res4 = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4],[1,2,3,4]])
                     res5 = sim.simulation7(pred, R_test, [[3,4,5],[4,5,6],[4,5,6]])
                     res6 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
                     res7 = sim.simulation7(pred, R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
