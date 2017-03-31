@@ -152,10 +152,10 @@ def training(train_bd, train_ed, course=0, nData=47):
     sess = tf.Session(config=config)
     K.set_session(sess)
 
-    #os.system('rm -r \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
-    os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
-    model_name = "../model_tf/%d_%d/model_v1.h5" % (train_bd_i, train_ed_i)
-    md_name = "../model_tf/%d_%d/md_%d.pkl" % (train_bd_i, train_ed_i, course)
+    #os.system('rm -r \"../model/keras/e100/%d_%d/\"' % (train_bd_i, train_ed_i))
+    os.system('mkdir \"../model/keras/%d_%d/\"' % (train_bd_i, train_ed_i))
+    model_name = "../model/keras/%d_%d/model_v1.h5" % (train_bd_i, train_ed_i)
+    md_name = "../model/keras/%d_%d/md_%d.pkl" % (train_bd_i, train_ed_i, course)
     estimators = [0] * MODEL_NUM
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
     X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', 0, nData=nData)
@@ -225,9 +225,9 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "../model_tf/%d_%d/model_v1_%d_%d.h5" % (train_bd_i, train_ed_i, course, 0)
+        model_name = "../model/keras/e100/%d_%d/model_v1_%d_%d.h5" % (train_bd_i, train_ed_i, course, 0)
 
-        os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
+        os.system('mkdir \"../model/keras/e100/%d_%d/\"' % (train_bd_i, train_ed_i))
         if os.path.exists(model_name):
             print("model exist. try to loading..")
             # loading model
@@ -345,9 +345,10 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "../model_tf/%d_%d/model_v1.h5" % (train_bd_i, train_ed_i)
-        #os.system('rm -r \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
-        os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
+        model_dir = "../model/keras/e100/%d_%d" % (train_bd_i, train_ed_i)
+        model_name = "%s/model_v1.h5" % (model_dir)
+        if not os.path.exists(model_dir):
+            os.makedirs(model_dir)
 
         estimators = [0] * MODEL_NUM
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
@@ -355,13 +356,13 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         X_train = np.array(X_train)
         Y_train = np.array(Y_train)
         for i in range(MODEL_NUM):
-            if False and os.path.exists(model_name.replace('h5', '%d.h5'%i)):
+            if os.path.exists(model_name.replace('h5', '%d.h5'%i)):
                 print("model[%d] exist. try to loading.. %s - %s" % (i, str(train_bd), str(train_ed)))
                 estimators[i] = model_from_json(open(model_name.replace('h5', 'json')).read())
                 estimators[i].load_weights(model_name.replace('h5', '%d.h5'%i))
             else:
                 print("model[%d] training.." % (i+1))
-                estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=200, batch_size=32, verbose=0)
+                estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=100, batch_size=32, verbose=0)
                 estimators[i].fit(X_train, Y_train)
                 # saving model
                 json_model = estimators[i].model.to_json()
@@ -372,9 +373,11 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
         test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
 
+        if not os.path.exists('../data/keras/e100'):
+            os.makedirs('../data/keras/e100')
         for course in courses:
             for kind in kinds:
-                fname_result = '../data/weekly_keras_nsb_v1_ss_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+                fname_result = '../data/keras/e100/weekly_nsb_v1_ss_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
                 X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.csv', course, kind, nData=nData)
                 #X_test = X_scaler.transform(X_test)
@@ -524,7 +527,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
     for m in range(MODEL_NUM+1):
         for course in courses:
             for kind in kinds:
-                fname_result = '../data/weekly_keras_nsb_v1_ss_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+                fname_result = '../data/keras/e100/weekly_nsb_v1_ss_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 f_result = open(fname_result, 'a')
                 f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
                 f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (

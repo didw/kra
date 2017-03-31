@@ -213,43 +213,40 @@ def training(train_bd, train_ed, course=0, nData=47):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
-    sess = tf.Session(config=config)
-    K.set_session(sess)
-
-    #os.system('rm -r \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
-    os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
-    model_name = "../model_tf/%d_%d/model_v1.h5" % (train_bd_i, train_ed_i)
-    md_name = "../model_tf/%d_%d/md_%d.pkl" % (train_bd_i, train_ed_i, course)
     estimators = [0] * MODEL_NUM
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
     X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', 0, nData=nData)
-    print("%d data is fully loaded" % len(X_train))
-    #X_scaler = StandardScaler()
-    #X_train = X_scaler.fit_transform(X_train)
-    print("Start train model")
-    # fix random seed for reproducibility
     X_train = np.array(X_train)
     Y_train = np.array(Y_train)
+    scaler_x = StandardScaler()
+    scaler_y = StandardScaler()
+    X_train = scaler_x.fit_transform(X_train)
+    Y_train = scaler_y.fit_transform(Y_train.reshape(-1,1)).reshape(-1)
     seed = 7
     np.random.seed(seed)
     # evaluate model with standardized dataset
     for i in range(MODEL_NUM):
-        if os.path.exists(model_name.replace('h5', '%d.h5'%i)):
-            print("model[%d] exist. try to loading.. %s - %s" % (i, str(train_bd), str(train_ed)))
-            estimators[i] = model_from_json(open(model_name.replace('h5', 'json')).read())
-            estimators[i].load_weights(model_name.replace('h5', '%d.h5'%i))
+        print("model[%d] training.." % (i+1))
+        tf.reset_default_graph()
+        tflearn.init_graph(gpu_memory_fraction=0.05)
+        input_layer = tflearn.input_data(shape=[None, 204], name='input')
+        dense1 = tflearn.fully_connected(input_layer, 128, name='dense1', activation='relu')
+        dense2 = tflearn.fully_connected(dense1, 1, name='dense2')
+        output = tflearn.single_unit(dense2)
+        regression = tflearn.regression(output, optimizer='adam', loss='mean_square',
+                                metric='R2', learning_rate=0.001)
+        estimators[i] = tflearn.DNN(regression)
+        if os.path.exists('../model/tflearn/regression_l2_e50/%s_%s/model.%d.tfl.meta' % (train_bd, train_ed, i)):
+            print("loading exists model")
+            estimators[i].load('../model/tflearn/regression_l2_e50/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
         else:
-            print("model[%d] training.." % (i+1))
-            estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=200, batch_size=32, verbose=0)
-            estimators[i].fit(X_train, Y_train)
-            # saving model
-            json_model = estimators[i].model.to_json()
-            open(model_name.replace('h5', 'json'), 'w').write(json_model)
-            estimators[i].model.save_weights(model_name.replace('h5', '%d.h5'%i), overwrite=True)
+            estimators[i].fit(X_train, Y_train, n_epoch=300, show_metric=True, snapshot_epoch=False, batch_size=128)
+        if not os.path.exists('../model/tflearn/regression_l2_e50/%s_%s' % (train_bd, train_ed)):
+            os.makedirs('../model/tflearn/regression_l2_e50/%s_%s' % (train_bd, train_ed))
+        estimators[i].save('../model/tflearn/regression_l2_e50/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
+    print("Finish train model")
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
-    return estimators, md
+    return estimators, md, [scaler_x, scaler_y]
 
 def print_log(data, pred, fname):
     flog = open(fname, 'w')
@@ -314,14 +311,14 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
             regression = tflearn.regression(output, optimizer='adam', loss='mean_square',
                                     metric='R2', learning_rate=0.001)
             estimators = tflearn.DNN(regression)
-            if os.path.exists('../model/tflearn/regression_l2/%s_%s/model.%d.tfl.meta' % (train_bd, train_ed, i)):
+            if os.path.exists('../model/tflearn/regression_l2_e50/%s_%s/model.%d.tfl.meta' % (train_bd, train_ed, i)):
                 print("loading exists model")
-                estimators.load('../model/tflearn/regression_l2/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
+                estimators.load('../model/tflearn/regression_l2_e50/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
             else:
-                estimators.fit(X_train, Y_train, n_epoch=300, show_metric=True, snapshot_epoch=False, batch_size=128)
-            if not os.path.exists('../model/tflearn/regression_l2/%s_%s' % (train_bd, train_ed)):
-                os.makedirs('../model/tflearn/regression_l2/%s_%s' % (train_bd, train_ed))
-            estimators.save('../model/tflearn/regression_l2/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
+                estimators.fit(X_train, Y_train, n_epoch=50, show_metric=True, snapshot_epoch=False, batch_size=128)
+            if not os.path.exists('../model/tflearn/regression_l2_e50/%s_%s' % (train_bd, train_ed)):
+                os.makedirs('../model/tflearn/regression_l2_e50/%s_%s' % (train_bd, train_ed))
+            estimators.save('../model/tflearn/regression_l2_e50/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
         print("Finish train model")
 
         test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
@@ -329,9 +326,9 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
 
         for course in courses:
             for kind in kinds:
-                if not os.path.exists('../data/tflearn/regression_l2'):
-                    os.makedirs('../data/tflearn/regression_l2')
-                fname_result = '../data/tflearn/regression_l2/weekly_tf_nsb_v1_ss_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+                if not os.path.exists('../data/tflearn/regression_l2_e50'):
+                    os.makedirs('../data/tflearn/regression_l2_e50')
+                fname_result = '../data/tflearn/regression_l2_e50/weekly_tf_nsb_v1_ss_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
                 X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.csv', course, kind, nData=nData)
                 #X_test = X_scaler.transform(X_test)
@@ -355,7 +352,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     X_test = scaler_x.transform(X_test)
                     pred = [0] * MODEL_NUM
                     for i in range(MODEL_NUM):
-                        estimators.load('../model/tflearn/regression_l2/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
+                        estimators.load('../model/tflearn/regression_l2_e50/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
                         pred[i] = estimators.predict(X_test)
                         pred[i] = scaler_y.inverse_transform(pred[i])
                         score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
@@ -484,7 +481,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
     for m in range(MODEL_NUM+1):
         for course in courses:
             for kind in kinds:
-                fname_result = '../data/tflearn/regression_l2/weekly_tf_nsb_v1_ss_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+                fname_result = '../data/tflearn/regression_l2_e50/weekly_tf_nsb_v1_ss_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 f_result = open(fname_result, 'a')
                 f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
                 f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
