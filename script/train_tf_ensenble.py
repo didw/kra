@@ -214,9 +214,9 @@ def training(train_bd, train_ed, course=0, nData=47):
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
     #os.system('rm -r \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
-    model_name = "../model/tflearn/%d_%d/model.tfl" % (train_bd_i, train_ed_i)
-    if not os.path.exists("../model/tflearn/%d_%d/" % (train_bd_i, train_ed_i)):
-        os.makedirs("../model/tflearn/%d_%d/" % (train_bd_i, train_ed_i))
+    model_name = "../model/tflearn/e50/%d_%d/model.tfl" % (train_bd_i, train_ed_i)
+    if not os.path.exists("../model/tflearn/e50/%d_%d/" % (train_bd_i, train_ed_i)):
+        os.makedirs("../model/tflearn/e50/%d_%d/" % (train_bd_i, train_ed_i))
 
     estimators = [0] * MODEL_NUM
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
@@ -237,21 +237,21 @@ def training(train_bd, train_ed, course=0, nData=47):
     # evaluate model with standardized dataset
     for i in range(MODEL_NUM):
         tf.reset_default_graph()
-        tflearn.init_graph(gpu_memory_fraction=0.1)
+        tflearn.init_graph(gpu_memory_fraction=0.05)
         input_layer = tflearn.input_data(shape=[None, 204], name='input')
-        dense1 = tflearn.fully_connected(input_layer, 128, name='dense1', activation='relu')
+        dense1 = tflearn.fully_connected(input_layer, 150, name='dense1', activation='relu')
         dense1n = tflearn.batch_normalization(dense1, name='BN1')
         dense2 = tflearn.fully_connected(dense1n, 1, name='dense2')
         output = tflearn.single_unit(dense2)
         regression = tflearn.regression(output, optimizer='adam', loss='mean_square',
                                 metric='R2', learning_rate=0.001)
         estimators[i] = tflearn.DNN(regression)
-        if False and os.path.exists(model_name.replace('.tfl', '.%d.tfl.meta'%i)):
+        if os.path.exists(model_name.replace('.tfl', '.%d.tfl.meta'%i)):
             print("model[%d] exist. try to loading.. %s - %s" % (i, str(train_bd), str(train_ed)))
             estimators[i].load(model_name.replace('.tfl', '.%d.tfl'%i))
         else:
             print("model[%d] training.." % (i+1))
-            estimators[i].fit(X_train, Y_train, n_epoch=300, show_metric=True, snapshot_epoch=False)
+            estimators[i].fit(X_train, Y_train, n_epoch=50, show_metric=False, snapshot_epoch=False)
             # saving model
             estimators[i].save(model_name.replace('.tfl', '.%d.tfl'%i))
     md = joblib.load('../data/3_2007_2016_v1_md.pkl')
@@ -505,7 +505,7 @@ if __name__ == '__main__':
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
     test_bd = datetime.date(2016, 6, 5)
-    test_ed = datetime.date(2017, 3, 13)
+    test_ed = datetime.date(2017, 3, 30)
 
     for delta_year in [8]:
         for nData in [192]:
