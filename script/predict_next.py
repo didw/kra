@@ -135,12 +135,12 @@ def print_detail(players, cand, fresult, mode):
         print("%s,%s,%s, %s: 500" % (players[1], players[0], players[2], mode))
         print("%s,%s,%s, %s: 500" % (players[1], players[2], players[0], mode))
 
-        fresult.write("\n%s,%s,%s, %s: 2500" % (players[0], players[1], players[2], mode))
+        fresult.write("\n%s,%s,%s, %s: 1500" % (players[0], players[1], players[2], mode))
         fresult.write("\n%s,%s,%s, %s: 1500" % (players[0], players[2], players[1], mode))
         fresult.write("\n%s,%s,%s, %s: 1500" % (players[1], players[0], players[2], mode))
         fresult.write("\n%s,%s,%s, %s: 1500" % (players[1], players[2], players[0], mode))
-        fresult.write("\n%s,%s,%s, %s: 1000" % (players[2], players[0], players[1], mode))
-        fresult.write("\n%s,%s,%s, %s: 1000" % (players[2], players[1], players[0], mode))
+        fresult.write("\n%s,%s,%s, %s: 1500" % (players[2], players[0], players[1], mode))
+        fresult.write("\n%s,%s,%s, %s: 1500" % (players[2], players[1], players[0], mode))
     elif cand == [[1,2,3],[1,2,3],[1,2,3]] and mode == "ss":
         print("%s,%s,%s, %s: 500" % (players[0], players[1], players[2], mode))
         print("%s,%s,%s, %s: 500" % (players[0], players[2], players[1], mode))
@@ -149,12 +149,12 @@ def print_detail(players, cand, fresult, mode):
         print("%s,%s,%s, %s: 500" % (players[2], players[0], players[1], mode))
         print("%s,%s,%s, %s: 500" % (players[2], players[1], players[0], mode))
 
-        fresult.write("\n%s,%s,%s, %s: 2000" % (players[0], players[1], players[2], mode))
-        fresult.write("\n%s,%s,%s, %s: 1000" % (players[0], players[2], players[1], mode))
-        fresult.write("\n%s,%s,%s, %s: 500" % (players[1], players[0], players[2], mode))
-        fresult.write("\n%s,%s,%s, %s: 500" % (players[1], players[2], players[0], mode))
-        fresult.write("\n%s,%s,%s, %s: 200" % (players[2], players[0], players[1], mode))
-        fresult.write("\n%s,%s,%s, %s: 200" % (players[2], players[1], players[0], mode))
+        fresult.write("\n%s,%s,%s, %s: 18000" % (players[0], players[1], players[2], mode))
+        fresult.write("\n%s,%s,%s, %s: 3000" % (players[0], players[2], players[1], mode))
+        fresult.write("\n%s,%s,%s, %s: 3000" % (players[1], players[0], players[2], mode))
+        fresult.write("\n%s,%s,%s, %s: 3000" % (players[1], players[2], players[0], mode))
+        fresult.write("\n%s,%s,%s, %s: 3000" % (players[2], players[0], players[1], mode))
+        fresult.write("\n%s,%s,%s, %s: 3000" % (players[2], players[1], players[0], mode))
     elif cand == [[4,5,6],[4,5,6],[4,5,6]]:
         print("bet: 2000")  # 14200 / 6 = 2366
         print("%s,%s,%s" % (players[3], players[4], players[5]))
@@ -171,6 +171,28 @@ def print_detail(players, cand, fresult, mode):
         fresult.write("\n%s,%s,%s" % (players[4], players[5], players[3]))
         fresult.write("\n%s,%s,%s" % (players[5], players[3], players[4]))
         fresult.write("\n%s,%s,%s" % (players[5], players[4], players[3]))
+    elif cand == [[4,5,6],[4,5,6],[4,5,6,7]]:
+        print("bet: 2000")  # 14200 / 6 = 2366
+        print("%s,%s,%s" % (players[3], players[4], players[5]))
+        print("%s,%s,%s" % (players[3], players[5], players[4]))
+        print("%s,%s,%s" % (players[4], players[3], players[5]))
+        print("%s,%s,%s" % (players[4], players[5], players[3]))
+        print("%s,%s,%s" % (players[5], players[3], players[4]))
+        print("%s,%s,%s" % (players[5], players[4], players[3]))
+
+        fresult.write("\n\nbet: 700")  # 14200 / 6 = 2366
+        fresult.write("\n%s,%s,%s, %s: 2700" % (players[3], players[4], players[5], mode))
+        fresult.write("\n%s,%s,%s, %s: 2700" % (players[3], players[4], players[6], mode))
+        fresult.write("\n%s,%s,%s, %s: 2700" % (players[3], players[5], players[4], mode))
+        fresult.write("\n%s,%s,%s, %s: 2700" % (players[3], players[5], players[6], mode))
+        fresult.write("\n%s,%s,%s, %s: 2700" % (players[4], players[3], players[5], mode))
+        fresult.write("\n%s,%s,%s, %s: 2700" % (players[4], players[3], players[6], mode))
+        fresult.write("\n%s,%s,%s, %s: 2700" % (players[4], players[5], players[3], mode))
+        fresult.write("\n%s,%s,%s, %s: 2700" % (players[4], players[5], players[6], mode))
+        fresult.write("\n%s,%s,%s, %s: 2700" % (players[5], players[3], players[4], mode))
+        fresult.write("\n%s,%s,%s, %s: 2700" % (players[5], players[3], players[6], mode))
+        fresult.write("\n%s,%s,%s, %s: 2700" % (players[5], players[4], players[3], mode))
+        fresult.write("\n%s,%s,%s, %s: 2700" % (players[5], players[4], players[6], mode))
     elif cand == [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]] and mode == "ss":
         print("bet: 100")  # 14200 / 60 = 200
         print("%s,%s,{%s,%s,%s}" % (players[3], players[4], players[5], players[6], players[7]))
@@ -255,8 +277,8 @@ def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
     global fname
     fresult = open(fname, 'a')
     fresult.write("%s,%s,%s,%s,%s,%s\n" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-    print_detail(rcdata['idx'], [[1,2],[1,2,3],[1,2,3]], fresult, "ss")
-    #print_detail(rcdata['idx'], [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]], fresult, "ss")
+    print_detail(rcdata['idx'], [[1,2,3],[1,2,3],[1,2,3]], fresult, "ss")
+    #print_detail(rcdata['idx'], [[4,5,6],[4,5,6],[4,5,6,7]], fresult, "ss")
     fresult.close()
 
 
@@ -309,7 +331,7 @@ def predict_next(estimator, md, rd, meet, date, rcno, course=0, nData=47, year=4
     #print(X_data.columns)
     #print(estimator.feature_importances_)
 
-def predict_next_ens(estimators, md, rd, meet, date, rcno, course=0, nData=47, year=4, train_course=0, scaler=None):
+def predict_next_ens(estimators_, md, rd, meet, date, rcno, course=0, nData=47, year=4, train_course=0, scaler=None):
     data_pre = xe.parse_xml_entry(meet, date, rcno, md, rd)
     data = normalize_data(data_pre, nData=nData)
     print(len(data.columns))
@@ -326,49 +348,52 @@ def predict_next_ens(estimators, md, rd, meet, date, rcno, course=0, nData=47, y
     print(len(X_data.columns))
     X_array = np.array(X_data)
     X_array = scaler[0].transform(X_array)
-    preds = [0]*len(estimators)
-    for i in range(len(estimators)):
-        preds[i] = estimators[i].predict(X_array)
 
-    for i in range(len(preds)+1):
-        if i == len(preds):
-            pred = np.mean(preds, axis=0)
-        else:
-            pred = preds[i]
-            pred = scaler[1].inverse_transform(pred)
-        pred = pd.DataFrame(pred)
-        pred.columns = ['predict']
-        __DEBUG__ = True
-        if __DEBUG__:
-            pd.concat([data_pre, pred], axis=1).to_csv('../log/predict_%d_m%d_r%d_%d.csv' % (date, meet, rcno, i), index=False)
-            X_data.to_csv('../log/predict_x_%d_m%d_r%d_%d.csv' % (date, meet, rcno, i), index=False)
-        prev_rc = data['rcno'][0]
-        rcdata = []
-        for idx, row in data.iterrows():
-            if int(data['hr_nt'][idx]) == 0 or int(data['jk_nt'][idx]) == 0 or int(data['tr_nt'][idx]) == 0:
-                print("%s data is not enough. be careful[hr:%d, jk:%d, tr:%d]" % (
-                    data['name'][idx], int(data['hr_nt'][idx]), int(data['jk_nt'][idx]), int(data['tr_nt'][idx])))
-            if row['rcno'] != prev_rc or idx+1 == len(data):
-                if idx+1 == len(data):
-                    rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
-                rcdata = pd.DataFrame(rcdata)
-                rcdata.columns = ['idx', 'name', 'time']
-                rcdata = rcdata.sort_values(by='time')
-                rcdata = rcdata.reset_index(drop=True)
-                print("=========== %s ==========" % prev_rc)
-                print(rcdata)
-                fresult = open(fname, 'a')
-                fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d, model: %d ===\n" % (int(prev_rc), nData, year, train_course, i))
-                fresult.close()
-                print_bet(rcdata, course, nData=nData, year=year, train_course=train_course)
-                rcdata = []
-                prev_rc = row['rcno']
-                if idx+1 != len(data):
-                    rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
+    for e in range(3):
+        estimators = estimators_[e*10:(e+1)*10]
+        preds = [0]*len(estimators)
+        for i in range(len(estimators)):
+            preds[i] = estimators[i].predict(X_array)
+
+        for i in range(len(preds)+1):
+            if i == len(preds):
+                pred = np.mean(preds, axis=0)
             else:
-                rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
-    #print(X_data.columns)
-    #print(estimator.feature_importances_)
+                pred = preds[i]
+                pred = scaler[1].inverse_transform(pred)
+                continue
+            pred = pd.DataFrame(pred)
+            pred.columns = ['predict']
+            __DEBUG__ = True
+            if __DEBUG__:
+                pd.concat([data_pre, pred], axis=1).to_csv('../log/predict_%d_m%d_r%d_%d.csv' % (date, meet, rcno, i), index=False)
+                X_data.to_csv('../log/predict_x_%d_m%d_r%d_%d.csv' % (date, meet, rcno, i), index=False)
+            prev_rc = data['rcno'][0]
+            rcdata = []
+            for idx, row in data.iterrows():
+                if int(data['hr_nt'][idx]) == 0 or int(data['jk_nt'][idx]) == 0 or int(data['tr_nt'][idx]) == 0:
+                    print("%s data is not enough. be careful[hr:%d, jk:%d, tr:%d]" % (
+                        data['name'][idx], int(data['hr_nt'][idx]), int(data['jk_nt'][idx]), int(data['tr_nt'][idx])))
+                if row['rcno'] != prev_rc or idx+1 == len(data):
+                    if idx+1 == len(data):
+                        rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
+                    rcdata = pd.DataFrame(rcdata)
+                    rcdata.columns = ['idx', 'name', 'time']
+                    rcdata = rcdata.sort_values(by='time')
+                    rcdata = rcdata.reset_index(drop=True)
+                    print("=========== %s ==========" % prev_rc)
+                    print(rcdata)
+                    fresult = open(fname, 'a')
+                    fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d, model: %d ===\n" % (int(prev_rc), nData, year, train_course, i))
+                    fresult.close()
+                    print_bet(rcdata, course, nData=nData, year=year, train_course=train_course)
+                    rcdata = []
+                    prev_rc = row['rcno']
+                    if idx+1 != len(data):
+                        rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
+                else:
+                    rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
+
 
 def get_race_detail(date):
     rd = RaceDetail()
@@ -383,7 +408,7 @@ def get_race_detail(date):
 
 if __name__ == '__main__':
     meet = 2
-    date = 20170324
+    date = 20170331
     train_course = 0
     courses = [0,0,0,0,0,0,0,0,0,0,0,0]
     rcno = 0
@@ -402,7 +427,8 @@ if __name__ == '__main__':
         os.system("rm %s" % fname)
         predict_next_ens(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course, scaler)
         date += 1
-        fname = '../result/1703/%d_%d.txt' % (date%100, rcno)
+        date = 20170401
+        fname = '../result/1704/%d_%d.txt' % (date%100, rcno)
         os.system("rm %s" % fname)
         predict_next_ens(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course, scaler)
 

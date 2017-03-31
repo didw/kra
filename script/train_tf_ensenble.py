@@ -236,7 +236,7 @@ def training(train_bd, train_ed, course=0, nData=47):
     # evaluate model with standardized dataset
     for i in range(MODEL_NUM):
         tf.reset_default_graph()
-        tflearn.init_graph(gpu_memory_fraction=0.1)
+        tflearn.init_graph(gpu_memory_fraction=0.05)
         input_layer = tflearn.input_data(shape=[None, 152], name='input')
         dense1 = tflearn.fully_connected(input_layer, 128, name='dense1', activation='relu')
         dense1n = tflearn.batch_normalization(dense1, name='BN1')
@@ -312,7 +312,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         for i in range(MODEL_NUM):
             print("model[%d] training.." % (i+1))
             tf.reset_default_graph()
-            tflearn.init_graph(gpu_memory_fraction=0.1)
+            tflearn.init_graph(gpu_memory_fraction=0.05)
             input_layer = tflearn.input_data(shape=[None, 119], name='input')
             dense1 = tflearn.fully_connected(input_layer, 128, name='dense1', activation='relu')
             dense1n = tflearn.batch_normalization(dense1, name='BN1')
