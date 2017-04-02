@@ -26,12 +26,13 @@ import Queue
 import time
 from keras.models import model_from_json
 
-MODEL_NUM = 10
+MODEL_NUM = 30
+NUM_ENSEMBLE = 6
 
 def baseline_model():
     # create model
     model = Sequential()
-    model.add(Dense(128, input_shape=(168,), kernel_initializer='he_normal', activation='relu'))
+    model.add(Dense(128, input_shape=(201,), kernel_initializer='he_normal', activation='relu'))
     #model.add(Dense(128, input_dim=87, init='he_normal', activation='relu'))
     #model.add(Dropout(0.1))
     #model.add(Dense(128, init='he_normal'))
@@ -64,6 +65,18 @@ def normalize_data(org_data):
     data.loc[data['cntry'] == '인', 'cntry'] = 14
     data.loc[data['cntry'] == '아', 'cntry'] = 15
     data.loc[data['cntry'] == '프', 'cntry'] = 16
+    oh_course = [[0]*13 for _ in range(len(data))]
+    oh_gen = [[0]*3 for _ in range(len(data))]
+    oh_cnt = [[0]*17 for _ in range(len(data))]
+    course_list = [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2200, 2300]
+    for i in range(len(data)):
+        oh_course[i][course_list.index(data['course'][i])] = 1
+        oh_gen[i][data['gender'][i]] = 1
+        oh_cnt[i][data['cntry'][i]] = 1
+    df_course = pd.DataFrame(oh_course, columns=['cr%d'%i for i in range(1,14)])
+    df_gen = pd.DataFrame(oh_gen, columns=['g1', 'g2', 'g3'])
+    df_cnt = pd.DataFrame(oh_cnt, columns=['c%d'%i for i in range(1,18)])
+    return pd.concat([data, df_course, df_gen, df_cnt], axis=1)
     return data
 
 def get_data(begin_date, end_date):
@@ -152,10 +165,12 @@ def training(train_bd, train_ed, course=0, nData=47):
     sess = tf.Session(config=config)
     K.set_session(sess)
 
-    #os.system('rm -r \"../model/keras/e100/%d_%d/\"' % (train_bd_i, train_ed_i))
-    os.system('mkdir \"../model/keras/%d_%d/\"' % (train_bd_i, train_ed_i))
-    model_name = "../model/keras/%d_%d/model_v1.h5" % (train_bd_i, train_ed_i)
-    md_name = "../model/keras/%d_%d/md_%d.pkl" % (train_bd_i, train_ed_i, course)
+    #os.system('rm -r \"../model/keras/e100_i201/%d_%d/\"' % (train_bd_i, train_ed_i))
+    model_dir = '../model/keras/e100_i201/%d_%d/' % (train_bd_i, train_ed_i)
+    if not os.path.exists(model_dir):
+        os.makedirs(model_dir)
+    #os.system('mkdir \"../model/keras/e100_i201/%d_%d/\"' % (train_bd_i, train_ed_i))
+    model_name = "%s/model_v1.h5" % model_dir
     estimators = [0] * MODEL_NUM
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
     X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', 0, nData=nData)
@@ -225,9 +240,9 @@ def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_yea
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "../model/keras/e100/%d_%d/model_v1_%d_%d.h5" % (train_bd_i, train_ed_i, course, 0)
+        model_name = "../model/keras/e100_i201/%d_%d/model_v1_%d_%d.h5" % (train_bd_i, train_ed_i, course, 0)
 
-        os.system('mkdir \"../model/keras/e100/%d_%d/\"' % (train_bd_i, train_ed_i))
+        os.system('mkdir \"../model/keras/e100_i201/%d_%d/\"' % (train_bd_i, train_ed_i))
         if os.path.exists(model_name):
             print("model exist. try to loading..")
             # loading model
@@ -326,7 +341,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
     remove_outlier = False
     today = begin_date
     def m():
-        return [{0:0} for _ in range(MODEL_NUM+1)]
+        return [{0:0} for _ in range(MODEL_NUM+int(MODEL_NUM/NUM_ENSEMBLE)+2)]
     sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10, score_sum = m(),m(),m(),m(),m(),m(),m(),m(),m(),m(),m()
     while today <= end_date:
         while today.weekday() != 3:
@@ -345,7 +360,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_dir = "../model/keras/e100/%d_%d" % (train_bd_i, train_ed_i)
+        model_dir = "../model/keras/e100_i201/%d_%d" % (train_bd_i, train_ed_i)
         model_name = "%s/model_v1.h5" % (model_dir)
         if not os.path.exists(model_dir):
             os.makedirs(model_dir)
@@ -373,11 +388,10 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
         test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
 
-        if not os.path.exists('../data/keras/e100'):
-            os.makedirs('../data/keras/e100')
+        if not os.path.exists('../data/keras/e100_i201'):
+            os.makedirs('../data/keras/e100_i201')
         for course in courses:
             for kind in kinds:
-                fname_result = '../data/keras/e100/weekly_nsb_v1_ss_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
                 X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.csv', course, kind, nData=nData)
                 #X_test = X_scaler.transform(X_test)
@@ -411,9 +425,9 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                         res6 = sim.simulation7(pred[i], R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
                         res7 = sim.simulation7(pred[i], R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
                         
-                        print("pred[%d] test: " % (i+1), pred[i][20:24])
-                        print("Y_test test: ", Y_test[20:24])
-                        print("result[%d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                        #print("pred[%d] test: " % (i+1), pred[i][20:24])
+                        #print("Y_test test: ", Y_test[20:24])
+                        print("result[%02d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f" % (
                                 i+1, score, res1, res2, res3, res4, res5, res6, res7))
                         try:
                             sr1[i][course] += res1
@@ -433,19 +447,117 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                             sr6[i][course] = res6
                             sr7[i][course] = res7
                             score_sum[i][course] = score
-                    pred = np.mean(pred, axis=0)
-                    print("pred test: ", pred[20:24])
-                    print("Y_test test: ", Y_test[20:24])
-                    score = np.sqrt(np.mean((pred - Y_test)*(pred - Y_test)))
 
-                    res1 = sim.simulation7(pred, R_test, [[1],[2],[3]])
-                    res2 = sim.simulation7(pred, R_test, [[1,2],[1,2,3],[1,2,3]])
-                    res3 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3],[1,2,3]])
-                    res4 = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4],[1,2,3,4]])
-                    res5 = sim.simulation7(pred, R_test, [[3,4,5],[4,5,6],[4,5,6]])
-                    res6 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
-                    res7 = sim.simulation7(pred, R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
+                        fname_result = '../data/keras/e100_i201/ss_m%02d.txt' % i
+                        f_result = open(fname_result, 'a')
+                        f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
+                        f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+                        f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+                        f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                                        score, res1, res2, res3, res4, res5, res6, res7))
+
+                    sr1[MODEL_NUM][course] = 0
+                    sr2[MODEL_NUM][course] = 0
+                    sr3[MODEL_NUM][course] = 0
+                    sr4[MODEL_NUM][course] = 0
+                    sr5[MODEL_NUM][course] = 0
+                    sr6[MODEL_NUM][course] = 0
+                    sr7[MODEL_NUM][course] = 0
+                    score_sum[MODEL_NUM][course] = 0
+
+                    for i in range(MODEL_NUM):
+                        sr1[MODEL_NUM][course] += 1./MODEL_NUM * sr1[i][course]
+                        sr2[MODEL_NUM][course] += 1./MODEL_NUM * sr2[i][course]
+                        sr3[MODEL_NUM][course] += 1./MODEL_NUM * sr3[i][course]
+                        sr4[MODEL_NUM][course] += 1./MODEL_NUM * sr4[i][course]
+                        sr5[MODEL_NUM][course] += 1./MODEL_NUM * sr5[i][course]
+                        sr6[MODEL_NUM][course] += 1./MODEL_NUM * sr6[i][course]
+                        sr7[MODEL_NUM][course] += 1./MODEL_NUM * sr7[i][course]
+                        score_sum[MODEL_NUM][course] += 1./MODEL_NUM * score_sum[i][course]
+
+                    fname_result = '../data/keras/e100_i201/ss_m_all.txt'
+                    f_result = open(fname_result, 'a')
+                    f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
+                    f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+                    f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+                    f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                                    score_sum[MODEL_NUM][0], sr1[MODEL_NUM][0], sr2[MODEL_NUM][0], sr3[MODEL_NUM][0], sr4[MODEL_NUM][0], sr5[MODEL_NUM][0], sr6[MODEL_NUM][0], sr7[MODEL_NUM][0]))
+
+                    index_sum = MODEL_NUM + int(MODEL_NUM/NUM_ENSEMBLE) + 1
+                    for i in range(int(MODEL_NUM/NUM_ENSEMBLE)):
+                        n_split = int(MODEL_NUM/NUM_ENSEMBLE)
+                        pred_ens = np.mean(pred[i*n_split:(i+1)*n_split], axis=0)
+                        score = np.sqrt(np.mean((pred_ens - Y_test)*(pred_ens - Y_test)))
+
+                        res1 = sim.simulation7(pred_ens, R_test, [[1],[2],[3]])
+                        res2 = sim.simulation7(pred_ens, R_test, [[1,2],[1,2,3],[1,2,3]])
+                        res3 = sim.simulation7(pred_ens, R_test, [[1,2,3],[1,2,3],[1,2,3]])
+                        res4 = sim.simulation7(pred_ens, R_test, [[1,2,3,4],[1,2,3,4],[1,2,3,4]])
+                        res5 = sim.simulation7(pred_ens, R_test, [[3,4,5],[4,5,6],[4,5,6]])
+                        res6 = sim.simulation7(pred_ens, R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
+                        res7 = sim.simulation7(pred_ens, R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
+
+                        #print("pred_ens test: ", pred_ens[20:24])
+                        #print("Y_test test: ", Y_test[20:24])
+                        print("result_ens[%2d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f" % (
+                                MODEL_NUM+i+2, score, res1, res2, res3, res4, res5, res6, res7))
+
+                        index_j = MODEL_NUM+i+1
+                        try:
+                            sr1[index_j][course] += res1
+                            sr2[index_j][course] += res2
+                            sr3[index_j][course] += res3
+                            sr4[index_j][course] += res4
+                            sr5[index_j][course] += res5
+                            sr6[index_j][course] += res6
+                            sr7[index_j][course] += res7
+                            score_sum[index_j][course] += score
+                        except KeyError:
+                            sr1[index_j][course] = res1
+                            sr2[index_j][course] = res2
+                            sr3[index_j][course] = res3
+                            sr4[index_j][course] = res4
+                            sr5[index_j][course] = res5
+                            sr6[index_j][course] = res6
+                            sr7[index_j][course] = res7
+                            score_sum[index_j][course] = score
+                        
+                        fname_result = '../data/keras/e100_i201/ss_ens%d.txt' % i
+                        f_result = open(fname_result, 'a')
+                        f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
+                        f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+                        f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+                        f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                                        score, res1, res2, res3, res4, res5, res6, res7))
+
+                    sr1[index_sum][course] = 0
+                    sr2[index_sum][course] = 0
+                    sr3[index_sum][course] = 0
+                    sr4[index_sum][course] = 0
+                    sr5[index_sum][course] = 0
+                    sr6[index_sum][course] = 0
+                    sr7[index_sum][course] = 0
+                    score_sum[index_sum][course] = 0
                     
+                    for i in range(int(MODEL_NUM/NUM_ENSEMBLE)):
+                        index_j = MODEL_NUM+i+1
+                        sr1[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr1[index_j][course]
+                        sr2[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr2[index_j][course]
+                        sr3[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr3[index_j][course]
+                        sr4[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr4[index_j][course]
+                        sr5[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr5[index_j][course]
+                        sr6[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr6[index_j][course]
+                        sr7[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr7[index_j][course]
+                        score_sum[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * score_sum[index_j][course]
+
+                    fname_result = '../data/keras/e100_i201/ss_ens_all.txt'
+                    f_result = open(fname_result, 'a')
+                    f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
+                    f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+                    f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+                    f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                                    score_sum[index_sum][0], sr1[index_sum][0], sr2[index_sum][0], sr3[index_sum][0], sr4[index_sum][0], sr5[index_sum][0], sr6[index_sum][0], sr7[index_sum][0]))
+
                     """
                     res1 = sim.simulation1(pred, R_test, 1)
                     res2 = sim.simulation2(pred, R_test, 1)
@@ -492,47 +604,27 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     res6 = sim.simulation2(pred, R_test, 6)
                     res7 = sim.simulation2(pred, R_test, 7)
                     """
-                    
-                    try:
-                        sr1[MODEL_NUM][course] += res1
-                        sr2[MODEL_NUM][course] += res2
-                        sr3[MODEL_NUM][course] += res3
-                        sr4[MODEL_NUM][course] += res4
-                        sr5[MODEL_NUM][course] += res5
-                        sr6[MODEL_NUM][course] += res6
-                        sr7[MODEL_NUM][course] += res7
-                        score_sum[MODEL_NUM][course] += score
-                    except KeyError:
-                        sr1[MODEL_NUM][course] = res1
-                        sr2[MODEL_NUM][course] = res2
-                        sr3[MODEL_NUM][course] = res3
-                        sr4[MODEL_NUM][course] = res4
-                        sr5[MODEL_NUM][course] = res5
-                        sr6[MODEL_NUM][course] = res6
-                        sr7[MODEL_NUM][course] = res7
-                        score_sum[MODEL_NUM][course] = score
-
-                print("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                        score, res1, res2, res3, res4, res5, res6, res7))
-                for m in range(MODEL_NUM+1):
-                    print("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                            score_sum[m][course], sr1[m][course], sr2[m][course], sr3[m][course], sr4[m][course], sr5[m][course], sr6[m][course], sr7[m][course]))
-                f_result = open(fname_result, 'a')
-                f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
-                f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
-                f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
-                f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                                score, res1, res2, res3, res4, res5, res6, res7))
+                for m in range(MODEL_NUM+int(MODEL_NUM/NUM_ENSEMBLE)+2):
+                    print("result[%02d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f" % (
+                            m, score_sum[m][course], sr1[m][course], sr2[m][course], sr3[m][course], sr4[m][course], sr5[m][course], sr6[m][course], sr7[m][course]))
                 f_result.close()
-    for m in range(MODEL_NUM+1):
+    for m in range(MODEL_NUM):
         for course in courses:
-            for kind in kinds:
-                fname_result = '../data/keras/e100/weekly_nsb_v1_ss_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
-                f_result = open(fname_result, 'a')
-                f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
-                f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                                score_sum[m][course], sr1[m][course], sr2[m][course], sr3[m][course], sr4[m][course], sr5[m][course], sr6[m][course], sr7[m][course]))
-                f_result.close()
+            fname_result = '../data/keras/e100_i201/ss_m%02d.txt' % m
+            f_result = open(fname_result, 'a')
+            f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+            f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                            score_sum[m][course], sr1[m][course], sr2[m][course], sr3[m][course], sr4[m][course], sr5[m][course], sr6[m][course], sr7[m][course]))
+            f_result.close()
+    for i in range(int(MODEL_NUM/NUM_ENSEMBLE)):
+        for course in courses:
+            fname_result = '../data/keras/e100_i201/ss_ens%d.txt' % i
+            f_result = open(fname_result, 'a')
+            f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+            m = MODEL_NUM + i
+            f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                            score_sum[m][course], sr1[m][course], sr2[m][course], sr3[m][course], sr4[m][course], sr5[m][course], sr6[m][course], sr7[m][course]))
+            f_result.close()
 
 
 if __name__ == '__main__':
