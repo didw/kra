@@ -313,7 +313,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
             print("model[%d] training.." % (i+1))
             tf.reset_default_graph()
             tflearn.init_graph(gpu_memory_fraction=0.05)
-            input_layer = tflearn.input_data(shape=[None, 119], name='input')
+            input_layer = tflearn.input_data(shape=[None, 152], name='input')
             dense1 = tflearn.fully_connected(input_layer, 128, name='dense1', activation='relu')
             dense1n = tflearn.batch_normalization(dense1, name='BN1')
             dense2 = tflearn.fully_connected(dense1n, 1, name='dense2')
@@ -321,14 +321,14 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
             regression = tflearn.regression(output, optimizer='adam', loss='mean_square',
                                     metric='R2', learning_rate=0.001)
             estimators = tflearn.DNN(regression)
-            if os.path.exists('../model/tflearn/regression_l2_119/%s_%s/model.%d.tfl.meta' % (train_bd, train_ed, i)):
+            if os.path.exists('../model/tflearn/regression_l2_152/%s_%s/model.%d.tfl.meta' % (train_bd, train_ed, i)):
                 print("loading exists model")
-                estimators.load('../model/tflearn/regression_l2_119/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
+                estimators.load('../model/tflearn/regression_l2_152/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
             else:
                 estimators.fit(X_train, Y_train, n_epoch=400, show_metric=True, snapshot_epoch=False)
-            if not os.path.exists('../model/tflearn/regression_l2_119/%s_%s' % (train_bd, train_ed)):
-                os.makedirs('../model/tflearn/regression_l2_119/%s_%s' % (train_bd, train_ed))
-            estimators.save('../model/tflearn/regression_l2_119/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
+            if not os.path.exists('../model/tflearn/regression_l2_152/%s_%s' % (train_bd, train_ed)):
+                os.makedirs('../model/tflearn/regression_l2_152/%s_%s' % (train_bd, train_ed))
+            estimators.save('../model/tflearn/regression_l2_152/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
         print("Finish train model")
 
         test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
@@ -336,9 +336,9 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
 
         for course in courses:
             for kind in kinds:
-                if not os.path.exists('../data/tflearn/regression_l2_119'):
-                    os.makedirs('../data/tflearn/regression_l2_119')
-                fname_result = '../data/tflearn/regression_l2_119/weekly_tf_nsb_v1_ss_train0_m2_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+                if not os.path.exists('../data/tflearn/regression_l2_152'):
+                    os.makedirs('../data/tflearn/regression_l2_152')
+                fname_result = '../data/tflearn/regression_l2_152/weekly_tf_nsb_v1_ss_train0_m2_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
                 X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/2_2007_2016_v1.csv', course, kind, nData=nData)
                 #X_test = X_scaler.transform(X_test)
@@ -362,7 +362,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     X_test = scaler_x.transform(X_test)
                     pred = [0] * MODEL_NUM
                     for i in range(MODEL_NUM):
-                        estimators.load('../model/tflearn/regression_l2_119/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
+                        estimators.load('../model/tflearn/regression_l2_152/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
                         pred[i] = estimators.predict(X_test)
                         pred[i] = scaler_y.inverse_transform(pred[i])
                         score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
@@ -425,7 +425,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                         sr7[MODEL_NUM][course] += 1./MODEL_NUM * sr7[i][course]
                         score_sum[MODEL_NUM][course] += 1./MODEL_NUM * score_sum[i][course]
 
-                    fname_result = '../data/tflearn/regression_l2_119/ss_m_all.txt'
+                    fname_result = '../data/tflearn/regression_l2_152/ss_m_all.txt'
                     f_result = open(fname_result, 'a')
                     f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
                     f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
@@ -472,7 +472,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                             sr7[index_j][course] = res7
                             score_sum[index_j][course] = score
                         
-                        fname_result = '../data/tflearn/regression_l2_119/ss_ens%d.txt' % i
+                        fname_result = '../data/tflearn/regression_l2_152/ss_ens%d.txt' % i
                         f_result = open(fname_result, 'a')
                         f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
                         f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
@@ -500,7 +500,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                         sr7[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr7[index_j][course]
                         score_sum[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * score_sum[index_j][course]
 
-                    fname_result = '../data/tflearn/regression_l2_119/ss_ens_all.txt'
+                    fname_result = '../data/tflearn/regression_l2_152/ss_ens_all.txt'
                     f_result = open(fname_result, 'a')
                     f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
                     f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
