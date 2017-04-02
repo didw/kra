@@ -178,8 +178,8 @@ def print_detail(players, cand, fresult, mode):
             for y in [4,5,6,7]:
                 for z in [4,5,6,7]:
                     if x == y or x == z or y ==z: continue
-                    print("\n%d,%d,%d, %s: 1300" % (x,y,z, mode))
-                    fresult.write("\n%d,%d,%d, %s: 1300" % (x,y,z, mode))
+                    print("\n%s,%s,%s, %s: 1300" % (players[x],players[y],players[z], mode))
+                    fresult.write("\n%s,%s,%s, %s: 1300" % (players[x],players[y],players[z], mode))
     elif cand == [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]]:
         print("bet: 100")  # 14200 / 60 = 200
         print("%s,%s,{%s,%s,%s}" % (players[3], players[4], players[5], players[6], players[7]))
