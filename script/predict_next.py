@@ -226,7 +226,7 @@ def print_detail(players, cand, fresult, mode):
         print("bet: 4000")  # 14200
         print("%s,%s,%s" % (players[0], players[1], players[2]))
         fresult.write("\n\nbet: 4000")  # 14200
-        fresult.write("\n%s,%s,%s" % (players[0], players[1], players[2]))
+        fresult.write("\n%s,%s,%s, %s: 20000" % (players[0], players[1], players[2], mode))
     elif cand == [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]]:
         print("bet: 100") # 14200 / 55 = 258
         print("%s,%s,{%s,%s,%s,%s}" % (players[0], players[1], players[2], players[3], players[4], players[5]))
@@ -277,7 +277,7 @@ def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
     global fname
     fresult = open(fname, 'a')
     fresult.write("%s,%s,%s,%s,%s,%s\n" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-    print_detail(rcdata['idx'], [[1,2,3],[1,2,3],[1,2,3]], fresult, "ss")
+    print_detail(rcdata['idx'], [[1],[2],[3]], fresult, "ss")
     #print_detail(rcdata['idx'], [[4,5,6],[4,5,6],[4,5,6,7]], fresult, "ss")
     fresult.close()
 
@@ -408,7 +408,7 @@ def get_race_detail(date):
 
 if __name__ == '__main__':
     meet = 2
-    date = 20170331
+    date = 20170407
     train_course = 0
     courses = [0,0,0,0,0,0,0,0,0,0,0,0]
     rcno = 0
@@ -423,11 +423,10 @@ if __name__ == '__main__':
         #predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
 
         estimators, md, scaler = tfn.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
-        fname = '../result/1703/%d_%d.txt' % (date%100, rcno)
+        fname = '../result/1704/%d_%d.txt' % (date%100, rcno)
         os.system("rm %s" % fname)
         predict_next_ens(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course, scaler)
         date += 1
-        date = 20170401
         fname = '../result/1704/%d_%d.txt' % (date%100, rcno)
         os.system("rm %s" % fname)
         predict_next_ens(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course, scaler)

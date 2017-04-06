@@ -18,6 +18,7 @@ import tensorflow as tf
 from sklearn.metrics import mean_squared_error
 from sklearn.utils import shuffle
 import tflearn
+from multiprocessing import Process, Queue
 
 MODEL_NUM = 30
 NUM_ENSEMBLE = 6
@@ -214,9 +215,10 @@ def training(train_bd, train_ed, course=0, nData=47):
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
     #os.system('rm -r \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
-    model_name = "../model/tflearn/e300/%d_%d/model.tfl" % (train_bd_i, train_ed_i)
-    if not os.path.exists("../model/tflearn/e300/%d_%d/" % (train_bd_i, train_ed_i)):
-        os.makedirs("../model/tflearn/e300/%d_%d/" % (train_bd_i, train_ed_i))
+    model_dir = "../model/tflearn/regression_l2_i152_bn_e100/%s_%s" % (train_bd, train_ed)
+    model_name = "%s/model.tfl" % model_dir
+    if not os.path.exists(model_dir):
+        os.makedirs(model_dir)
 
     estimators = [0] * MODEL_NUM
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
@@ -251,7 +253,7 @@ def training(train_bd, train_ed, course=0, nData=47):
             estimators[i].load(model_name.replace('.tfl', '.%d.tfl'%i))
         else:
             print("model[%d] training.." % (i+1))
-            estimators[i].fit(X_train, Y_train, n_epoch=300, show_metric=True, snapshot_epoch=False)
+            estimators[i].fit(X_train, Y_train, n_epoch=100, show_metric=True, snapshot_epoch=False)
             # saving model
             estimators[i].save(model_name.replace('.tfl', '.%d.tfl'%i))
     md = joblib.load('../data/2_2007_2016_v1_md.pkl')
@@ -276,291 +278,312 @@ def print_log(data, pred, fname):
     flog.close()
 
 
+def simulation_process(today, sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10, score_sum, delta_day=0, delta_year=0, courses=[0], kinds=[0], nData=47, result_queue=Queue()):
+    train_bd = today + datetime.timedelta(days=-365*delta_year)
+    #train_bd = datetime.date(2011, 1, 1)
+    train_ed = today + datetime.timedelta(days=-delta_day)
+    test_bd = today + datetime.timedelta(days=1)
+    test_ed = today + datetime.timedelta(days=2)
+    test_bd_s = "%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day)
+    test_ed_s = "%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day)
+    if not os.path.exists('../txt/2/rcresult/rcresult_2_%s.txt' % test_bd_s) and not os.path.exists('../txt/2/rcresult/rcresult_2_%s.txt' % test_ed_s):
+        return
+    train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
+    train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
+
+    print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
+    X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_2007_2016_v1.csv', 0, nData=nData)
+    X_train = np.array(X_train)
+    Y_train = np.array(Y_train)
+    scaler_x = StandardScaler()
+    scaler_y = StandardScaler()
+    X_train = scaler_x.fit_transform(X_train)
+    Y_train = scaler_y.fit_transform(Y_train.reshape(-1,1)).reshape(-1)
+    #from sklearn.model_selection import train_test_split
+    #X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, random_state=0)
+    for i in range(MODEL_NUM):
+        print("model[%d] training.." % (i+1))
+        tf.reset_default_graph()
+        tflearn.init_graph(gpu_memory_fraction=0.05)
+        input_layer = tflearn.input_data(shape=[None, 152], name='input')
+        dense1 = tflearn.fully_connected(input_layer, 128, name='dense1', activation='relu')
+        dense1n = tflearn.batch_normalization(dense1, name='BN1')
+        dense2 = tflearn.fully_connected(dense1n, 1, name='dense2')
+        output = tflearn.single_unit(dense2)
+        regression = tflearn.regression(output, optimizer='adam', loss='mean_square',
+                                metric='R2', learning_rate=0.001)
+        estimators = tflearn.DNN(regression)
+        if os.path.exists('../model/tflearn/regression_l2_i152_bn_e100/%s_%s/model.%d.tfl.meta' % (train_bd, train_ed, i)):
+            print("loading exists model")
+            estimators.load('../model/tflearn/regression_l2_i152_bn_e100/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
+        elif os.path.exists('../model/tflearn/regression_l2_i152_bn_e100/%s_%s/model.%d.tfl.meta' % (train_bd, train_ed, i)):
+            print("loading exists e100 model")
+            estimators.load('../model/tflearn/regression_l2_i152_bn_e100/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
+            estimators.fit(X_train, Y_train, n_epoch=300, show_metric=True, snapshot_epoch=False)
+        else:
+            estimators.fit(X_train, Y_train, n_epoch=400, show_metric=True, snapshot_epoch=False)
+        if not os.path.exists('../model/tflearn/regression_l2_i152_bn_e100/%s_%s' % (train_bd, train_ed)):
+            os.makedirs('../model/tflearn/regression_l2_i152_bn_e100/%s_%s' % (train_bd, train_ed))
+        estimators.save('../model/tflearn/regression_l2_i152_bn_e100/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
+    print("Finish train model")
+
+    test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
+    test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
+
+    for course in courses:
+        for kind in kinds:
+            if not os.path.exists('../data/tflearn/regression_l2_i152_bn_e100'):
+                os.makedirs('../data/tflearn/regression_l2_i152_bn_e100')
+            print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
+            X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/2_2007_2016_v1.csv', course, kind, nData=nData)
+            #X_test = X_scaler.transform(X_test)
+            print("%d data is fully loaded" % (len(X_test)))
+
+            print("train data: %s - %s" % (str(train_bd), str(train_ed)))
+            print("test data: %s - %s" % (str(test_bd), str(test_ed)))
+            print("course: %d[%d]" % (course, kind))
+            print("%15s%10s%10s%10s%10s%10s%10s%10s" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+
+            res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            if len(X_test) == 0:
+                res1, res2, res3, res4, res5, res6, res7, res8 = 0, 0, 0, 0, 0, 0, 0, 0
+                continue
+            else:
+                DEBUG = False
+                if DEBUG:
+                    X_test.to_csv('../log/weekly_train0_%s.csv' % today, index=False)
+                X_test = np.array(X_test)
+                Y_test = np.array(Y_test.reshape(-1,1)).reshape(-1)
+                X_test = scaler_x.transform(X_test)
+                pred = [0] * MODEL_NUM
+                for i in range(MODEL_NUM):
+                    estimators.load('../model/tflearn/regression_l2_i152_bn_e100/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
+                    pred[i] = estimators.predict(X_test)
+                    pred[i] = scaler_y.inverse_transform(pred[i])
+                    score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
+
+                    res1 = sim.simulation7(pred[i], R_test, [[1],[2],[3]])
+                    res2 = sim.simulation7(pred[i], R_test, [[1,2],[1,2,3],[1,2,3]])
+                    res3 = sim.simulation7(pred[i], R_test, [[1,2,3],[1,2,3],[1,2,3]])
+                    res4 = sim.simulation7(pred[i], R_test, [[1,2,3,4],[1,2,3,4],[1,2,3,4]])
+                    res5 = sim.simulation7(pred[i], R_test, [[3,4,5],[4,5,6],[4,5,6]])
+                    res6 = sim.simulation7(pred[i], R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
+                    res7 = sim.simulation7(pred[i], R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
+                    
+                    #print("pred[%d] test: " % (i+1), pred[i][0:4])
+                    #print("Y_test[%d] test: " % (i+1), Y_test[0:4])
+                    print("result[%02d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f" % (
+                            i+1, score, res1, res2, res3, res4, res5, res6, res7))
+                    try:
+                        sr1[i][course] += res1
+                        sr2[i][course] += res2
+                        sr3[i][course] += res3
+                        sr4[i][course] += res4
+                        sr5[i][course] += res5
+                        sr6[i][course] += res6
+                        sr7[i][course] += res7
+                        score_sum[i][course] += score
+                    except KeyError:
+                        sr1[i][course] = res1
+                        sr2[i][course] = res2
+                        sr3[i][course] = res3
+                        sr4[i][course] = res4
+                        sr5[i][course] = res5
+                        sr6[i][course] = res6
+                        sr7[i][course] = res7
+                        score_sum[i][course] = score
+
+                    fname_result = '../data/tflearn/regression_l2_i152_bn_e100/ss_m%02d.txt' % i
+                    f_result = open(fname_result, 'a')
+                    f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
+                    f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+                    f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+                    f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                                    score, res1, res2, res3, res4, res5, res6, res7))
+                    f_result.close()
+
+                sr1[MODEL_NUM][course] = 0
+                sr2[MODEL_NUM][course] = 0
+                sr3[MODEL_NUM][course] = 0
+                sr4[MODEL_NUM][course] = 0
+                sr5[MODEL_NUM][course] = 0
+                sr6[MODEL_NUM][course] = 0
+                sr7[MODEL_NUM][course] = 0
+                score_sum[MODEL_NUM][course] = 0
+
+                for i in range(MODEL_NUM):
+                    sr1[MODEL_NUM][course] += 1./MODEL_NUM * sr1[i][course]
+                    sr2[MODEL_NUM][course] += 1./MODEL_NUM * sr2[i][course]
+                    sr3[MODEL_NUM][course] += 1./MODEL_NUM * sr3[i][course]
+                    sr4[MODEL_NUM][course] += 1./MODEL_NUM * sr4[i][course]
+                    sr5[MODEL_NUM][course] += 1./MODEL_NUM * sr5[i][course]
+                    sr6[MODEL_NUM][course] += 1./MODEL_NUM * sr6[i][course]
+                    sr7[MODEL_NUM][course] += 1./MODEL_NUM * sr7[i][course]
+                    score_sum[MODEL_NUM][course] += 1./MODEL_NUM * score_sum[i][course]
+
+                fname_result = '../data/tflearn/regression_l2_i152_bn_e100/ss_m_all.txt'
+                f_result = open(fname_result, 'a')
+                f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
+                f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+                f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+                f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                                score_sum[MODEL_NUM][0], sr1[MODEL_NUM][0], sr2[MODEL_NUM][0], sr3[MODEL_NUM][0], sr4[MODEL_NUM][0], sr5[MODEL_NUM][0], sr6[MODEL_NUM][0], sr7[MODEL_NUM][0]))
+                f_result.close()
+
+                index_sum = MODEL_NUM + int(MODEL_NUM/NUM_ENSEMBLE) + 1
+                for i in range(int(MODEL_NUM/NUM_ENSEMBLE)):
+                    n_split = int(MODEL_NUM/NUM_ENSEMBLE)
+                    pred_ens = np.mean(pred[i*n_split:(i+1)*n_split], axis=0)
+                    score = np.sqrt(np.mean((pred_ens - Y_test)*(pred_ens - Y_test)))
+
+                    res1 = sim.simulation7(pred_ens, R_test, [[1],[2],[3]])
+                    res2 = sim.simulation7(pred_ens, R_test, [[1,2],[1,2,3],[1,2,3]])
+                    res3 = sim.simulation7(pred_ens, R_test, [[1,2,3],[1,2,3],[1,2,3]])
+                    res4 = sim.simulation7(pred_ens, R_test, [[1,2,3,4],[1,2,3,4],[1,2,3,4]])
+                    res5 = sim.simulation7(pred_ens, R_test, [[3,4,5],[4,5,6],[4,5,6]])
+                    res6 = sim.simulation7(pred_ens, R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
+                    res7 = sim.simulation7(pred_ens, R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
+
+                    #print("pred_ens test: ", pred_ens[20:24])
+                    #print("Y_test test: ", Y_test[20:24])
+                    print("result_ens[%2d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f" % (
+                            MODEL_NUM+i+2, score, res1, res2, res3, res4, res5, res6, res7))
+
+                    index_j = MODEL_NUM+i+1
+                    try:
+                        sr1[index_j][course] += res1
+                        sr2[index_j][course] += res2
+                        sr3[index_j][course] += res3
+                        sr4[index_j][course] += res4
+                        sr5[index_j][course] += res5
+                        sr6[index_j][course] += res6
+                        sr7[index_j][course] += res7
+                        score_sum[index_j][course] += score
+                    except KeyError:
+                        sr1[index_j][course] = res1
+                        sr2[index_j][course] = res2
+                        sr3[index_j][course] = res3
+                        sr4[index_j][course] = res4
+                        sr5[index_j][course] = res5
+                        sr6[index_j][course] = res6
+                        sr7[index_j][course] = res7
+                        score_sum[index_j][course] = score
+                    
+                    fname_result = '../data/tflearn/regression_l2_i152_bn_e100/ss_ens%d.txt' % i
+                    f_result = open(fname_result, 'a')
+                    f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
+                    f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+                    f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+                    f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                                    score, res1, res2, res3, res4, res5, res6, res7))
+                    f_result.close()
+
+                sr1[index_sum][course] = 0
+                sr2[index_sum][course] = 0
+                sr3[index_sum][course] = 0
+                sr4[index_sum][course] = 0
+                sr5[index_sum][course] = 0
+                sr6[index_sum][course] = 0
+                sr7[index_sum][course] = 0
+                score_sum[index_sum][course] = 0
+                
+                for i in range(int(MODEL_NUM/NUM_ENSEMBLE)):
+                    index_j = MODEL_NUM+i+1
+                    sr1[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr1[index_j][course]
+                    sr2[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr2[index_j][course]
+                    sr3[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr3[index_j][course]
+                    sr4[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr4[index_j][course]
+                    sr5[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr5[index_j][course]
+                    sr6[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr6[index_j][course]
+                    sr7[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr7[index_j][course]
+                    score_sum[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * score_sum[index_j][course]
+
+                fname_result = '../data/tflearn/regression_l2_i152_bn_e100/ss_ens_all.txt'
+                f_result = open(fname_result, 'a')
+                f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
+                f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+                f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+                f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                                score_sum[index_sum][0], sr1[index_sum][0], sr2[index_sum][0], sr3[index_sum][0], sr4[index_sum][0], sr5[index_sum][0], sr6[index_sum][0], sr7[index_sum][0]))
+                f_result.close()
+
+                """
+                res1 = sim.simulation1(pred, R_test, 1)
+                res2 = sim.simulation2(pred, R_test, 1)
+                res3 = sim.simulation3(pred, R_test, [[1,2]])
+                res4 = sim.simulation4(pred, R_test, [1,2])
+                res5 = sim.simulation5(pred, R_test, [[1,2]])
+                res6 = sim.simulation6(pred, R_test, [[1,2,3]])
+                res7 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3],[2,3,4]])
+
+                res1 = sim.simulation5(pred, R_test, [[1,2]])
+                res2 = sim.simulation5(pred, R_test, [[1,2],[1,3]])
+                res3 = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3]])
+                res4 = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4]])
+                res5 = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4]])
+                res6 = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[1,5]])
+                res7 = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[1,5],[2,5],[3,5],[4,5]])
+                
+                res1 = sim.simulation6(pred, R_test, [[1,2,3]])
+                res2 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,3,4], [2,3,4]])
+                res3 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5]])
+                res4 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5],
+                                                    [1,2,6], [1,3,6], [1,4,6], [1,5,6], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
+                res5 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5],
+                                                    [1,2,6], [1,3,6], [1,4,6], [1,5,6], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6],
+                                                    [1,2,7], [1,3,7], [1,4,7], [1,5,7], [2,3,7], [2,4,7], [2,5,7], [3,4,7], [3,5,7], [4,5,7],
+                                                    [1,6,7], [2,6,7], [3,6,7], [4,6,7], [5,6,7]
+                                                    ])
+                res6 = sim.simulation6(pred, R_test, [[2,3,4], [2,3,5], [2,4,5], [3,4,5], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
+                res7 = sim.simulation6(pred, R_test, [[3,4,5], [3,4,6], [3,4,7], [3,5,6], [3,5,7], [3,6,7], [4,5,6], [4,5,7], [4,6,7], [5,6,7]])
+                
+                res1 = sim.simulation7(pred, R_test, [[1],[2],[3]])
+                res2 = sim.simulation7(pred, R_test, [[1,2],[1,2,3],[1,2,3]])
+                res3 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
+                res4 = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]])
+                res5 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6]])
+                res6 = sim.simulation7(pred, R_test, [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]])
+                res7 = sim.simulation7(pred, R_test, [[5,6,7,8,9,10],[5,6,7,8,9,10],[5,6,7,8,9,10]])
+                
+                res1 = sim.simulation2(pred, R_test, 1)
+                res2 = sim.simulation2(pred, R_test, 2)
+                res3 = sim.simulation2(pred, R_test, 3)
+                res4 = sim.simulation2(pred, R_test, 4)
+                res5 = sim.simulation2(pred, R_test, 5)
+                res6 = sim.simulation2(pred, R_test, 6)
+                res7 = sim.simulation2(pred, R_test, 7)
+                """
+            for m in range(MODEL_NUM+int(MODEL_NUM/NUM_ENSEMBLE)+2):
+                print("result[%02d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f" % (
+                        m, score_sum[m][course], sr1[m][course], sr2[m][course], sr3[m][course], sr4[m][course], sr5[m][course], sr6[m][course], sr7[m][course]))
+    result_queue.put((sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10, score_sum))
+
+
 def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, courses=[0], kinds=[0], nData=47):
     remove_outlier = False
     today = begin_date
     def m():
         return [{0:0} for _ in range(MODEL_NUM+int(MODEL_NUM/NUM_ENSEMBLE)+2)]
     sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10, score_sum = m(),m(),m(),m(),m(),m(),m(),m(),m(),m(),m()
+    result_queue = Queue()
     while today <= end_date:
         while today.weekday() != 2:
             today = today + datetime.timedelta(days=1)
-
         today = today + datetime.timedelta(days=1)
-        train_bd = today + datetime.timedelta(days=-365*delta_year)
-        #train_bd = datetime.date(2011, 1, 1)
-        train_ed = today + datetime.timedelta(days=-delta_day)
         test_bd = today + datetime.timedelta(days=1)
         test_ed = today + datetime.timedelta(days=2)
         test_bd_s = "%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day)
         test_ed_s = "%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day)
         if not os.path.exists('../txt/2/rcresult/rcresult_2_%s.txt' % test_bd_s) and not os.path.exists('../txt/2/rcresult/rcresult_2_%s.txt' % test_ed_s):
             continue
-        train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
-        train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
+        p = Process(target=simulation_process, args=(today, sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10, score_sum, delta_day, delta_year, courses, kinds, nData, result_queue))
+        p.start()
+        p.join()
+        sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10, score_sum = result_queue.get()
 
-        print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-        X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_2007_2016_v1.csv', 0, nData=nData)
-        X_train = np.array(X_train)
-        Y_train = np.array(Y_train)
-        scaler_x = StandardScaler()
-        scaler_y = StandardScaler()
-        X_train = scaler_x.fit_transform(X_train)
-        Y_train = scaler_y.fit_transform(Y_train.reshape(-1,1)).reshape(-1)
-        #from sklearn.model_selection import train_test_split
-        #X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, random_state=0)
-        for i in range(MODEL_NUM):
-            print("model[%d] training.." % (i+1))
-            tf.reset_default_graph()
-            tflearn.init_graph(gpu_memory_fraction=0.05)
-            input_layer = tflearn.input_data(shape=[None, 152], name='input')
-            dense1 = tflearn.fully_connected(input_layer, 128, name='dense1', activation='relu')
-            dense1n = tflearn.batch_normalization(dense1, name='BN1')
-            dense2 = tflearn.fully_connected(dense1n, 1, name='dense2')
-            output = tflearn.single_unit(dense2)
-            regression = tflearn.regression(output, optimizer='adam', loss='mean_square',
-                                    metric='R2', learning_rate=0.001)
-            estimators = tflearn.DNN(regression)
-            if os.path.exists('../model/tflearn/regression_l2_152/%s_%s/model.%d.tfl.meta' % (train_bd, train_ed, i)):
-                print("loading exists model")
-                estimators.load('../model/tflearn/regression_l2_152/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
-            else:
-                estimators.fit(X_train, Y_train, n_epoch=400, show_metric=True, snapshot_epoch=False)
-            if not os.path.exists('../model/tflearn/regression_l2_152/%s_%s' % (train_bd, train_ed)):
-                os.makedirs('../model/tflearn/regression_l2_152/%s_%s' % (train_bd, train_ed))
-            estimators.save('../model/tflearn/regression_l2_152/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
-        print("Finish train model")
-
-        test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
-        test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
-
-        for course in courses:
-            for kind in kinds:
-                if not os.path.exists('../data/tflearn/regression_l2_152'):
-                    os.makedirs('../data/tflearn/regression_l2_152')
-                fname_result = '../data/tflearn/regression_l2_152/weekly_tf_nsb_v1_ss_train0_m2_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
-                print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
-                X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/2_2007_2016_v1.csv', course, kind, nData=nData)
-                #X_test = X_scaler.transform(X_test)
-                print("%d data is fully loaded" % (len(X_test)))
-
-                print("train data: %s - %s" % (str(train_bd), str(train_ed)))
-                print("test data: %s - %s" % (str(test_bd), str(test_ed)))
-                print("course: %d[%d]" % (course, kind))
-                print("%15s%10s%10s%10s%10s%10s%10s%10s" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
-
-                res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-                if len(X_test) == 0:
-                    res1, res2, res3, res4, res5, res6, res7, res8 = 0, 0, 0, 0, 0, 0, 0, 0
-                    continue
-                else:
-                    DEBUG = False
-                    if DEBUG:
-                        X_test.to_csv('../log/weekly_train0_%s.csv' % today, index=False)
-                    X_test = np.array(X_test)
-                    Y_test = np.array(Y_test.reshape(-1,1)).reshape(-1)
-                    X_test = scaler_x.transform(X_test)
-                    pred = [0] * MODEL_NUM
-                    for i in range(MODEL_NUM):
-                        estimators.load('../model/tflearn/regression_l2_152/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
-                        pred[i] = estimators.predict(X_test)
-                        pred[i] = scaler_y.inverse_transform(pred[i])
-                        score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
-
-                        res1 = sim.simulation7(pred[i], R_test, [[1],[2],[3]])
-                        res2 = sim.simulation7(pred[i], R_test, [[1,2],[1,2,3],[1,2,3]])
-                        res3 = sim.simulation7(pred[i], R_test, [[1,2,3],[1,2,3],[1,2,3]])
-                        res4 = sim.simulation7(pred[i], R_test, [[1,2,3,4],[1,2,3,4],[1,2,3,4]])
-                        res5 = sim.simulation7(pred[i], R_test, [[3,4,5],[4,5,6],[4,5,6]])
-                        res6 = sim.simulation7(pred[i], R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
-                        res7 = sim.simulation7(pred[i], R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
-                        
-                        #print("pred[%d] test: " % (i+1), pred[i][0:4])
-                        #print("Y_test[%d] test: " % (i+1), Y_test[0:4])
-                        print("result[%02d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f" % (
-                                i+1, score, res1, res2, res3, res4, res5, res6, res7))
-                        try:
-                            sr1[i][course] += res1
-                            sr2[i][course] += res2
-                            sr3[i][course] += res3
-                            sr4[i][course] += res4
-                            sr5[i][course] += res5
-                            sr6[i][course] += res6
-                            sr7[i][course] += res7
-                            score_sum[i][course] += score
-                        except KeyError:
-                            sr1[i][course] = res1
-                            sr2[i][course] = res2
-                            sr3[i][course] = res3
-                            sr4[i][course] = res4
-                            sr5[i][course] = res5
-                            sr6[i][course] = res6
-                            sr7[i][course] = res7
-                            score_sum[i][course] = score
-
-                        fname_result = '../data/tflearn/regression_l2_i204_bn_e50/ss_m%02d.txt' % i
-                        f_result = open(fname_result, 'a')
-                        f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
-                        f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
-                        f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
-                        f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                                        score, res1, res2, res3, res4, res5, res6, res7))
-
-                    sr1[MODEL_NUM][course] = 0
-                    sr2[MODEL_NUM][course] = 0
-                    sr3[MODEL_NUM][course] = 0
-                    sr4[MODEL_NUM][course] = 0
-                    sr5[MODEL_NUM][course] = 0
-                    sr6[MODEL_NUM][course] = 0
-                    sr7[MODEL_NUM][course] = 0
-                    score_sum[MODEL_NUM][course] = 0
-
-                    for i in range(MODEL_NUM):
-                        sr1[MODEL_NUM][course] += 1./MODEL_NUM * sr1[i][course]
-                        sr2[MODEL_NUM][course] += 1./MODEL_NUM * sr2[i][course]
-                        sr3[MODEL_NUM][course] += 1./MODEL_NUM * sr3[i][course]
-                        sr4[MODEL_NUM][course] += 1./MODEL_NUM * sr4[i][course]
-                        sr5[MODEL_NUM][course] += 1./MODEL_NUM * sr5[i][course]
-                        sr6[MODEL_NUM][course] += 1./MODEL_NUM * sr6[i][course]
-                        sr7[MODEL_NUM][course] += 1./MODEL_NUM * sr7[i][course]
-                        score_sum[MODEL_NUM][course] += 1./MODEL_NUM * score_sum[i][course]
-
-                    fname_result = '../data/tflearn/regression_l2_152/ss_m_all.txt'
-                    f_result = open(fname_result, 'a')
-                    f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
-                    f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
-                    f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
-                    f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                                    score_sum[MODEL_NUM][0], sr1[MODEL_NUM][0], sr2[MODEL_NUM][0], sr3[MODEL_NUM][0], sr4[MODEL_NUM][0], sr5[MODEL_NUM][0], sr6[MODEL_NUM][0], sr7[MODEL_NUM][0]))
-
-                    index_sum = MODEL_NUM + int(MODEL_NUM/NUM_ENSEMBLE) + 1
-                    for i in range(int(MODEL_NUM/NUM_ENSEMBLE)):
-                        n_split = int(MODEL_NUM/NUM_ENSEMBLE)
-                        pred_ens = np.mean(pred[i*n_split:(i+1)*n_split], axis=0)
-                        score = np.sqrt(np.mean((pred_ens - Y_test)*(pred_ens - Y_test)))
-
-                        res1 = sim.simulation7(pred_ens, R_test, [[1],[2],[3]])
-                        res2 = sim.simulation7(pred_ens, R_test, [[1,2],[1,2,3],[1,2,3]])
-                        res3 = sim.simulation7(pred_ens, R_test, [[1,2,3],[1,2,3],[1,2,3]])
-                        res4 = sim.simulation7(pred_ens, R_test, [[1,2,3,4],[1,2,3,4],[1,2,3,4]])
-                        res5 = sim.simulation7(pred_ens, R_test, [[3,4,5],[4,5,6],[4,5,6]])
-                        res6 = sim.simulation7(pred_ens, R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
-                        res7 = sim.simulation7(pred_ens, R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
-
-                        #print("pred_ens test: ", pred_ens[20:24])
-                        #print("Y_test test: ", Y_test[20:24])
-                        print("result_ens[%2d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f" % (
-                                MODEL_NUM+i+2, score, res1, res2, res3, res4, res5, res6, res7))
-
-                        index_j = MODEL_NUM+i+1
-                        try:
-                            sr1[index_j][course] += res1
-                            sr2[index_j][course] += res2
-                            sr3[index_j][course] += res3
-                            sr4[index_j][course] += res4
-                            sr5[index_j][course] += res5
-                            sr6[index_j][course] += res6
-                            sr7[index_j][course] += res7
-                            score_sum[index_j][course] += score
-                        except KeyError:
-                            sr1[index_j][course] = res1
-                            sr2[index_j][course] = res2
-                            sr3[index_j][course] = res3
-                            sr4[index_j][course] = res4
-                            sr5[index_j][course] = res5
-                            sr6[index_j][course] = res6
-                            sr7[index_j][course] = res7
-                            score_sum[index_j][course] = score
-                        
-                        fname_result = '../data/tflearn/regression_l2_152/ss_ens%d.txt' % i
-                        f_result = open(fname_result, 'a')
-                        f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
-                        f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
-                        f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
-                        f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                                        score, res1, res2, res3, res4, res5, res6, res7))
-
-                    sr1[index_sum][course] = 0
-                    sr2[index_sum][course] = 0
-                    sr3[index_sum][course] = 0
-                    sr4[index_sum][course] = 0
-                    sr5[index_sum][course] = 0
-                    sr6[index_sum][course] = 0
-                    sr7[index_sum][course] = 0
-                    score_sum[index_sum][course] = 0
-                    
-                    for i in range(int(MODEL_NUM/NUM_ENSEMBLE)):
-                        index_j = MODEL_NUM+i+1
-                        sr1[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr1[index_j][course]
-                        sr2[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr2[index_j][course]
-                        sr3[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr3[index_j][course]
-                        sr4[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr4[index_j][course]
-                        sr5[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr5[index_j][course]
-                        sr6[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr6[index_j][course]
-                        sr7[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr7[index_j][course]
-                        score_sum[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * score_sum[index_j][course]
-
-                    fname_result = '../data/tflearn/regression_l2_152/ss_ens_all.txt'
-                    f_result = open(fname_result, 'a')
-                    f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
-                    f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
-                    f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
-                    f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                                    score_sum[index_sum][0], sr1[index_sum][0], sr2[index_sum][0], sr3[index_sum][0], sr4[index_sum][0], sr5[index_sum][0], sr6[index_sum][0], sr7[index_sum][0]))
-
-                    """
-                    res1 = sim.simulation1(pred, R_test, 1)
-                    res2 = sim.simulation2(pred, R_test, 1)
-                    res3 = sim.simulation3(pred, R_test, [[1,2]])
-                    res4 = sim.simulation4(pred, R_test, [1,2])
-                    res5 = sim.simulation5(pred, R_test, [[1,2]])
-                    res6 = sim.simulation6(pred, R_test, [[1,2,3]])
-                    res7 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3],[2,3,4]])
-
-                    res1 = sim.simulation5(pred, R_test, [[1,2]])
-                    res2 = sim.simulation5(pred, R_test, [[1,2],[1,3]])
-                    res3 = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3]])
-                    res4 = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4]])
-                    res5 = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4]])
-                    res6 = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[1,5]])
-                    res7 = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[1,5],[2,5],[3,5],[4,5]])
-                    
-                    res1 = sim.simulation6(pred, R_test, [[1,2,3]])
-                    res2 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,3,4], [2,3,4]])
-                    res3 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5]])
-                    res4 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5],
-                                                        [1,2,6], [1,3,6], [1,4,6], [1,5,6], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
-                    res5 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5],
-                                                        [1,2,6], [1,3,6], [1,4,6], [1,5,6], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6],
-                                                        [1,2,7], [1,3,7], [1,4,7], [1,5,7], [2,3,7], [2,4,7], [2,5,7], [3,4,7], [3,5,7], [4,5,7],
-                                                        [1,6,7], [2,6,7], [3,6,7], [4,6,7], [5,6,7]
-                                                        ])
-                    res6 = sim.simulation6(pred, R_test, [[2,3,4], [2,3,5], [2,4,5], [3,4,5], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
-                    res7 = sim.simulation6(pred, R_test, [[3,4,5], [3,4,6], [3,4,7], [3,5,6], [3,5,7], [3,6,7], [4,5,6], [4,5,7], [4,6,7], [5,6,7]])
-                    
-                    res1 = sim.simulation7(pred, R_test, [[1],[2],[3]])
-                    res2 = sim.simulation7(pred, R_test, [[1,2],[1,2,3],[1,2,3]])
-                    res3 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
-                    res4 = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]])
-                    res5 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6]])
-                    res6 = sim.simulation7(pred, R_test, [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]])
-                    res7 = sim.simulation7(pred, R_test, [[5,6,7,8,9,10],[5,6,7,8,9,10],[5,6,7,8,9,10]])
-                    
-                    res1 = sim.simulation2(pred, R_test, 1)
-                    res2 = sim.simulation2(pred, R_test, 2)
-                    res3 = sim.simulation2(pred, R_test, 3)
-                    res4 = sim.simulation2(pred, R_test, 4)
-                    res5 = sim.simulation2(pred, R_test, 5)
-                    res6 = sim.simulation2(pred, R_test, 6)
-                    res7 = sim.simulation2(pred, R_test, 7)
-                    """
-                for m in range(MODEL_NUM+int(MODEL_NUM/NUM_ENSEMBLE)+2):
-                    print("result[%02d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f" % (
-                            m, score_sum[m][course], sr1[m][course], sr2[m][course], sr3[m][course], sr4[m][course], sr5[m][course], sr6[m][course], sr7[m][course]))
-                f_result.close()
     for m in range(MODEL_NUM):
         for course in courses:
-            fname_result = '../data/tflearn/regression_l2_i204_bn_e50/ss_m%02d.txt' % m
+            fname_result = '../data/tflearn/regression_l2_i152_bn_e100/ss_m%02d.txt' % m
             f_result = open(fname_result, 'a')
             f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
             f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
@@ -568,7 +591,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
             f_result.close()
     for i in range(int(MODEL_NUM/NUM_ENSEMBLE)):
         for course in courses:
-            fname_result = '../data/tflearn/regression_l2_i204_bn_e50/ss_ens%d.txt' % i
+            fname_result = '../data/tflearn/regression_l2_i152_bn_e100/ss_ens%d.txt' % i
             f_result = open(fname_result, 'a')
             f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
             m = MODEL_NUM + i
@@ -583,10 +606,10 @@ if __name__ == '__main__':
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
     test_bd = datetime.date(2016, 6, 4)
-    test_ed = datetime.date(2017, 3, 19)
+    test_ed = datetime.date(2017, 3, 30)
 
     for delta_year in [8]:
-        for nData in [137]:
+        for nData in [152]:
             simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[0], nData=nData)
             #for c in [1000, 1200, 1300, 1400, 1700]:
             #    for k in [0]:
