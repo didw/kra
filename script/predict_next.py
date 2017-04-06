@@ -178,8 +178,8 @@ def print_detail(players, cand, fresult, mode):
             for y in [4,5,6,7]:
                 for z in [4,5,6,7]:
                     if x == y or x == z or y ==z: continue
-                    print("\n%s,%s,%s, %s: 1300" % (players[x],players[y],players[z], mode))
-                    fresult.write("\n%s,%s,%s, %s: 1300" % (players[x],players[y],players[z], mode))
+                    print("\n%s,%s,%s, %s: 800" % (players[x],players[y],players[z], mode))
+                    fresult.write("\n%s,%s,%s, %s: 800" % (players[x],players[y],players[z], mode))
     elif cand == [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]]:
         print("bet: 100")  # 14200 / 60 = 200
         print("%s,%s,{%s,%s,%s}" % (players[3], players[4], players[5], players[6], players[7]))
@@ -399,7 +399,7 @@ def get_race_detail(date):
 
 if __name__ == '__main__':
     meet = 3
-    date = 20170331
+    date = 20170407
     train_course = 0
     courses = [0,0,0,0,0,0,0,0,0,0,0,0,0]
     rcno = 0
@@ -413,11 +413,10 @@ if __name__ == '__main__':
         #predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
 
         estimators, md, scaler = tfn.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
-        fname = '../result/1703/%d_%d.txt' % (date%100, rcno)
+        fname = '../result/1704/%d_%d.txt' % (date%100, rcno)
         os.system("rm %s" % fname)
         predict_next_ens(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course, scaler)
         date += 2
-        date = 20170402
         fname = '../result/1704/%d_%d.txt' % (date%100, rcno)
         os.system("rm %s" % fname)
         predict_next_ens(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course, scaler)
