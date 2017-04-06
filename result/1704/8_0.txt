@@ -1,0 +1,217 @@
+
+
+
+=== rcno: 1, nData: 160, year: 8, train_course: 0, model: 10 ===
+1,4,5,8,9,6
+
+
+bet: 4000
+1,4,5, ss: 20000
+
+
+=== rcno: 2, nData: 160, year: 8, train_course: 0, model: 10 ===
+4,6,7,10,9,5
+
+
+bet: 4000
+4,6,7, ss: 20000
+
+
+=== rcno: 3, nData: 160, year: 8, train_course: 0, model: 10 ===
+8,2,9,3,6,7
+
+
+bet: 4000
+8,2,9, ss: 20000
+
+
+=== rcno: 4, nData: 160, year: 8, train_course: 0, model: 10 ===
+3,12,1,2,10,11
+
+
+bet: 4000
+3,12,1, ss: 20000
+
+
+=== rcno: 5, nData: 160, year: 8, train_course: 0, model: 10 ===
+1,4,3,6,7,2
+
+
+bet: 4000
+1,4,3, ss: 20000
+
+
+=== rcno: 6, nData: 160, year: 8, train_course: 0, model: 10 ===
+11,12,6,2,3,4
+
+
+bet: 4000
+11,12,6, ss: 20000
+
+
+=== rcno: 7, nData: 160, year: 8, train_course: 0, model: 10 ===
+2,9,1,6,3,4
+
+
+bet: 4000
+2,9,1, ss: 20000
+
+
+=== rcno: 8, nData: 160, year: 8, train_course: 0, model: 10 ===
+10,7,4,3,9,1
+
+
+bet: 4000
+10,7,4, ss: 20000
+
+
+=== rcno: 9, nData: 160, year: 8, train_course: 0, model: 10 ===
+1,5,8,4,6,7
+
+
+bet: 4000
+1,5,8, ss: 20000
+
+
+=== rcno: 1, nData: 160, year: 8, train_course: 0, model: 10 ===
+1,4,5,10,9,8
+
+
+bet: 4000
+1,4,5, ss: 20000
+
+
+=== rcno: 2, nData: 160, year: 8, train_course: 0, model: 10 ===
+4,6,10,7,2,5
+
+
+bet: 4000
+4,6,10, ss: 20000
+
+
+=== rcno: 3, nData: 160, year: 8, train_course: 0, model: 10 ===
+8,9,3,4,2,6
+
+
+bet: 4000
+8,9,3, ss: 20000
+
+
+=== rcno: 4, nData: 160, year: 8, train_course: 0, model: 10 ===
+3,1,12,10,2,11
+
+
+bet: 4000
+3,1,12, ss: 20000
+
+
+=== rcno: 5, nData: 160, year: 8, train_course: 0, model: 10 ===
+1,4,3,6,7,2
+
+
+bet: 4000
+1,4,3, ss: 20000
+
+
+=== rcno: 6, nData: 160, year: 8, train_course: 0, model: 10 ===
+11,12,2,4,6,7
+
+
+bet: 4000
+11,12,2, ss: 20000
+
+
+=== rcno: 7, nData: 160, year: 8, train_course: 0, model: 10 ===
+2,1,6,9,4,3
+
+
+bet: 4000
+2,1,6, ss: 20000
+
+
+=== rcno: 8, nData: 160, year: 8, train_course: 0, model: 10 ===
+10,7,3,6,4,1
+
+
+bet: 4000
+10,7,3, ss: 20000
+
+
+=== rcno: 9, nData: 160, year: 8, train_course: 0, model: 10 ===
+8,1,5,4,6,7
+
+
+bet: 4000
+8,1,5, ss: 20000
+
+
+=== rcno: 1, nData: 160, year: 8, train_course: 0, model: 10 ===
+4,1,5,9,8,6
+
+
+bet: 4000
+4,1,5, ss: 20000
+
+
+=== rcno: 2, nData: 160, year: 8, train_course: 0, model: 10 ===
+4,6,7,10,5,2
+
+
+bet: 4000
+4,6,7, ss: 20000
+
+
+=== rcno: 3, nData: 160, year: 8, train_course: 0, model: 10 ===
+9,8,3,6,2,7
+
+
+bet: 4000
+9,8,3, ss: 20000
+
+
+=== rcno: 4, nData: 160, year: 8, train_course: 0, model: 10 ===
+3,1,12,11,10,2
+
+
+bet: 4000
+3,1,12, ss: 20000
+
+
+=== rcno: 5, nData: 160, year: 8, train_course: 0, model: 10 ===
+1,4,3,6,7,2
+
+
+bet: 4000
+1,4,3, ss: 20000
+
+
+=== rcno: 6, nData: 160, year: 8, train_course: 0, model: 10 ===
+6,12,11,2,8,3
+
+
+bet: 4000
+6,12,11, ss: 20000
+
+
+=== rcno: 7, nData: 160, year: 8, train_course: 0, model: 10 ===
+1,2,6,3,9,8
+
+
+bet: 4000
+1,2,6, ss: 20000
+
+
+=== rcno: 8, nData: 160, year: 8, train_course: 0, model: 10 ===
+10,7,3,4,9,6
+
+
+bet: 4000
+10,7,3, ss: 20000
+
+
+=== rcno: 9, nData: 160, year: 8, train_course: 0, model: 10 ===
+8,1,5,4,6,7
+
+
+bet: 4000
+8,1,5, ss: 20000
