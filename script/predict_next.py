@@ -9,6 +9,7 @@ import datetime
 import train as tr
 import train_keras as tk
 import train_tf_ensenble as tfn
+import train_keras_ensenble as tkn
 from get_race_detail import RaceDetail
 import numpy as np
 import os
@@ -132,15 +133,15 @@ def print_detail(players, cand, fresult, mode):
 
         fresult.write("\n%s,%s,%s, %s: 9000" % (players[0], players[1], players[2], mode))
     elif cand == [[1,2],[1,2,3],[1,2,3]] and mode == "ss":
-        print("%s,%s,%s, %s: 500" % (players[0], players[1], players[2], mode))
-        print("%s,%s,%s, %s: 500" % (players[0], players[2], players[1], mode))
-        print("%s,%s,%s, %s: 500" % (players[1], players[0], players[2], mode))
-        print("%s,%s,%s, %s: 500" % (players[1], players[2], players[0], mode))
+        print("%s,%s,%s, %s: 2500" % (players[0], players[1], players[2], mode))
+        print("%s,%s,%s, %s: 2500" % (players[0], players[2], players[1], mode))
+        print("%s,%s,%s, %s: 2500" % (players[1], players[0], players[2], mode))
+        print("%s,%s,%s, %s: 2500" % (players[1], players[2], players[0], mode))
 
-        fresult.write("\n%s,%s,%s, %s: 18000" % (players[0], players[1], players[2], mode))
-        fresult.write("\n%s,%s,%s, %s: 5000" % (players[0], players[2], players[1], mode))
-        fresult.write("\n%s,%s,%s, %s: 5000" % (players[1], players[0], players[2], mode))
-        fresult.write("\n%s,%s,%s, %s: 5000" % (players[1], players[2], players[0], mode))
+        fresult.write("\n%s,%s,%s, %s: 2500" % (players[0], players[1], players[2], mode))
+        fresult.write("\n%s,%s,%s, %s: 2500" % (players[0], players[2], players[1], mode))
+        fresult.write("\n%s,%s,%s, %s: 2500" % (players[1], players[0], players[2], mode))
+        fresult.write("\n%s,%s,%s, %s: 2500" % (players[1], players[2], players[0], mode))
     elif cand == [[1,2,3],[1,2,3],[1,2,3]] and mode == "ss":
         print("%s,%s,%s, %s: 500" % (players[0], players[1], players[2], mode))
         print("%s,%s,%s, %s: 500" % (players[0], players[2], players[1], mode))
@@ -155,6 +156,23 @@ def print_detail(players, cand, fresult, mode):
         fresult.write("\n%s,%s,%s, %s: 500" % (players[1], players[2], players[0], mode))
         fresult.write("\n%s,%s,%s, %s: 500" % (players[2], players[0], players[1], mode))
         fresult.write("\n%s,%s,%s, %s: 500" % (players[2], players[1], players[0], mode))
+    elif cand == [[3,4,5],[4,5,6],[4,5,6]]:
+        print("bet: 2000")  # 14200 / 6 = 2366
+        print("%s,%s,%s" % (players[2], players[3], players[4]))
+        print("%s,%s,%s" % (players[2], players[4], players[3]))
+        print("%s,%s,%s" % (players[3], players[2], players[4]))
+        print("%s,%s,%s" % (players[3], players[4], players[2]))
+        print("%s,%s,%s" % (players[4], players[2], players[3]))
+        print("%s,%s,%s" % (players[4], players[3], players[2]))
+
+        fresult.write("\n\nbet: 700")  # 14200 / 6 = 2366
+        fresult.write("\n%s,%s,%s, %s: 1700" % (players[2], players[3], players[4], mode))
+        fresult.write("\n%s,%s,%s, %s: 1700" % (players[2], players[4], players[3], mode))
+        fresult.write("\n%s,%s,%s, %s: 1700" % (players[3], players[2], players[4], mode))
+        fresult.write("\n%s,%s,%s, %s: 1700" % (players[3], players[4], players[2], mode))
+        fresult.write("\n%s,%s,%s, %s: 1600" % (players[4], players[2], players[3], mode))
+        fresult.write("\n%s,%s,%s, %s: 1600" % (players[4], players[3], players[2], mode))
+
     elif cand == [[4,5,6],[4,5,6],[4,5,6]]:
         print("bet: 2000")  # 14200 / 6 = 2366
         print("%s,%s,%s" % (players[3], players[4], players[5]))
@@ -264,8 +282,9 @@ def print_bet(rcdata, course=0, year=4, nData=47, train_course=0, tried=0):
     global fname
     fresult = open(fname, 'a')
     fresult.write("%s,%s,%s,%s,%s,%s\n" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-    #print_detail(rcdata['idx'], [[1,2],[1,2,3],[1,2,3]], fresult, "ss")
-    print_detail(rcdata['idx'], [[4,5,6,7],[4,5,6,7],[4,5,6,7]], fresult, "ss")
+    print_detail(rcdata['idx'], [[1,2],[1,2,3],[1,2,3]], fresult, "ss")
+    print_detail(rcdata['idx'], [[3,4,5],[4,5,6],[4,5,6]], fresult, "ss")
+    #print_detail(rcdata['idx'], [[4,5,6,7],[4,5,6,7],[4,5,6,7]], fresult, "ss")
 
     fresult.close()
 
@@ -337,8 +356,8 @@ def predict_next_ens(estimators_, md, rd, meet, date, rcno, course=0, nData=47, 
     X_array = np.array(X_data)
     X_array = scaler[0].transform(X_array)
 
-    for e in range(3):
-        estimators = estimators_[e*10:(e+1)*10]
+    for e in range(5):
+        estimators = estimators_[e*6:(e+1)*6]
         preds = [0]*len(estimators)
         for i in range(len(estimators)):
             preds[i] = estimators[i].predict(X_array)
@@ -406,18 +425,18 @@ if __name__ == '__main__':
     course = courses[rcno]
     test_course = course
     rd = get_race_detail(date)
-    for nData, year, train_course in zip([212], [8], [0]):
+    for nData, year, train_course in zip([204], [8], [0]):
         if train_course == 1: train_course = course
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
         #estimator, md = tk.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
         #predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
 
-        estimators, md, scaler = tfn.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
-        fname = '../result/1704/%d_%d.txt' % (date%100, rcno)
+        estimators, md, scaler = tkn.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
+        fname = '../result/1704/%d_1.txt' % (date%100,)
         os.system("rm %s" % fname)
         predict_next_ens(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course, scaler)
         date += 2
-        fname = '../result/1704/%d_%d.txt' % (date%100, rcno)
+        fname = '../result/1704/%d_1.txt' % (date%100,)
         os.system("rm %s" % fname)
         predict_next_ens(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course, scaler)
 
