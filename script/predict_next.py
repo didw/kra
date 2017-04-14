@@ -133,10 +133,10 @@ def print_detail(players, cand, fresult, mode):
         print("%s,%s,%s, %s: 500" % (players[1], players[0], players[2], mode))
         print("%s,%s,%s, %s: 500" % (players[1], players[2], players[0], mode))
 
-        fresult.write("\n%s,%s,%s, %s: 18000" % (players[0], players[1], players[2], mode))
-        fresult.write("\n%s,%s,%s, %s: 5000" % (players[0], players[2], players[1], mode))
-        fresult.write("\n%s,%s,%s, %s: 5000" % (players[1], players[0], players[2], mode))
-        fresult.write("\n%s,%s,%s, %s: 5000" % (players[1], players[2], players[0], mode))
+        fresult.write("\n%s,%s,%s, %s: 4000" % (players[0], players[1], players[2], mode))
+        fresult.write("\n%s,%s,%s, %s: 2000" % (players[0], players[2], players[1], mode))
+        fresult.write("\n%s,%s,%s, %s: 2000" % (players[1], players[0], players[2], mode))
+        fresult.write("\n%s,%s,%s, %s: 2000" % (players[1], players[2], players[0], mode))
     elif cand == [[4,5,6],[4,5,6],[4,5,6]]:
         print("bet: 2000")  # 14200 / 6 = 2366
         print("%s,%s,%s" % (players[3], players[4], players[5]))
@@ -340,8 +340,8 @@ def predict_next_ens(estimators_, md, rd, meet, date, rcno, course=0, nData=47, 
     print(len(X_data.columns))
     X_array = np.array(X_data)
 
-    for e in range(3):
-        estimators = estimators_[e*10:(e+1)*10]
+    for e in range(5):
+        estimators = estimators_[e*6:(e+1)*6]
         preds = [0]*len(estimators)
         for i in range(len(estimators)):
             preds[i] = estimators[i].predict(X_array)
@@ -401,7 +401,7 @@ def get_race_detail(date):
 
 if __name__ == '__main__':
     meet = 1
-    date = 20170408
+    date = 20170415
     train_course = 0
     courses = [0,0,0,0,0,0,0,0,0,0,0,0,0]
     rcno = 0
@@ -416,11 +416,11 @@ if __name__ == '__main__':
         #predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
 
         estimators, md = tkn.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
-        fname = '../result/1704/%d_%d.txt' % (date%100, rcno)
+        fname = '../result/1704/%d_0.txt' % (date%100)
         os.system("rm %s" % fname)
         predict_next_ens(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course)
         date += 1
-        fname = '../result/1704/%d_%d.txt' % (date%100, rcno)
+        fname = '../result/1704/%d_0.txt' % (date%100)
         os.system("rm %s" % fname)
         predict_next_ens(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course)
 
