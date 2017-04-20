@@ -423,7 +423,7 @@ def parse_txt_horse(date, rcno, name, course, md=mean_data()):
             birth = re.search(unicode(r'\d{4}/\d{2}/\d{2}', 'utf-8').encode('utf-8'), line).group()
             data.append((date - datetime.date(int(birth[:4]), int(birth[5:7]), int(birth[8:]))).days)
             participates = re.search(unicode(r'\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().replace(',', '').split()
-            dist_rec = gdd.get_distance_record(1, name, rcno, date, course)
+            dist_rec = gdd.get_distance_record(1, name, rcno, date, course, md)
             #print(participates)
             if int(participates[0]) == 0:
                 #data.extend([0, -1, -1, -1, -1])
@@ -599,7 +599,7 @@ def get_data2(filename, _date, _rcno):
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/1/rcresult/rcresult_1_20070113.txt'
+    filename = '../txt/1/rcresult/rcresult_1_20170408.txt'
     rd = RaceDetail() 
     import glob
     year_ = int(re.search(r'\d{8}', filename).group())/10000

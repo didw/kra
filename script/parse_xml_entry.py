@@ -53,8 +53,8 @@ def get_hr_win(tt, t1, t2, yt, y1, y2, course, md=mean_data()):
     res = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
     if int(tt) != 0:
         res[0], res[1], res[2] = int(tt), int(t1), int(t2)
-        res[3] = int(t1) * 100 / int(tt)
-        res[4] = int(t2) * 100 / int(tt)
+        res[3] = float(t1) * 100 / int(tt)
+        res[4] = float(t2) * 100 / int(tt)
     else:
         res[1] = md.hr_history_total[course][1]
         res[2] = md.hr_history_total[course][2]
@@ -62,8 +62,8 @@ def get_hr_win(tt, t1, t2, yt, y1, y2, course, md=mean_data()):
         res[4] = md.hr_history_total[course][4]
     if int(yt) != 0:
         res[5], res[6], res[7] = int(yt), int(y1), int(y2)
-        res[8] = int(y1) * 100 / int(yt)
-        res[9] = int(y2) * 100 / int(yt)
+        res[8] = float(y1) * 100 / int(yt)
+        res[9] = float(y2) * 100 / int(yt)
     else:
         res[6] = md.hr_history_year[course][1]
         res[7] = md.hr_history_year[course][2]

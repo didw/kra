@@ -25,8 +25,14 @@ def get_budam(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
+            if len(itemList) == 14:
+                ret_idx = 6
+            elif len(itemList) == 15:
+                ret_idx = 7
+            else:
+                continue
             if name in unicode(itemList[1].string).encode('utf-8'):
-                return unicode(itemList[6].string)
+                return unicode(itemList[ret_idx].string)
     print("can not find budam of %s in %s" % (name, fname))
     return 54
 
@@ -44,8 +50,14 @@ def get_dbudam(meet, date, rcno, name):
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
+            if len(itemList) == 14:
+                ret_idx = 7
+            elif len(itemList) == 15:
+                ret_idx = 8
+            else:
+                continue
             if len(itemList) >= 10 and name in unicode(itemList[1].string).encode('utf-8'):
-                value = int(re.search(r'\d+', unicode(itemList[7].string)).group())
+                value = int(re.search(r'\d+', unicode(itemList[ret_idx].string)).group())
                 return value
     print("can not find dbudam of %s in %s" % (name, fname))
     return 0
@@ -231,10 +243,10 @@ def get_distance_record(meet, name, rcno, date, course, md=mean_data()):
                 #print("find name: %s, %s" % (name, itemList[1].string.encode('utf-8')))
                 if int(unicode(itemList[2].string)[0]) == 0:
                     try:
-                        return [0, 0, 0] + map(lambda x: float(x), md.dist_rec[course][3:])
+                        return [0, 0, 0] + map(float, md.dist_rec[course][3:])
                     except KeyError:
                         print("there is no course %d" % course)
-                        return map(lambda x: float(x), md.dist_rec[course])
+                        return map(float, md.dist_rec[course])
                 if DEBUG:
                     print("%s, %s, %s, %s, %s, %s" % (unicode(itemList[2].string), unicode(itemList[3].string), unicode(itemList[4].string), unicode(itemList[5].string), unicode(itemList[6].string), unicode(itemList[7].string)))
                 try:
@@ -257,7 +269,7 @@ def get_distance_record(meet, name, rcno, date, course, md=mean_data()):
     else:
         print("can not find %s in %s" % (unicode(name, 'utf-8'), fname))
         try:
-            return map(lambda x: float(x), md.dist_rec[course])
+            return map(float, md.dist_rec[course])
         except KeyError:
             print("there is no course %d" % course)
             return [-1, -1, -1, -1, -1, -1]

@@ -147,8 +147,8 @@ def training(train_bd, train_ed, course=0, nData=47):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-    #os.system('rm -r \"../model/keras/e800_i201/%d_%d/\"' % (train_bd_i, train_ed_i))
-    model_dir = '../model/keras/e800_i201/%d_%d/' % (train_bd_i, train_ed_i)
+    #os.system('rm -r \"../model/keras/e200_i201/%d_%d/\"' % (train_bd_i, train_ed_i))
+    model_dir = '../model/keras/e200_i201/%d_%d/' % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
     model_name = "%s/model_v1.h5" % model_dir
@@ -187,8 +187,8 @@ def training(train_bd, train_ed, course=0, nData=47):
                 return model
 
             from keras.wrappers.scikit_learn import KerasRegressor
-            estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=400, batch_size=32, verbose=0)
-            estimators[i].fit(X_train, Y_train, epochs=20)
+            estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=200, batch_size=32, verbose=0)
+            estimators[i].fit(X_train, Y_train, epochs=10)
             # saving model
             json_model = estimators[i].model.to_json()
             open(model_name.replace('h5', 'json'), 'w').write(json_model)
@@ -239,7 +239,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_dir = "../model/keras/e800_i201/%d_%d" % (train_bd_i, train_ed_i)
+        model_dir = "../model/keras/e200_i201/%d_%d" % (train_bd_i, train_ed_i)
         model_name = "%s/model_v1.h5" % (model_dir)
         if not os.path.exists(model_dir):
             os.makedirs(model_dir)
@@ -287,8 +287,8 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
         test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
 
-        if not os.path.exists('../data/keras/e800_i201'):
-            os.makedirs('../data/keras/e800_i201')
+        if not os.path.exists('../data/keras/e200_i201'):
+            os.makedirs('../data/keras/e200_i201')
         for course in courses:
             for kind in kinds:
                 print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
@@ -346,7 +346,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                             sr7[i][course] = res7
                             score_sum[i][course] = score
 
-                        fname_result = '../data/keras/e800_i201/ss_m%02d.txt' % i
+                        fname_result = '../data/keras/e200_i201/ss_m%02d.txt' % i
                         f_result = open(fname_result, 'a')
                         f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
                         f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
@@ -374,7 +374,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                         sr7[MODEL_NUM][course] += 1./MODEL_NUM * sr7[i][course]
                         score_sum[MODEL_NUM][course] += 1./MODEL_NUM * score_sum[i][course]
 
-                    fname_result = '../data/keras/e800_i201/ss_m_all.txt'
+                    fname_result = '../data/keras/e200_i201/ss_m_all.txt'
                     f_result = open(fname_result, 'a')
                     f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
                     f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
@@ -422,7 +422,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                             sr7[index_j][course] = res7
                             score_sum[index_j][course] = score
                         
-                        fname_result = '../data/keras/e800_i201/ss_ens%d.txt' % i
+                        fname_result = '../data/keras/e200_i201/ss_ens%d.txt' % i
                         f_result = open(fname_result, 'a')
                         f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
                         f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
@@ -451,7 +451,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                         sr7[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr7[index_j][course]
                         score_sum[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * score_sum[index_j][course]
 
-                    fname_result = '../data/keras/e800_i201/ss_ens_all.txt'
+                    fname_result = '../data/keras/e200_i201/ss_ens_all.txt'
                     f_result = open(fname_result, 'a')
                     f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
                     f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
@@ -512,7 +512,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
 
     for m in range(MODEL_NUM):
         for course in courses:
-            fname_result = '../data/keras/e800_i201/ss_m%02d.txt' % m
+            fname_result = '../data/keras/e200_i201/ss_m%02d.txt' % m
             f_result = open(fname_result, 'a')
             f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
             f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
@@ -520,7 +520,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
             f_result.close()
     for i in range(int(MODEL_NUM/NUM_ENSEMBLE)):
         for course in courses:
-            fname_result = '../data/keras/e800_i201/ss_ens%d.txt' % i
+            fname_result = '../data/keras/e200_i201/ss_ens%d.txt' % i
             f_result = open(fname_result, 'a')
             f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
             m = MODEL_NUM + i
