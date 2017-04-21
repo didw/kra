@@ -43,18 +43,18 @@ def normalize_data(org_data):
     data.loc[data['cntry'] == '인', 'cntry'] = 14
     data.loc[data['cntry'] == '아', 'cntry'] = 15
     data.loc[data['cntry'] == '프', 'cntry'] = 16
-    #oh_course = [[0]*13 for _ in range(len(data))]
-    #oh_gen = [[0]*3 for _ in range(len(data))]
-    #oh_cnt = [[0]*17 for _ in range(len(data))]
-    #course_list = [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2200, 2300]
-    #for i in range(len(data)):
-    #    oh_course[i][course_list.index(data['course'][i])] = 1
-    #    oh_gen[i][data['gender'][i]] = 1
-    #    oh_cnt[i][data['cntry'][i]] = 1
-    #df_course = pd.DataFrame(oh_course, columns=['cr%d'%i for i in range(1,14)])
-    #df_gen = pd.DataFrame(oh_gen, columns=['g1', 'g2', 'g3'])
-    #df_cnt = pd.DataFrame(oh_cnt, columns=['c%d'%i for i in range(1,18)])
-    #return pd.concat([data, df_course, df_gen, df_cnt], axis=1)
+    oh_course = [[0]*13 for _ in range(len(data))]
+    oh_gen = [[0]*3 for _ in range(len(data))]
+    oh_cnt = [[0]*17 for _ in range(len(data))]
+    course_list = [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2200, 2300]
+    for i in range(len(data)):
+        oh_course[i][course_list.index(data['course'][i])] = 1
+        oh_gen[i][data['gender'][i]] = 1
+        oh_cnt[i][data['cntry'][i]] = 1
+    df_course = pd.DataFrame(oh_course, columns=['cr%d'%i for i in range(1,14)])
+    df_gen = pd.DataFrame(oh_gen, columns=['g1', 'g2', 'g3'])
+    df_cnt = pd.DataFrame(oh_cnt, columns=['c%d'%i for i in range(1,18)])
+    return pd.concat([data, df_course, df_gen, df_cnt], axis=1)
     return data
 
 def get_data(begin_date, end_date):
@@ -173,8 +173,8 @@ def training(train_bd, train_ed, course=0, nData=47):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-    #os.system('rm -r \"../model/keras/e200_i118/%d_%d/\"' % (train_bd_i, train_ed_i))
-    model_dir = '../model/keras/e200_i118/%d_%d/' % (train_bd_i, train_ed_i)
+    #os.system('rm -r \"../model/keras/e200_i151/%d_%d/\"' % (train_bd_i, train_ed_i))
+    model_dir = '../model/keras/e200_i151/%d_%d/' % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
     model_name = "%s/model_v1.h5" % model_dir
@@ -257,7 +257,7 @@ def process_train(train_bd, train_ed):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-    model_dir = "../model/keras/e200_i118/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/keras/e200_i151/%d_%d" % (train_bd_i, train_ed_i)
     model_name = "%s/model_v1.h5" % (model_dir)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
@@ -285,7 +285,7 @@ def process_train(train_bd, train_ed):
                 from keras import regularizers
                 # create model
                 model = Sequential()
-                model.add(Dense(120, input_shape=(118,), kernel_initializer='he_normal', activation='relu'))
+                model.add(Dense(150, input_shape=(151,), kernel_initializer='he_normal', activation='relu'))
                 model.add(Dense(1, kernel_initializer='he_normal'))
                 # Compile model
                 model.compile(loss='mean_squared_error', optimizer='adam')
@@ -318,9 +318,9 @@ def process_test(train_bd, train_ed, q):
     
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/keras/e200_i118/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/keras/e200_i151/%d_%d" % (train_bd_i, train_ed_i)
     model_name = "%s/model_v1.h5" % (model_dir)
-    data_dir = "../data/keras/e200_i118"
+    data_dir = "../data/keras/e200_i151"
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
     print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
