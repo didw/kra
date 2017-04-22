@@ -57,7 +57,7 @@ def get_dbudam(meet, date, rcno, name):
             else:
                 continue
             if len(itemList) >= 10 and name in unicode(itemList[1].string).encode('utf-8'):
-                value = int(re.search(r'\d+', unicode(itemList[ret_idx].string)).group())
+                value = int(re.search(r'[-\d]+', unicode(itemList[ret_idx].string)).group())
                 return value
     print("can not find dbudam of %s in %s" % (name, fname))
     return 0
