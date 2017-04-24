@@ -46,18 +46,18 @@ def normalize_data(org_data):
     data.loc[data['cntry'] == '프', 'cntry'] = 17
     data.loc[data['cntry'] == '산', 'cntry'] = 18
     data.loc[data['cntry'] == '래', 'cntry'] = 19
-    oh_course = [[0]*10 for _ in range(len(data))]
-    oh_gen = [[0]*3 for _ in range(len(data))]
-    oh_cnt = [[0]*20 for _ in range(len(data))]
-    course_list = [400, 800, 900, 1000, 1110, 1200, 1400, 1610, 1700, 1800]
-    for i in range(len(data)):
-        oh_course[i][course_list.index(data['course'][i])] = 1
-        oh_gen[i][data['gender'][i]] = 1
-        oh_cnt[i][data['cntry'][i]] = 1
-    df_course = pd.DataFrame(oh_course, columns=['cr%d'%i for i in range(1,11)])
-    df_gen = pd.DataFrame(oh_gen, columns=['g1', 'g2', 'g3'])
-    df_cnt = pd.DataFrame(oh_cnt, columns=['c%d'%i for i in range(1,21)])
-    return pd.concat([data, df_course, df_gen, df_cnt], axis=1)
+    #oh_course = [[0]*10 for _ in range(len(data))]
+    #oh_gen = [[0]*3 for _ in range(len(data))]
+    #oh_cnt = [[0]*20 for _ in range(len(data))]
+    #course_list = [400, 800, 900, 1000, 1110, 1200, 1400, 1610, 1700, 1800]
+    #for i in range(len(data)):
+    #    oh_course[i][course_list.index(data['course'][i])] = 1
+    #    oh_gen[i][data['gender'][i]] = 1
+    #    oh_cnt[i][data['cntry'][i]] = 1
+    #df_course = pd.DataFrame(oh_course, columns=['cr%d'%i for i in range(1,11)])
+    #df_gen = pd.DataFrame(oh_gen, columns=['g1', 'g2', 'g3'])
+    #df_cnt = pd.DataFrame(oh_cnt, columns=['c%d'%i for i in range(1,21)])
+    #return pd.concat([data, df_course, df_gen, df_cnt], axis=1)
     return data
 
 def get_data(begin_date, end_date):
@@ -116,6 +116,38 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0, kind=0, nData=1
     Y_data = data['rctime']
     X_data = data.copy()
     X_data = X_data.drop(['name', 'jockey', 'trainer', 'owner', 'rctime', 'rank', 'r3', 'r2', 'r1', 'date', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'ssang', 'samssang', 'index'], axis=1)
+    if nData == 11:
+        X_data = X_data.drop(['humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
+                  'idx', 'cntry', 'gender', 'age', 'budam', # 9
+                  'weight', 'dweight', 'cnt', 'rcno', 'month',
+                  'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
+                  'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
+                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
+                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2',  #10
+                  'rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
+                  'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',  # 30
+                  'jc31', 'jc32',
+                  ], axis=1)
+    if nData == 29:
+        X_data = X_data.drop(['humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
+                  'idx', 'cntry', 'gender', 'age', 'budam', # 9
+                  'weight', 'dweight', 'cnt', 'rcno', 'month',
+                  'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
+                  'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
+                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
+                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2',  #10
+                  'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',  # 30
+                  'jc31', 'jc32',
+                  ], axis=1)
+    if nData == 61:
+        X_data = X_data.drop(['humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
+                  'idx', 'cntry', 'gender', 'age', 'budam', # 9
+                  'weight', 'dweight', 'cnt', 'rcno', 'month',
+                  'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
+                  'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
+                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
+                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2',  #10
+                  ], axis=1)
     if nData == 47:
         X_data = X_data.drop(['ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', 'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl'], axis=1)
         X_data = X_data.drop(['rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
@@ -227,7 +259,7 @@ def process_train(train_bd, train_ed):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-    model_dir = "../model/keras/e300_152_reg/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/keras/e200_i61/%d_%d" % (train_bd_i, train_ed_i)
     model_name = "%s/model_v1.h5" % (model_dir)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
@@ -255,15 +287,15 @@ def process_train(train_bd, train_ed):
                 from keras import regularizers
                 # create model
                 model = Sequential()
-                model.add(Dense(128, input_shape=(152,), kernel_initializer='he_normal', activation='relu', kernel_regularizer=regularizers.l2(0.01)))
-                model.add(Dense(1, kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.01)))
+                model.add(Dense(60, input_shape=(61,), kernel_initializer='he_normal', activation='relu'))
+                model.add(Dense(1, kernel_initializer='he_normal'))
                 # Compile model
                 model.compile(loss='mean_squared_error', optimizer='adam')
                 return model
 
             from keras.wrappers.scikit_learn import KerasRegressor
-            estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=300, batch_size=32, verbose=0)
-            estimators[i].fit(X_train, Y_train)
+            estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=200, batch_size=32, verbose=0)
+            estimators[i].fit(X_train, Y_train, epochs=10)
             # saving model
             json_model = estimators[i].model.to_json()
             open(model_name.replace('h5', 'json'), 'w').write(json_model)
@@ -288,9 +320,9 @@ def process_test(train_bd, train_ed, q):
     
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/keras/e300_152_reg/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/keras/e200_i61/%d_%d" % (train_bd_i, train_ed_i)
     model_name = "%s/model_v1.h5" % (model_dir)
-    data_dir = "../data/keras/e300_152_reg"
+    data_dir = "../data/keras/e200_i61"
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
     print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
@@ -522,7 +554,7 @@ if __name__ == '__main__':
     test_ed = datetime.date(2017, 4, 30)
 
     for delta_year in [8]:
-        for nData in [152]:
+        for nData in [61]:
             simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[0], nData=nData)
             #for c in [1000, 1200, 1300, 1400, 1700]:
             #    for k in [0]:
