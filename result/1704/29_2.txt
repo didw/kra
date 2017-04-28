@@ -1,0 +1,2641 @@
+
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+8,11,10,4,1,3
+
+
+bet: 2000
+8,11,10, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,11,3,6
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,1,5,2
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,5,3,6,7
+
+
+bet: 2000
+1,4,5, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,3,5,4,6,1
+
+
+bet: 2000
+7,3,5, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,10,1,3,11
+
+
+bet: 2000
+5,7,10, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+5,8,2,4,11,6
+
+
+bet: 2000
+5,8,2, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+4,8,1,3,6,2
+
+
+bet: 2000
+4,8,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,6,2,10,9,5
+
+
+bet: 2000
+8,6,2, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,2,1
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+8,10,4,11,3,1
+
+
+bet: 2000
+8,10,4, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,11,6,3
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,5,1,2
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,5,3,6,7
+
+
+bet: 2000
+1,4,5, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,5,3,1,10,4
+
+
+bet: 2000
+7,5,3, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,10,1,3,11
+
+
+bet: 2000
+5,7,10, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+2,8,5,4,11,10
+
+
+bet: 2000
+2,8,5, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+8,4,1,3,2,6
+
+
+bet: 2000
+8,4,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,2,6,5,4,10
+
+
+bet: 2000
+8,2,6, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,3,4,2,1
+
+
+bet: 2000
+10,12,3, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+4,8,10,9,3,11
+
+
+bet: 2000
+4,8,10, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,11,3,1
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,5,1,2
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,3,5,2,6
+
+
+bet: 2000
+1,4,3, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+10,7,3,5,4,6
+
+
+bet: 2000
+10,7,3, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,10,1,3,11
+
+
+bet: 2000
+5,7,10, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+5,2,8,4,11,6
+
+
+bet: 2000
+5,2,8, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+8,1,4,3,5,2
+
+
+bet: 2000
+8,1,4, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,2,5,10,9,6
+
+
+bet: 2000
+8,2,5, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,2,1
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,8,11,1,4,3
+
+
+bet: 2000
+10,8,11, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,11,6,7
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,5,7,1,4
+
+
+bet: 2000
+3,6,5, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,5,3,6,7
+
+
+bet: 2000
+1,4,5, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,4,3,5,10,6
+
+
+bet: 2000
+7,4,3, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,10,7,1,11,3
+
+
+bet: 2000
+5,10,7, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+2,5,8,4,11,6
+
+
+bet: 2000
+2,5,8, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+8,4,1,3,6,7
+
+
+bet: 2000
+8,4,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,2,9,10,5,6
+
+
+bet: 2000
+8,2,9, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,3,4,2,1
+
+
+bet: 2000
+10,12,3, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,8,4,11,3,9
+
+
+bet: 2000
+10,8,4, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,11,6,3
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,1,5,2
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,5,3,6,9
+
+
+bet: 2000
+1,4,5, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,5,4,1,3,10
+
+
+bet: 2000
+7,5,4, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,10,1,3,6
+
+
+bet: 2000
+5,7,10, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+5,2,8,4,11,6
+
+
+bet: 2000
+5,2,8, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,4,7,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+8,4,1,3,2,7
+
+
+bet: 2000
+8,4,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,10,2,5,4,6
+
+
+bet: 2000
+8,10,2, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,2,1
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,8,1,11,4,3
+
+
+bet: 2000
+10,8,1, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,6,4,11
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,5,1,4
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,6,5,3,7
+
+
+bet: 2000
+1,4,6, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,4,6,5,3,10
+
+
+bet: 2000
+7,4,6, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,1,10,3,11
+
+
+bet: 2000
+5,7,1, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+2,8,5,4,6,11
+
+
+bet: 2000
+2,8,5, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+8,4,1,3,6,2
+
+
+bet: 2000
+8,4,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,2,10,6,9,5
+
+
+bet: 2000
+8,2,10, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,2,1
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,8,11,4,1,3
+
+
+bet: 2000
+10,8,11, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,11,6,7
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,1,5,4
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,3,6,5,7
+
+
+bet: 2000
+1,4,3, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,4,10,3,5,6
+
+
+bet: 2000
+7,4,10, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,1,10,11,3
+
+
+bet: 2000
+5,7,1, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+2,8,5,4,9,11
+
+
+bet: 2000
+2,8,5, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+4,8,1,3,6,2
+
+
+bet: 2000
+4,8,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,2,6,10,4,9
+
+
+bet: 2000
+8,2,6, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,1,3,4,2
+
+
+bet: 2000
+10,12,1, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,8,4,11,1,3
+
+
+bet: 2000
+10,8,4, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,11,7,6
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,5,1,4
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,3,5,6,7
+
+
+bet: 2000
+1,4,3, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,4,10,6,5,3
+
+
+bet: 2000
+7,4,10, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,10,1,11,3
+
+
+bet: 2000
+5,7,10, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+2,8,5,4,11,6
+
+
+bet: 2000
+2,8,5, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+8,4,1,3,6,2
+
+
+bet: 2000
+8,4,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,10,6,2,9,4
+
+
+bet: 2000
+8,10,6, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,2,1
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,8,11,4,1,3
+
+
+bet: 2000
+10,8,11, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,11,6,5
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,1,5,4
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,5,4,6,3,9
+
+
+bet: 2000
+1,5,4, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,4,3,5,10,6
+
+
+bet: 2000
+7,4,3, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,10,1,3,11
+
+
+bet: 2000
+5,7,10, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+2,8,5,4,11,6
+
+
+bet: 2000
+2,8,5, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,4,7,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+4,8,1,3,6,2
+
+
+bet: 2000
+4,8,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,6,10,2,9,5
+
+
+bet: 2000
+8,6,10, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,2,1
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,8,11,4,1,3
+
+
+bet: 2000
+10,8,11, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,11,7,4
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,1,5,2
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,5,3,6,9
+
+
+bet: 2000
+1,4,5, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,4,5,6,3,10
+
+
+bet: 2000
+7,4,5, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,10,1,3,11
+
+
+bet: 2000
+5,7,10, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+2,8,4,5,11,6
+
+
+bet: 2000
+2,8,4, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+8,4,1,3,2,5
+
+
+bet: 2000
+8,4,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,2,10,4,9,6
+
+
+bet: 2000
+8,2,10, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,2,1
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,11,8,4,1,3
+
+
+bet: 2000
+10,11,8, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,5,11,6
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,1,5,4
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,3,5,6,9
+
+
+bet: 2000
+1,4,3, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,4,1,5,6,10
+
+
+bet: 2000
+7,4,1, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,1,10,11,3
+
+
+bet: 2000
+5,7,1, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+8,2,5,4,11,6
+
+
+bet: 2000
+8,2,5, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,4,7,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+4,8,1,3,7,6
+
+
+bet: 2000
+4,8,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+10,8,2,6,5,4
+
+
+bet: 2000
+10,8,2, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,4,12,1,2,3
+
+
+bet: 2000
+10,4,12, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,11,8,1,4,3
+
+
+bet: 2000
+10,11,8, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,11,4,6
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,5,1,4
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,3,5,6,7
+
+
+bet: 2000
+1,4,3, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,10,4,5,6,3
+
+
+bet: 2000
+7,10,4, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,1,10,3,11
+
+
+bet: 2000
+5,7,1, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+2,8,4,5,11,6
+
+
+bet: 2000
+2,8,4, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+4,8,1,3,2,6
+
+
+bet: 2000
+4,8,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,2,10,6,4,5
+
+
+bet: 2000
+8,2,10, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,2,1
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+8,10,4,11,3,1
+
+
+bet: 2000
+8,10,4, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,11,9,6,3
+
+
+bet: 2000
+10,2,11, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,5,1,4
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,5,4,3,6,7
+
+
+bet: 2000
+1,5,4, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,3,5,10,4,1
+
+
+bet: 2000
+7,3,5, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,10,7,1,3,11
+
+
+bet: 2000
+5,10,7, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+8,5,2,4,11,9
+
+
+bet: 2000
+8,5,2, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,4,7,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+4,8,1,3,2,5
+
+
+bet: 2000
+4,8,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,2,6,5,10,4
+
+
+bet: 2000
+8,2,6, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,2,1
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,8,11,4,1,3
+
+
+bet: 2000
+10,8,11, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,4,7,6
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,5,1,4
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,6,5,3,9
+
+
+bet: 2000
+1,4,6, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,10,4,3,5,1
+
+
+bet: 2000
+7,10,4, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,10,1,3,11
+
+
+bet: 2000
+5,7,10, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+8,2,5,4,9,11
+
+
+bet: 2000
+8,2,5, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+4,8,1,3,6,2
+
+
+bet: 2000
+4,8,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,10,6,2,4,5
+
+
+bet: 2000
+8,10,6, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,1,2
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+8,10,11,4,1,3
+
+
+bet: 2000
+8,10,11, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,11,6,5
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,5,1,2
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,5,6,9,3
+
+
+bet: 2000
+1,4,5, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+4,7,3,5,6,10
+
+
+bet: 2000
+4,7,3, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,10,1,11,3
+
+
+bet: 2000
+5,7,10, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+5,2,8,4,6,11
+
+
+bet: 2000
+5,2,8, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+4,8,1,3,6,2
+
+
+bet: 2000
+4,8,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,10,2,6,9,4
+
+
+bet: 2000
+8,10,2, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,1,2
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,8,11,4,1,6
+
+
+bet: 2000
+10,8,11, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,4,7,6
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,1,5,4
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,6,5,9,3
+
+
+bet: 2000
+1,4,6, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,5,3,4,1,6
+
+
+bet: 2000
+7,5,3, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,10,1,3,11
+
+
+bet: 2000
+5,7,10, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+8,2,5,4,11,9
+
+
+bet: 2000
+8,2,5, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,4,7,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+4,8,1,3,2,6
+
+
+bet: 2000
+4,8,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,6,2,10,4,5
+
+
+bet: 2000
+8,6,2, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,3,4,2,1
+
+
+bet: 2000
+10,12,3, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,8,11,4,1,3
+
+
+bet: 2000
+10,8,11, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,11,6,3
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,5,1,2
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,3,5,6,9
+
+
+bet: 2000
+1,4,3, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,10,4,3,6,5
+
+
+bet: 2000
+7,10,4, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,1,7,10,11,3
+
+
+bet: 2000
+5,1,7, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+2,5,4,8,11,6
+
+
+bet: 2000
+2,5,4, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+8,4,1,3,5,2
+
+
+bet: 2000
+8,4,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+2,8,5,6,9,4
+
+
+bet: 2000
+2,8,5, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,2,1
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,8,4,11,1,3
+
+
+bet: 2000
+10,8,4, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,11,6,5
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,5,7,1,2
+
+
+bet: 2000
+3,6,5, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,3,5,6,7
+
+
+bet: 2000
+1,4,3, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,4,10,5,6,3
+
+
+bet: 2000
+7,4,10, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,1,10,11,3
+
+
+bet: 2000
+5,7,1, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+2,8,5,4,11,6
+
+
+bet: 2000
+2,8,5, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+8,4,1,3,2,6
+
+
+bet: 2000
+8,4,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,10,2,6,9,5
+
+
+bet: 2000
+8,10,2, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,2,1
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,11,8,1,4,3
+
+
+bet: 2000
+10,11,8, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,4,6,11
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,1,5,4
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,5,6,3,9
+
+
+bet: 2000
+1,4,5, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,5,4,10,1,6
+
+
+bet: 2000
+7,5,4, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,1,10,11,3
+
+
+bet: 2000
+5,7,1, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+8,2,5,4,6,11
+
+
+bet: 2000
+8,2,5, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+8,4,1,3,5,2
+
+
+bet: 2000
+8,4,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,2,5,10,6,4
+
+
+bet: 2000
+8,2,5, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,2,1
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,11,8,1,4,3
+
+
+bet: 2000
+10,11,8, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,7,4,6
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,5,1,4
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,6,5,3,9
+
+
+bet: 2000
+1,4,6, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,4,5,10,3,1
+
+
+bet: 2000
+7,4,5, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,10,1,7,11,3
+
+
+bet: 2000
+5,10,1, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+8,2,5,4,11,9
+
+
+bet: 2000
+8,2,5, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,4,7,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+8,4,1,3,2,6
+
+
+bet: 2000
+8,4,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,2,6,10,4,5
+
+
+bet: 2000
+8,2,6, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,2,1
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,8,4,11,1,3
+
+
+bet: 2000
+10,8,4, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,11,6,3
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,5,1,4
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,3,4,5,6,7
+
+
+bet: 2000
+1,3,4, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,4,3,5,1,10
+
+
+bet: 2000
+7,4,3, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,10,1,11,3
+
+
+bet: 2000
+5,7,10, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+8,2,4,5,11,9
+
+
+bet: 2000
+8,2,4, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,4,7,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+4,1,8,3,6,2
+
+
+bet: 2000
+4,1,8, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,6,10,2,4,9
+
+
+bet: 2000
+8,6,10, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,1,2
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+8,10,11,4,1,3
+
+
+bet: 2000
+8,10,11, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,11,6,3
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,5,1,4
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,5,3,6,7
+
+
+bet: 2000
+1,4,5, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,4,10,5,1,3
+
+
+bet: 2000
+7,4,10, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,1,10,11,3
+
+
+bet: 2000
+5,7,1, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+2,8,5,4,6,9
+
+
+bet: 2000
+2,8,5, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,4,7,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+8,4,1,3,2,7
+
+
+bet: 2000
+8,4,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,10,2,6,9,5
+
+
+bet: 2000
+8,10,2, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,2,3,1
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,8,11,4,1,3
+
+
+bet: 2000
+10,8,11, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,6,7,5
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,1,5,4
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,6,5,9,3
+
+
+bet: 2000
+1,4,6, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,4,5,6,3,1
+
+
+bet: 2000
+7,4,5, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,10,1,3,11
+
+
+bet: 2000
+5,7,10, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+8,2,4,5,11,6
+
+
+bet: 2000
+8,2,4, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+4,8,1,3,6,5
+
+
+bet: 2000
+4,8,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,2,10,5,6,4
+
+
+bet: 2000
+8,2,10, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,2,3,1,4
+
+
+bet: 2000
+10,12,2, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,11,8,4,1,3
+
+
+bet: 2000
+10,11,8, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,4,7,11
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,1,7,5,2
+
+
+bet: 2000
+3,6,1, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,3,6,5,9
+
+
+bet: 2000
+1,4,3, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,4,5,6,1,3
+
+
+bet: 2000
+7,4,5, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,1,10,3,11
+
+
+bet: 2000
+5,7,1, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+8,2,5,9,4,6
+
+
+bet: 2000
+8,2,5, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+4,8,1,3,6,7
+
+
+bet: 2000
+4,8,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+10,8,6,2,4,9
+
+
+bet: 2000
+10,8,6, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,1,3,2
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+8,4,11,10,9,3
+
+
+bet: 2000
+8,4,11, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,11,3,6
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,5,1,4
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,3,5,6,7
+
+
+bet: 2000
+1,4,3, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,4,10,1,3,5
+
+
+bet: 2000
+7,4,10, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,10,7,1,11,3
+
+
+bet: 2000
+5,10,7, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+2,5,8,4,11,6
+
+
+bet: 2000
+2,5,8, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,4,7,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+4,8,1,3,6,7
+
+
+bet: 2000
+4,8,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+2,10,8,6,9,5
+
+
+bet: 2000
+2,10,8, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,2,1
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,8,11,4,3,1
+
+
+bet: 2000
+10,8,11, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,7,4,11
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,1,7,5,4
+
+
+bet: 2000
+3,6,1, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,5,3,6,9
+
+
+bet: 2000
+1,4,5, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,4,5,3,6,1
+
+
+bet: 2000
+7,4,5, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,10,7,1,11,3
+
+
+bet: 2000
+5,10,7, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+8,2,5,4,9,6
+
+
+bet: 2000
+8,2,5, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+4,1,8,3,2,6
+
+
+bet: 2000
+4,1,8, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+10,8,6,2,4,5
+
+
+bet: 2000
+10,8,6, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,2,1
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,11,8,4,1,3
+
+
+bet: 2000
+10,11,8, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,11,4,6
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,5,1,2
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,3,5,6,9
+
+
+bet: 2000
+1,4,3, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,5,10,6,1,4
+
+
+bet: 2000
+7,5,10, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,10,1,3,11
+
+
+bet: 2000
+5,7,10, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+8,2,5,4,11,9
+
+
+bet: 2000
+8,2,5, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+1,4,8,3,2,6
+
+
+bet: 2000
+1,4,8, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,10,2,6,4,5
+
+
+bet: 2000
+8,10,2, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,3,4,2,1
+
+
+bet: 2000
+10,12,3, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,11,8,4,1,3
+
+
+bet: 2000
+10,11,8, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,4,11,7
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,5,1,4
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+4,1,3,5,6,7
+
+
+bet: 2000
+4,1,3, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,10,5,3,1,4
+
+
+bet: 2000
+7,10,5, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,10,7,1,3,11
+
+
+bet: 2000
+5,10,7, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+2,8,5,4,11,9
+
+
+bet: 2000
+2,8,5, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+4,8,1,3,6,2
+
+
+bet: 2000
+4,8,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,2,6,10,4,5
+
+
+bet: 2000
+8,2,6, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,2,1
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,8,4,11,1,3
+
+
+bet: 2000
+10,8,4, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,11,7,5
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,1,5,4
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,3,6,5,8
+
+
+bet: 2000
+1,4,3, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,4,10,5,6,3
+
+
+bet: 2000
+7,4,10, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,10,1,7,11,3
+
+
+bet: 2000
+5,10,1, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+2,8,4,5,11,10
+
+
+bet: 2000
+2,8,4, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+4,8,1,3,6,2
+
+
+bet: 2000
+4,8,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+10,8,6,2,9,5
+
+
+bet: 2000
+10,8,6, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,4,3,2,1
+
+
+bet: 2000
+10,12,4, ss: 800
+
+
+=== rcno: 1, nData: 151, year: 6, train_course: 0 ===
+10,8,11,4,1,3
+
+
+bet: 2000
+10,8,11, ss: 800
+
+
+=== rcno: 2, nData: 151, year: 6, train_course: 0 ===
+10,2,9,11,6,4
+
+
+bet: 2000
+10,2,9, ss: 800
+
+
+=== rcno: 3, nData: 151, year: 6, train_course: 0 ===
+3,6,7,5,1,4
+
+
+bet: 2000
+3,6,7, ss: 800
+
+
+=== rcno: 4, nData: 151, year: 6, train_course: 0 ===
+1,4,5,3,6,7
+
+
+bet: 2000
+1,4,5, ss: 800
+
+
+=== rcno: 5, nData: 151, year: 6, train_course: 0 ===
+7,10,5,1,6,3
+
+
+bet: 2000
+7,10,5, ss: 800
+
+
+=== rcno: 6, nData: 151, year: 6, train_course: 0 ===
+5,7,1,10,11,3
+
+
+bet: 2000
+5,7,1, ss: 800
+
+
+=== rcno: 7, nData: 151, year: 6, train_course: 0 ===
+2,8,5,4,11,6
+
+
+bet: 2000
+2,8,5, ss: 800
+
+
+=== rcno: 8, nData: 151, year: 6, train_course: 0 ===
+2,5,6,7,4,3
+
+
+bet: 2000
+2,5,6, ss: 800
+
+
+=== rcno: 9, nData: 151, year: 6, train_course: 0 ===
+8,4,1,3,2,6
+
+
+bet: 2000
+8,4,1, ss: 800
+
+
+=== rcno: 10, nData: 151, year: 6, train_course: 0 ===
+8,10,6,2,5,9
+
+
+bet: 2000
+8,10,6, ss: 800
+
+
+=== rcno: 11, nData: 151, year: 6, train_course: 0 ===
+10,12,3,4,2,1
+
+
+bet: 2000
+10,12,3, ss: 800
