@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
+from __future__ import print_function
 try:
     # For Python 3.0 and later
     from urllib.request import urlopen, Request
@@ -14,6 +15,7 @@ import re
 import numpy as np
 import pandas as pd
 from sklearn.externals import joblib
+from etaprogress.progress import ProgressBar
 
 
 DEBUG = False
@@ -32,7 +34,7 @@ def get_csv():
     return df
 
 
-class make_mean:
+class Make_mean:
     def __init__(self):
         self.df = get_csv()
 
@@ -94,23 +96,40 @@ class make_mean:
 
     def get_data(self):
         self.data = {}
+        print("Loading data")
+        course_list = self.df['course'].unique()
+        bar = ProgressBar(len(self.df), max_width=80)
         for i in range(len(self.df)):
+            bar.numerator += 1
+            if bar.numerator%100 == 0:
+                print("%s" % (bar,), end='\r')
             row = self.df.iloc[i,:]
 
             if row['name'] not in self.data:
-                self.data[row['name']] = {'humidity':{}, 'month':{}, 'age':{}, 'idx':{}, 'rcno':{}, 'budam':{}, 'dbudam':{}, 'jockey':{}, 'trainer':{}}
-                for j in range(1,82):
-                    self.data[row['name']]['jc%d'%j] = {}
+                self.data[row['name']] = {}
+                for c in course_list:
+                    self.data[row['name']][c] = {'course':{}, 'humidity':{}, 'month':{}, 'age':{}, 'hr_days':{}, 'lastday':{}, 'idx':{}, 'rcno':{}, 'budam':{}, 'dbudam':{}, 'jockey':{}, 'trainer':{}}
+                    for j in range(1,82):
+                        self.data[row['name']][c]['jc%d'%j] = {}
 
             def add_item(data, row, item):
                 try:
-                    data[row['name']][item][row[item]].append(row['rctime'])
+                    data[row['name']][row['course']][item][row[item]].append(row['rctime'])
                 except KeyError:
-                    data[row['name']][item][row[item]] = [row['rctime']]
+                    data[row['name']][row['course']][item][row[item]] = [row['rctime']]
 
+            def add_item_days(data, row, item, day):
+                try:
+                    data[row['name']][row['course']][item][int(row[item]/day)].append(row['rctime'])
+                except KeyError:
+                    data[row['name']][row['course']][item][int(row[item]/day)] = [row['rctime']]
+
+            add_item(self.data, row, 'course')
             add_item(self.data, row, 'humidity')
             add_item(self.data, row, 'month')
             add_item(self.data, row, 'age')
+            add_item_days(self.data, row, 'hr_days', 10)
+            add_item_days(self.data, row, 'lastday', 5)
             add_item(self.data, row, 'idx')
             add_item(self.data, row, 'rcno')
             add_item(self.data, row, 'budam')
@@ -120,45 +139,75 @@ class make_mean:
             for j in range(1,82):
                 add_item(self.data, row, 'jc%d'%j)
 
-        def make_norm(data, name, item):
+        def make_norm(data, name, c, item):
             average = []
-            for hum in self.df[item].unique():
+            for key in self.df[item].unique():
                 try:
-                    data[name][item][hum] = np.mean(data[name][item][hum])
-                    average.append(data[name][item][hum])
+                    data[name][c][item][key] = np.mean(data[name][c][item][key])
+                    average.append(data[name][c][item][key])
                 except KeyError:
-                    data[name][item][hum] = 1
+                    data[name][c][item][key] = 1
             average = np.mean(average)
-            for hum in self.df[item].unique():
-                if data[name][item][hum] != 1:
-                    data[name][item][hum] = data[name][item][hum] / average
+            for key in self.df[item].unique():
+                if data[name][c][item][key] != 1:
+                    data[name][c][item][key] = data[name][c][item][key] / average
 
+        def make_norm_day(data, name, c, item, day):
+            average = []
+            for key in self.df[item].unique():
+                try:
+                    data[name][c][item][key] = np.mean(data[name][c][item][key])
+                    average.append(data[name][c][item][key])
+                except KeyError:
+                    data[name][c][item][key] = 1
+            average = np.mean(average)
+            for key in self.df[item].unique():
+                if data[name][c][item][key] != 1:
+                    data[name][c][item][key] = data[name][c][item][key] / average
+
+        print("\n\nNormalize data")
+        bar = ProgressBar(len(self.df['name'].unique())*len(course_list), max_width=80)
         for name in self.df['name'].unique():
-            make_norm(self.data, name, 'humidity')
-            make_norm(self.data, name, 'month')
-            make_norm(self.data, name, 'age')
-            make_norm(self.data, name, 'idx')
-            make_norm(self.data, name, 'rcno')
-            make_norm(self.data, name, 'budam')
-            make_norm(self.data, name, 'dbudam')
-            make_norm(self.data, name, 'jockey')
-            make_norm(self.data, name, 'trainer')
+            for c in course_list:
+                bar.numerator += 1
+                print("%s" % (bar,), end='\r')
+                make_norm(self.data, name, c, 'humidity')
+                make_norm(self.data, name, c, 'month')
+                make_norm(self.data, name, c, 'age')
+                make_norm_day(self.data, name, c, 'hr_days', 10)
+                make_norm_day(self.data, name, c, 'lastday', 5)
+                make_norm(self.data, name, c, 'idx')
+                make_norm(self.data, name, c, 'rcno')
+                make_norm(self.data, name, c, 'budam')
+                make_norm(self.data, name, c, 'dbudam')
+                make_norm(self.data, name, c, 'jockey')
+                make_norm(self.data, name, c, 'trainer')
             for j in range(1, 82):
-                make_norm(self.data, name, 'jc%d'%j)
+                make_norm(self.data, name, c, 'jc%d'%j)
 
-        self.mean_data = {'humidity':{}, 'month':{}, 'age':{}, 'idx':{}, 'rcno':{}, 'budam':{}, 'dbudam':{}, 'jockey':{}, 'trainer':{}, 'jc1':{}}
+        self.mean_data = {'humidity':{}, 'month':{}, 'age':{}, 'hr_days':{}, 'lastday':{}, 'idx':{}, 'rcno':{}, 'budam':{}, 'dbudam':{}, 'jockey':{}, 'trainer':{}}
+        for j in range(1,82):
+            self.mean_data['jc%d'%j] = {}
 
         def make_mean(item_class):
+            bar = ProgressBar(len(self.df[item_class].unique())*len(self.df['name'].unique())*len(course_list), max_width=80)
+            print("\nprocessing Data [%s]"%item_class)
             item_list = {}
             for item in self.df[item_class].unique():
                 item_list[item] = []
                 for name in self.df['name'].unique():
-                    item_list[item].append(self.data[name][item_class][item])
+                    for c in course_list:
+                        bar.numerator += 1
+                        if bar.numerator%100 == 0:
+                            print("%s" % (bar,), end='\r')
+                        item_list[item].append(self.data[name][c][item_class][item])
                 self.mean_data[item_class][item] = np.mean(item_list[item])
 
         make_mean('humidity')
         make_mean('month')
         make_mean('age')
+        make_mean('hr_days')
+        make_mean('lastday')
         make_mean('idx')
         make_mean('rcno')
         make_mean('budam')
@@ -174,7 +223,17 @@ class make_mean:
 
 class mean_data2:
     def __init__(self):
-        pass
+        self.mean_pkl = joblib.load('mean_data2.pkl')
+        md = self.mean_pkl.mean_data
+        fout = open('mean_data2.csv', 'wt')
+        fout.write("data..\n")
+        for k1 in md.keys():
+            fout.write("%s\n"%k1)
+            for k2 in md[k1].keys():
+                fout.write("%s\t%f\n"%(k2, md[k1][k2]))
+        fout.close()
+
+
 
     def make_humidity(self):
         pass
@@ -186,5 +245,8 @@ class mean_data2:
 
 if __name__ == '__main__':
     DEBUG = True
-    m = make_mean()
+    m = Make_mean()
     m.get_data()
+    joblib.dump(m, 'mean_data2.pkl')
+    md = mean_data2()
+
