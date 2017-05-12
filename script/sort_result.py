@@ -40,13 +40,14 @@ def dict_test(fname, rcno=1):
                         data_sb[key2] = value
     print("ss")
     for k,v in sorted(data_ss.items()):
+        v = int((v+50)/100)*100
         print(k, v)
     print("sb")
     for k,v in sorted(data_sb.items()):
         print(k, v)
 
 if __name__ == '__main__':
-    fname = '../result/1704/23_0_0.txt'
+    fname = '../result/1705/13_0.txt'
     for i in range(1,13):
         print("===%d==="%i)
         dict_test(fname, i)

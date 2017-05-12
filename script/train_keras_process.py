@@ -476,13 +476,13 @@ def process_test(train_bd, train_ed, q):
         res[5] = sim.simulation6(pred, R_test, [[1,2,3]])
         res[6] = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3],[2,3,4]])
 
-        res[0] = sim.simulation5(pred, R_test, [[1,2]])
-        res[1] = sim.simulation5(pred, R_test, [[1,2],[1,3]])
-        res[2] = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3]])
-        res[3] = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4]])
-        res[4] = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4]])
-        res[5] = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[1,5]])
-        res[6] = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[1,5],[2,5],[3,5],[4,5]])
+        res[0] = sim.simulation5(pred_ens, R_test, [[1,2]])
+        res[1] = sim.simulation5(pred_ens, R_test, [[1,2],[1,3],[2,1],[2,3]])
+        res[2] = sim.simulation5(pred_ens, R_test, [[1,2],[1,3],[2,1],[2,3],[3,1],[3,2]])
+        res[3] = sim.simulation5(pred_ens, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[2,1],[3,1],[3,2],[4,1],[4,2],[4,3]])
+        res[4] = sim.simulation5(pred_ens, R_test, [[3,4],[3,5],[3,6],[4,5],[4,6],[5,4]])
+        res[5] = sim.simulation5(pred_ens, R_test, [[4,5],[4,6],[5,4],[5,6],[6,4],[6,5]])
+        res[6] = sim.simulation5(pred_ens, R_test, [[4,5],[4,6],[4,7],[5,4],[5,6],[5,7],[6,4],[6,5],[6,7],[7,4],[7,5],[7,6]])
         
         res[0] = sim.simulation6(pred, R_test, [[1,2,3]])
         res[1] = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,3,4], [2,3,4]])
@@ -497,14 +497,14 @@ def process_test(train_bd, train_ed, q):
         res[5] = sim.simulation6(pred, R_test, [[2,3,4], [2,3,5], [2,4,5], [3,4,5], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
         res[6] = sim.simulation6(pred, R_test, [[3,4,5], [3,4,6], [3,4,7], [3,5,6], [3,5,7], [3,6,7], [4,5,6], [4,5,7], [4,6,7], [5,6,7]])
         
-        res[0] = sim.simulation7(pred, R_test, [[1],[2],[3]])
-        res[1] = sim.simulation7(pred, R_test, [[1,2],[1,2,3],[1,2,3]])
-        res[2] = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
-        res[3] = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]])
-        res[4] = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6]])
-        res[5] = sim.simulation7(pred, R_test, [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]])
-        res[6] = sim.simulation7(pred, R_test, [[5,6,7,8,9,10],[5,6,7,8,9,10],[5,6,7,8,9,10]])
-        
+        res[0] = sim.simulation7(pred[i], R_test, [[1],[2],[3]])
+        res[1] = sim.simulation7(pred[i], R_test, [[1,2],[1,2,3],[1,2,3]])
+        res[2] = sim.simulation7(pred[i], R_test, [[1,2,3],[1,2,3],[1,2,3]])
+        res[3] = sim.simulation7(pred[i], R_test, [[1,2,3,4],[1,2,3,4],[1,2,3,4]])
+        res[4] = sim.simulation7(pred[i], R_test, [[3,4,5],[4,5,6],[4,5,6]])
+        res[5] = sim.simulation7(pred[i], R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
+        res[6] = sim.simulation7(pred[i], R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
+
         res[0] = sim.simulation2(pred, R_test, 1)
         res[1] = sim.simulation2(pred, R_test, 2)
         res[2] = sim.simulation2(pred, R_test, 3)
@@ -558,9 +558,9 @@ if __name__ == '__main__':
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
     test_bd = datetime.date(2016, 6, 5)
-    test_ed = datetime.date(2017, 4, 30)
+    test_ed = datetime.date(2017, 5, 15)
 
-    for delta_year in [6]:
+    for delta_year in [8]:
         for nData in [201]:
             simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[0], nData=nData)
             #for c in [1000, 1200, 1300, 1400, 1700]:
