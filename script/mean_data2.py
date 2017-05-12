@@ -120,16 +120,16 @@ class Make_mean:
 
             def add_item_days(data, row, item, day):
                 try:
-                    data[row['name']][row['course']][item][int(row[item]/day)].append(row['rctime'])
+                    data[row['name']][row['course']][item][int(row[item]/day)*day].append(row['rctime'])
                 except KeyError:
-                    data[row['name']][row['course']][item][int(row[item]/day)] = [row['rctime']]
+                    data[row['name']][row['course']][item][int(row[item]/day)*day] = [row['rctime']]
 
             add_item(self.data, row, 'course')
             add_item(self.data, row, 'humidity')
             add_item(self.data, row, 'month')
             add_item(self.data, row, 'age')
-            add_item_days(self.data, row, 'hr_days', 10)
-            add_item_days(self.data, row, 'lastday', 5)
+            add_item_days(self.data, row, 'hr_days', 30)
+            add_item_days(self.data, row, 'lastday', 10)
             add_item(self.data, row, 'idx')
             add_item(self.data, row, 'rcno')
             add_item(self.data, row, 'budam')
@@ -154,14 +154,15 @@ class Make_mean:
 
         def make_norm_day(data, name, c, item, day):
             average = []
-            for key in self.df[item].unique():
+            max_value = 4000 if day == 30 else 800
+            for key in range(0, max_value, day):
                 try:
                     data[name][c][item][key] = np.mean(data[name][c][item][key])
                     average.append(data[name][c][item][key])
                 except KeyError:
                     data[name][c][item][key] = 1
             average = np.mean(average)
-            for key in self.df[item].unique():
+            for key in range(0, max_value, day):
                 if data[name][c][item][key] != 1:
                     data[name][c][item][key] = data[name][c][item][key] / average
 
@@ -174,8 +175,8 @@ class Make_mean:
                 make_norm(self.data, name, c, 'humidity')
                 make_norm(self.data, name, c, 'month')
                 make_norm(self.data, name, c, 'age')
-                make_norm_day(self.data, name, c, 'hr_days', 10)
-                make_norm_day(self.data, name, c, 'lastday', 5)
+                make_norm_day(self.data, name, c, 'hr_days', 30)
+                make_norm_day(self.data, name, c, 'lastday', 10)
                 make_norm(self.data, name, c, 'idx')
                 make_norm(self.data, name, c, 'rcno')
                 make_norm(self.data, name, c, 'budam')
@@ -200,14 +201,45 @@ class Make_mean:
                         bar.numerator += 1
                         if bar.numerator%100 == 0:
                             print("%s" % (bar,), end='\r')
-                        item_list[item].append(self.data[name][c][item_class][item])
-                self.mean_data[item_class][item] = np.mean(item_list[item])
+                        try:
+                            item_list[item].append(self.data[name][c][item_class][item])
+                        except KeyError:
+                            print("Key Error: ", name, c, item_class, item)
+                try:
+                    self.mean_data[item_class][item] = np.mean(item_list[item])
+                except ValueError:
+                    print("ValueError: ", item_class, item)
+                except TypeError:
+                    print("TypeError: ", item_class, item)
+
+        def make_mean_day(item_class, day):
+            max_value = 4000 if day == 30 else 800
+            bar = ProgressBar(int(max_value/day)*len(self.df['name'].unique())*len(course_list), max_width=80)
+            print("\nprocessing Data [%s]"%item_class)
+            item_list = {}
+            for key in range(0, max_value, day):
+                item_list[key] = []
+                for name in self.df['name'].unique():
+                    for c in course_list:
+                        bar.numerator += 1
+                        if bar.numerator%100 == 0:
+                            print("%s" % (bar,), end='\r')
+                        try:
+                            item_list[key].append(self.data[name][c][item_class][key])
+                        except KeyError:
+                            print("Key Error: ", name, c, item_class, key)
+                try:
+                    self.mean_data[item_class][key] = np.mean(item_list[key])
+                except ValueError:
+                    print("ValueError: ", item_class, key)
+                except TypeError:
+                    print("TypeError: ", item_class, key)
 
         make_mean('humidity')
         make_mean('month')
         make_mean('age')
-        make_mean('hr_days')
-        make_mean('lastday')
+        make_mean_day('hr_days', 30)
+        make_mean_day('lastday', 10)
         make_mean('idx')
         make_mean('rcno')
         make_mean('budam')
