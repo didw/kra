@@ -11,6 +11,8 @@ from mean_data import mean_data
 from sklearn.externals import joblib
 from get_race_detail import RaceDetail
 import get_weekly_clinic as wc
+import get_jockey as gj
+import get_trainer as gt
 
 NEXT = re.compile(r'마 체 중|단승식|복승식|매출액')
 WORD = re.compile(r"[^\s]+")
@@ -558,6 +560,8 @@ def get_data(filename, md=mean_data(), rd=RaceDetail()):
         data[i].extend(parse_txt_trainer(date, data[i][30], data[i][0], md))
         data[i].extend(rd.get_data(data[i][24], date_i, md))
         data[i].extend(wc.get_jangu_clinic(jangu_clinic, data[i][24]))
+        data[i].extend(gj.get_jockey(data[i][29]))
+        data[i].extend(gt.get_trainer(data[i][30]))
         data[i].extend([date_i])
     df = pd.DataFrame(data)
     df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
@@ -567,12 +571,12 @@ def get_data(filename, md=mean_data(), rd=RaceDetail()):
                   'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
                   'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
                   'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
-                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2',  #10
-                  'rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
-                  'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',  # 30
-                  'jc31', 'jc32', 'jc33', 'jc34', 'jc35', 'jc36', 'jc37', 'jc38', 'jc39', 'jc40', 'jc41', 'jc42', 'jc43', 'jc44', 'jc45', 'jc46', 'jc47', 'jc48', 'jc49', 'jc50', 'jc51', 'jc52', 'jc53', 'jc54', 'jc55', 'jc56', 'jc57', 'jc58', 'jc59', 'jc60',  # 30
-                  'jc61', 'jc62', 'jc63', 'jc64', 'jc65', 'jc66', 'jc67', 'jc68', 'jc69', 'jc70', 'jc71', 'jc72', 'jc73', 'jc74', 'jc75', 'jc76', 'jc77', 'jc78', 'jc79', 'jc80', 'jc81',  # 21
-                  'date'] # 11
+                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2'] \
+                  + ['rd%d'%i for i in range(1,19)] \
+                  + ['jc%d'%i for i in range(1,82)] \
+                  + ['jk%d'%i for i in range(1,257)] \
+                  + ['tr%d'%i for i in range(1,130)] \
+                  + ['date'] # 11
     return df
 
 

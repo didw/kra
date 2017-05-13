@@ -183,8 +183,8 @@ def training(train_bd, train_ed, course=0, nData=47):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-    #os.system('rm -r \"../model/keras/e200_i201/%d_%d/\"' % (train_bd_i, train_ed_i))
-    model_dir = '../model/keras/e200_i201/%d_%d/' % (train_bd_i, train_ed_i)
+    #os.system('rm -r \"../model/keras/e200_i586_l3/%d_%d/\"' % (train_bd_i, train_ed_i))
+    model_dir = '../model/keras/e200_i586_l3/%d_%d/' % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
     model_name = "%s/model_v1.h5" % model_dir
@@ -267,7 +267,7 @@ def process_train(train_bd, train_ed):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-    model_dir = "../model/keras/e200_i201/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/keras/e200_i586_l3/%d_%d" % (train_bd_i, train_ed_i)
     model_name = "%s/model_v1.h5" % (model_dir)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
@@ -295,7 +295,8 @@ def process_train(train_bd, train_ed):
                 from keras import regularizers
                 # create model
                 model = Sequential()
-                model.add(Dense(150, input_shape=(201,), kernel_initializer='he_normal', activation='relu'))
+                model.add(Dense(300, input_shape=(586,), kernel_initializer='he_normal', activation='relu'))
+                model.add(Dense(10, kernel_initializer='he_normal', activation='relu'))
                 model.add(Dense(1, kernel_initializer='he_normal'))
                 # Compile model
                 model.compile(loss='mean_squared_error', optimizer='adam')
@@ -328,9 +329,9 @@ def process_test(train_bd, train_ed, q):
     
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/keras/e200_i201/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/keras/e200_i586_l3/%d_%d" % (train_bd_i, train_ed_i)
     model_name = "%s/model_v1.h5" % (model_dir)
-    data_dir = "../data/keras/e200_i201"
+    data_dir = "../data/keras/e200_i586_l3"
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
     print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
