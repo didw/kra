@@ -320,8 +320,8 @@ def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
     fresult.close()
 
 
-def predict_next(estimators, md, rd, meet, date, rcno, course=0, nData=47, year=4, train_course=0):
-    data_pre = xe.parse_xml_entry(meet, date, rcno, md, rd)
+def predict_next(estimators, data_pre, md, rd, meet, date, rcno, course=0, nData=47, year=4, train_course=0):
+    #data_pre = xe.parse_xml_entry(meet, date, rcno, md, rd)
     data = normalize_data(data_pre, nData=nData)
     print(len(data.columns))
     X_data = data.copy()
@@ -375,8 +375,8 @@ def predict_next(estimators, md, rd, meet, date, rcno, course=0, nData=47, year=
         #print(X_data.columns)
         #print(estimator.feature_importances_)
 
-def predict_next_ens(estimators_, md, rd, meet, date, rcno, course=0, nData=47, year=4, train_course=0):
-    data_pre = xe.parse_xml_entry(meet, date, rcno, md, rd)
+def predict_next_ens(estimators_, data_pre, md, rd, meet, date, rcno, course=0, nData=47, year=4, train_course=0):
+    #data_pre = xe.parse_xml_entry(meet, date, rcno, md, rd)
     data = normalize_data(data_pre, nData=nData)
     print(len(data.columns))
     X_data = data.copy()
@@ -455,12 +455,16 @@ if __name__ == '__main__':
     meet = 1
     train_course = 0
     courses = [0,0,0,0,0,0,0,0,0,0,0,0,0]
-    rcno = 0
+    rcno = 4
     #for rcno in range(11, len(courses)):
     course = courses[rcno]
     test_course = course
     init_date = 20170513
     rd = get_race_detail(init_date)
+    from sklearn.externals import joblib
+    md = joblib.load('../data/1_2007_2016_v1_md.pkl')
+    data_pre1 = xe.parse_xml_entry(meet, init_date+0, rcno, md, rd)
+    data_pre2 = xe.parse_xml_entry(meet, init_date+1, rcno, md, rd)
     for idx in range(4,5):
         nData, year, train_course, epoch = [118,151,201,201][idx-1], [6,6,8,6][idx-1], [0,0,0,0][idx-1], [200,200,200,800][idx-1]
         date = init_date
@@ -470,22 +474,23 @@ if __name__ == '__main__':
         #predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
 
         estimators, md = tkn.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData, epoch)
+
         if idx == 5:
             fname = '../result/1705/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            predict_next_ens(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course)
+            predict_next_ens(estimators, data_pre1, md, rd, meet, date, rcno, test_course, nData, year, train_course)
             date += 1
             fname = '../result/1705/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            predict_next_ens(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course)
+            predict_next_ens(estimators, data_pre2, md, rd, meet, date, rcno, test_course, nData, year, train_course)
         else:
             fname = '../result/1705/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            predict_next(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course)
+            predict_next(estimators, data_pre1, md, rd, meet, date, rcno, test_course, nData, year, train_course)
             date += 1
             fname = '../result/1705/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            predict_next(estimators, md, rd, meet, date, rcno, test_course, nData, year, train_course)
+            predict_next(estimators, data_pre2, md, rd, meet, date, rcno, test_course, nData, year, train_course)
         idx += 1
 
 # Strategy
