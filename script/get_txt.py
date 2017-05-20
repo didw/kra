@@ -130,13 +130,11 @@ def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
                     print('[%s] data downloading failed' % request)
     print("job has completed")
 
-def download_file(request, meet, line, hrno, njob, overwrite):
-    njob.value += 1
+def download_file(request, meet, line, hrno, overwrite):
     try:
         fname = "../txt/%d/%s/%s_%d_%06d.txt" % (meet, line[1], line[1], meet, hrno)
         if not overwrite and os.path.exists(fname):
             print("[%s] file exist" % fname)
-            njob.value -= 1
             return
         response_body = urlopen(request).read()
         if not os.path.exists("../txt/%d/%s/"%(meet, line[1])):
@@ -146,10 +144,9 @@ def download_file(request, meet, line, hrno, njob, overwrite):
         fout.close()
         if os.path.getsize(fname) < line[2]:
             os.remove(fname)
-        print("[%d, %s] data is downloaded" % (njob.value, request))
+        print("[%s] data is downloaded" % (request))
     except:
         print('[%s] data downloading failed' % request)
-    njob.value -= 1
 
 import multiprocessing as mp
 from multiprocessing import Process, Value
@@ -174,20 +171,15 @@ def download_racehorse(hrno_b, hrno_e, meet, overwrite=False):
         line = item[i]
         race_url = base_url + line[0]
         #for hrno in range(hrno_b, hrno_e):
-        njob = Value('i', 0)
         for filename in flist:
             hrno = int(filename[-10:-4])
             request = "%s&meet=%d&hrNo=%06d" % (race_url, meet, hrno)
             fname = "../txt/%d/%s/%s_%d_%06d.txt" % (meet, line[1], line[1], meet, hrno)
             if not overwrite and os.path.exists(fname):
                 continue
-            while njob.value > 8:
-                print("wait for finish process")
-                time.sleep(1)
-                continue
-            proc = Process(target=download_file, args=(request, meet, line, hrno, njob, overwrite))
+            proc = Process(target=download_file, args=(request, meet, line, hrno, overwrite))
             proc.start()
-            time.sleep(0.1)
+            time.sleep(0.2)
     print("job has completed")
 
 
