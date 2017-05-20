@@ -130,6 +130,30 @@ def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
                     print('[%s] data downloading failed' % request)
     print("job has completed")
 
+def download_file(request, meet, line, hrno, njob, overwrite):
+    njob.value += 1
+    try:
+        fname = "../txt/%d/%s/%s_%d_%06d.txt" % (meet, line[1], line[1], meet, hrno)
+        if not overwrite and os.path.exists(fname):
+            print("[%s] file exist" % fname)
+            njob.value -= 1
+            return
+        response_body = urlopen(request).read()
+        if not os.path.exists("../txt/%d/%s/"%(meet, line[1])):
+            os.makedirs("../txt/%d/%s/"%(meet, line[1]))
+        fout = open(fname, 'w')
+        fout.write(response_body)
+        fout.close()
+        if os.path.getsize(fname) < line[2]:
+            os.remove(fname)
+        print("[%d, %s] data is downloaded" % (njob.value, request))
+    except:
+        print('[%s] data downloading failed' % request)
+    njob.value -= 1
+
+import multiprocessing as mp
+from multiprocessing import Process, Value
+
 def download_racehorse(hrno_b, hrno_e, meet, overwrite=False):
     data = [# seoul http://race.kra.co.kr/racehorse/profileRaceScore.do?Act=02&Sub=1&meet=1&hrNo=040000
             [["profileRaceScore.do?Act=02&Sub=1&", "racehorse", 32000],
@@ -143,33 +167,33 @@ def download_racehorse(hrno_b, hrno_e, meet, overwrite=False):
              ]
     ]
     item = data[meet-1]
+    import glob
+    flist = glob.glob('../txt/1/racehorse/*')
     base_url = "http://race.kra.co.kr/racehorse/"
     for i in range(1,len(item)):
         line = item[i]
         race_url = base_url + line[0]
-        for hrno in range(hrno_b, hrno_e):
+        #for hrno in range(hrno_b, hrno_e):
+        njob = Value('i', 0)
+        for filename in flist:
+            hrno = int(filename[-10:-4])
             request = "%s&meet=%d&hrNo=%06d" % (race_url, meet, hrno)
-            try:
-                fname = "../txt/%d/%s/%s_%d_%06d.txt" % (meet, line[1], line[1], meet, hrno)
-                if not overwrite and os.path.exists(fname):
-                    continue
-                response_body = urlopen(request).read()
-                if not os.path.exists("../txt/%d/%s/"%(meet, line[1])):
-                    os.makedirs("../txt/%d/%s/"%(meet, line[1]))
-                fout = open(fname, 'w')
-                fout.write(response_body)
-                fout.close()
-                if os.path.getsize(fname) < line[2]:
-                    os.remove(fname)
-                print("[%s] data is downloaded" % request)
-            except:
-                print('[%s] data downloading failed' % request)
+            fname = "../txt/%d/%s/%s_%d_%06d.txt" % (meet, line[1], line[1], meet, hrno)
+            if not overwrite and os.path.exists(fname):
+                continue
+            while njob.value > 8:
+                print("wait for finish process")
+                time.sleep(1)
+                continue
+            proc = Process(target=download_file, args=(request, meet, line, hrno, njob, overwrite))
+            proc.start()
+            time.sleep(0.1)
     print("job has completed")
 
 
 if __name__ == '__main__':
     for i in range(1, 2):
-        #download_racehorse(29301, 29301, i, False)
-        download_chulmaDetailInfo(datetime.date(2017, 4, 20), datetime.date.today(), i, True)
-        download_txt(datetime.date(2017, 4, 20), datetime.date.today(), i, True)
+        download_racehorse(1, 40000, i, False)
+        #download_chulmaDetailInfo(datetime.date(2017, 4, 20), datetime.date.today(), i, True)
+        #download_txt(datetime.date(2017, 4, 20), datetime.date.today(), i, True)
 
