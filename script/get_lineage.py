@@ -39,27 +39,34 @@ def get_hrno(meet, date, rcno, name):
     return -1
 
 
-lineage = [dict() for _ in range(32)]
-def get_lineage(hrno):
+def get_lineage(hrno, lineage):
     meet = 1
     fname = "../txt/%d/LineageInfo/LineageInfo_%d_%06d.txt" % (meet, meet, hrno)
     print("processing %s" % fname)
     response_body = open(fname).read()
     xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
-    for i, itemElm in enumerate(xml_text.findAll('tbody')[1:]):
-        for i, itemElm2 in enumerate(itemElm.findAll('tr')):
+    idx = 0
+    for i1, itemElm in enumerate(xml_text.findAll('tbody')[1:]):
+        for i2, itemElm2 in enumerate(itemElm.findAll('tr')):
             itemList = itemElm2.findAll('td')
             for items in itemList:
                 item = items.findAll('span')
+                #print(item[0].string)
                 try:
-                    lineage[i][unicode(item[0].string)] += 1
+                    lineage[idx][unicode(item[0].string)] += 1
                 except KeyError:
-                    lineage[i][unicode(item[0].string)] = 1
+                    lineage[idx][unicode(item[0].string)] = 1
+                idx += 1
 
+def analyse_dict(data):
+    for i in range(len(data)):
+        print(i, len(data[i]))
 
 if __name__ == '__main__':
+    lineage = [dict() for _ in range(62)]
+    #get_lineage(24004, lineage)
     flist = glob.glob('../txt/1/LineageInfo/*')
-    for fname in flist:
-        get_lineage(int(fname[-10:-4]))
-    print(lineage)
+    for fname in flist[1000:2000]:
+        get_lineage(int(fname[-10:-4]), lineage)
+    analyse_dict(lineage)
 
