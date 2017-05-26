@@ -17,9 +17,49 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
 import tensorflow as tf
 from sklearn.metrics import mean_squared_error
 from sklearn.utils import shuffle
-import tflearn
 
 MODEL_NUM = 10
+
+def dense(input, n_in, n_out, p_keep=0.5):
+    weights = tf.get_variable('weight', [n_in, n_out], initializer=tf.contrib.layers.xavier_initializer())
+    biases = tf.get_variable('biases', [n_out], initializer=tf.constant_initializer(0.0))
+    h1 = tf.nn.batch_normalization(input, 0.001, 1.0, 0, 1, 0.0001)
+    return tf.nn.dropout(tf.nn.elu(tf.matmul(h1, weights) + biases), p_keep)
+
+
+def dense_with_onehot(input, n_in, n_out, p_keep=0.5):
+    inputs = tf.reshape(tf.one_hot(tf.to_int32(input), depth=n_in, on_value=1.0, off_value=0.0, axis=-1), [-1, n_in])
+    weights = tf.get_variable('weight', [n_in, n_out], initializer=tf.contrib.layers.xavier_initializer())
+    biases = tf.get_variable('biases', [n_out], initializer=tf.constant_initializer(0.0))
+    h1 = tf.nn.batch_normalization(inputs, 0.001, 1.0, 0, 1, 0.0001)
+    return tf.nn.dropout(tf.nn.elu(tf.matmul(h1, weights) + biases), p_keep)
+
+
+
+idx_input  = [ 1,  1, 1, 19,  1,  1, 1, 1, 1,   1,   1,   1,  2,  1,  1,  1, 136]
+is_onehot  = [ 1,  1, 1,  0,  1,  1, 1, 1, 0,   1,   1,   1,  0,  1,  1,  1,   0]
+len_onehot = [10, 20, 8,  0, 16, 17, 3, 9, 0, 256, 130, 902,  0, 12, 15, 12,   0]
+len_h1s    = [ 2,  2, 2, 10,  2,  2, 2, 2, 1,  50,  50,  50,  2,  3,  3,  3, 100]
+name_one_hot_columns = ['course', 'humidity', 'kind', 'idx', 'cntry', 'gender', 'age', 'jockey', 'trainer', 'owner', 'cnt', 'rcno', 'month']
+
+def build_model(input):
+    inputs = tf.split(input, idx_input, 1)
+    h1s = []
+    for i in range(len(idx_input)):
+        with tf.variable_scope('h1_%d'%i):
+            if is_onehot[i] == 1:
+                h1s.append(dense_with_onehot(inputs[i], len_onehot[i], len_h1s[i]))
+            else:
+                h1s.append(dense(inputs[i], idx_input[i], len_h1s[i]))
+    h1 = tf.concat(h1s, 1)
+    with tf.variable_scope('h2'):
+        h2 = dense(h1, np.sum(len_h1s), 100)
+    with tf.variable_scope('h3'):
+        weights = tf.get_variable('weight', [100, 1], initializer=tf.contrib.layers.xavier_initializer())
+        biases = tf.get_variable('biases', [1], initializer=tf.constant_initializer(0.0))
+        h3 = tf.nn.batch_normalization(h2, 0.001, 1.0, 0, 1, 0.0001)
+        return tf.matmul(h3, weights) + biases
+
 
 class TensorflowRegressor():
     def __init__(self, s_date):
@@ -27,21 +67,11 @@ class TensorflowRegressor():
         #It then resizes it and processes it through four convolutional layers.
         # Create two variables.
         tf.reset_default_graph()
-        self.num_epoch = 50
+        self.num_epoch = 1000
         self.lr = tf.placeholder(dtype=tf.float32)
-        #self.W1 = tf.get_variable('W1', shape=(204, 128), initializer=tf.contrib.layers.xavier_initializer()) 
-        #self.b1 = tf.Variable(tf.zeros([128]), name="b1")
-        #self.W2 = tf.get_variable('W2', shape=(128, 1), initializer=tf.contrib.layers.xavier_initializer()) 
-        #self.b2 = tf.Variable(tf.zeros([1]), name="b2")
 
-        self.scalarInput =  tf.placeholder(shape=[None,168],dtype=tf.float32)
-        #self.out1 = tf.matmul(self.scalarInput, self.W1) + self.b1
-        self.out1 = tf.layers.dense(self.scalarInput, 128, activation=tf.nn.relu, name='W1')
-        self.out2 = tf.layers.batch_normalization(self.out1)
-        #self.stream1 = tf.nn.sigmoid(self.out1)
-        #self.output = tf.layers.dense(self.stream1, 1)
-        #self.output = tf.matmul(self.out1, self.W2) + self.b2
-        self.output = tf.layers.dense(self.out2, 1, name='W2')
+        self.Input =  tf.placeholder(shape=[None,171],dtype=tf.float32)
+        self.output = build_model(self.Input)
         
         #Below we obtain the loss by taking the sum of squares difference between the target and prediction Q values.
         self.target = tf.placeholder(shape=[None],dtype=tf.float32)
@@ -58,23 +88,25 @@ class TensorflowRegressor():
 
     def fit(self, X_data, Y_data, X_test=None):
         # Add an op to initialize the variables.
-        batch_size = 64
-        lr = 0.001
+        batch_size = 128
+        lr = 0.01
         with tf.Session(config=self.config) as sess:
             sess.run(self.init_op)
             bar = ProgressBar(len(X_data)/batch_size*self.num_epoch, max_width=80)
+            avg_loss = 0
             for i in range(self.num_epoch):
-                lr *= 0.9
+                lr *= 0.99
                 #print("\nEpoch %d/%d is started" % (i+1, self.num_epoch), end='\n')
                 for j in range(int(len(X_data)/batch_size)-1):
                     X_batch = X_data[batch_size*j:batch_size*(j+1)]
                     Y_batch = Y_data[batch_size*j:batch_size*(j+1)]
                     X_batch, Y_batch = shuffle(X_batch, Y_batch)
-                    _ = sess.run(self.updateModel, feed_dict={self.lr:lr, self.scalarInput: X_batch, self.target: Y_batch})
+                    _ = sess.run(self.updateModel, feed_dict={self.lr:lr, self.Input: X_batch, self.target: Y_batch})
 
                     bar.numerator += 1
                     if j%10 == 0:
-                        loss = sess.run(self.loss, feed_dict={self.lr:lr, self.scalarInput: X_batch, self.target: Y_batch})
+                        loss = sess.run(self.loss, feed_dict={self.lr:lr, self.Input: X_batch, self.target: Y_batch})
+                        avg_loss = 0.99*avg_loss + 0.01*loss
                         print("%s | loss: %f" % (bar, loss), end='\r')
                         sys.stdout.flush()
 
@@ -84,52 +116,30 @@ class TensorflowRegressor():
             print("\nModel saved in file: %s" % save_path)
             print("start test")
             if X_test is not None:
-                return sess.run(self.output, feed_dict={self.scalarInput: X_test})
+                return sess.run(self.output, feed_dict={self.Input: X_test})
 
     def predict(self, X_data):
         with tf.Session(config=self.config) as sess:
             sess.run(self.init_op)
             ckpt = tf.train.get_checkpoint_state(self.model_dir)
             self.saver.restore(sess, ckpt.model_checkpoint_path)
-            return sess.run(self.output, feed_dict={self.scalarInput: X_data})
+            return sess.run(self.output, feed_dict={self.Input: X_data})
 
 
 
 def normalize_data(org_data):
     data = org_data.dropna()
     data = data.reset_index()
-    data.loc[data['gender'] == '암', 'gender'] = 0
-    data.loc[data['gender'] == '수', 'gender'] = 1
-    data.loc[data['gender'] == '거', 'gender'] = 2
-    data.loc[data['cntry'] == '한', 'cntry'] = 0
-    data.loc[data['cntry'] == '한(포)', 'cntry'] = 1
-    data.loc[data['cntry'] == '일', 'cntry'] = 2
-    data.loc[data['cntry'] == '중', 'cntry'] = 3
-    data.loc[data['cntry'] == '미', 'cntry'] = 4
-    data.loc[data['cntry'] == '캐', 'cntry'] = 5
-    data.loc[data['cntry'] == '뉴', 'cntry'] = 6
-    data.loc[data['cntry'] == '호', 'cntry'] = 7
-    data.loc[data['cntry'] == '브', 'cntry'] = 8
-    data.loc[data['cntry'] == '헨', 'cntry'] = 9
-    data.loc[data['cntry'] == '남', 'cntry'] = 10
-    data.loc[data['cntry'] == '아일', 'cntry'] = 11
-    data.loc[data['cntry'] == '모', 'cntry'] = 12
-    data.loc[data['cntry'] == '영', 'cntry'] = 13
-    data.loc[data['cntry'] == '인', 'cntry'] = 14
-    data.loc[data['cntry'] == '아', 'cntry'] = 15
-    data.loc[data['cntry'] == '프', 'cntry'] = 16
-    oh_course = [[0]*13 for _ in range(len(data))]
-    oh_gen = [[0]*3 for _ in range(len(data))]
-    oh_cnt = [[0]*20 for _ in range(len(data))]
-    course_list = [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2200, 2300]
-    for i in range(len(data)):
-        oh_course[i][course_list.index(data['course'][i])] = 1
-        oh_gen[i][data['gender'][i]] = 1
-        oh_cnt[i][data['cntry'][i]] = 1
-    df_course = pd.DataFrame(oh_course, columns=['cr%d'%i for i in range(1,14)])
-    df_gen = pd.DataFrame(oh_gen, columns=['g1', 'g2', 'g3'])
-    df_cnt = pd.DataFrame(oh_cnt, columns=['c%d'%i for i in range(1,21)])
-    return pd.concat([data, df_course, df_gen, df_cnt], axis=1)
+
+    column_unique = joblib.load('../data/column_unique.pkl')
+    for column in name_one_hot_columns:
+        for idx, value in enumerate(column_unique[column]):
+            try:
+                data.loc[data[column]==value, column] = idx+1
+            except TypeError:
+                print(column, idx, value)
+                raise
+
     return data
 
 def get_data(begin_date, end_date):
@@ -187,7 +197,9 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0, kind=0, nData=4
     R_data = data[['name', 'rank', 'r1', 'r2', 'r3', 'hr_nt', 'hr_dt', 'jk_nt', 'tr_nt', 'cnt', 'rcno', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'samssang', 'idx']]
     Y_data = data['rctime']
     X_data = data.copy()
-    X_data = X_data.drop(['name', 'jockey', 'trainer', 'owner', 'rctime', 'rank', 'r3', 'r2', 'r1', 'date', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'ssang', 'samssang', 'index'], axis=1)
+    X_data = X_data.drop(['name', 'rctime', 'rank', 'r3', 'r2', 'r1', 'date', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'ssang', 'samssang', 'index'], axis=1)
+    #print(X_data.columns)
+    X_data = X_data.drop(['jk%d'%i for i in range(1, 257)] + ['tr%d'%i for i in range(1, 130)], axis=1)
     if nData == 47:
         X_data = X_data.drop(['ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', 'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl'], axis=1)
         X_data = X_data.drop(['rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
@@ -218,35 +230,25 @@ def training(train_bd, train_ed, course=0, nData=47):
     X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', 0, nData=nData)
     X_train = np.array(X_train)
     Y_train = np.array(Y_train)
-    scaler_x = StandardScaler()
-    scaler_y = StandardScaler()
-    X_train = scaler_x.fit_transform(X_train)
-    Y_train = scaler_y.fit_transform(Y_train.reshape(-1,1)).reshape(-1)
     seed = 7
     np.random.seed(seed)
     # evaluate model with standardized dataset
     for i in range(MODEL_NUM):
         print("model[%d] training.." % (i+1))
+        dir_name = '../model/tf/regression/%s_%s_%d/model.ckpt' % (train_bd, train_ed, i)
         tf.reset_default_graph()
-        tflearn.init_graph(gpu_memory_fraction=0.05)
-        input_layer = tflearn.input_data(shape=[None, 204], name='input')
-        dense1 = tflearn.fully_connected(input_layer, 128, name='dense1', activation='relu')
-        dense2 = tflearn.fully_connected(dense1, 1, name='dense2')
-        output = tflearn.single_unit(dense2)
-        regression = tflearn.regression(output, optimizer='adam', loss='mean_square',
-                                metric='R2', learning_rate=0.001)
-        estimators[i] = tflearn.DNN(regression)
-        if os.path.exists('../model/tflearn/regression_l2_e50/%s_%s/model.%d.tfl.meta' % (train_bd, train_ed, i)):
+        estimators[i] = TensorflowRegressor("%s_%s_%d"%(train_bd, train_ed, i))
+        if os.path.exists("%s/model_ckpt"%dir_name):
             print("loading exists model")
-            estimators[i].load('../model/tflearn/regression_l2_e50/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
+            estimators[i].load("%s/model_ckpt"%dir_name)
         else:
-            estimators[i].fit(X_train, Y_train, n_epoch=300, show_metric=True, snapshot_epoch=False, batch_size=128)
-        if not os.path.exists('../model/tflearn/regression_l2_e50/%s_%s' % (train_bd, train_ed)):
-            os.makedirs('../model/tflearn/regression_l2_e50/%s_%s' % (train_bd, train_ed))
-        estimators[i].save('../model/tflearn/regression_l2_e50/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
+            estimators[i].fit(X_train, Y_train)
+        if not os.path.exists(dir_name):
+            os.makedirs(dir_name)
+        estimators[i].save("%s/model_ckpt"%dir_name)
     print("Finish train model")
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
-    return estimators, md, [scaler_x, scaler_y]
+    return estimators, md
 
 def print_log(data, pred, fname):
     flog = open(fname, 'w')
@@ -294,31 +296,15 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', 0, nData=nData)
         X_train = np.array(X_train)
         Y_train = np.array(Y_train)
-        scaler_x = StandardScaler()
-        scaler_y = StandardScaler()
-        X_train = scaler_x.fit_transform(X_train)
-        Y_train = scaler_y.fit_transform(Y_train.reshape(-1,1)).reshape(-1)
+        print(np.shape(X_train))
         #from sklearn.model_selection import train_test_split
         #X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, random_state=0)
         for i in range(MODEL_NUM):
             print("model[%d] training.." % (i+1))
             tf.reset_default_graph()
-            tflearn.init_graph(gpu_memory_fraction=0.05)
-            input_layer = tflearn.input_data(shape=[None, 204], name='input')
-            dense1 = tflearn.fully_connected(input_layer, 128, name='dense1', activation='relu')
-            dense2 = tflearn.fully_connected(dense1, 1, name='dense2')
-            output = tflearn.single_unit(dense2)
-            regression = tflearn.regression(output, optimizer='adam', loss='mean_square',
-                                    metric='R2', learning_rate=0.001)
-            estimators = tflearn.DNN(regression)
-            if os.path.exists('../model/tflearn/regression_l2_e50/%s_%s/model.%d.tfl.meta' % (train_bd, train_ed, i)):
-                print("loading exists model")
-                estimators.load('../model/tflearn/regression_l2_e50/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
-            else:
-                estimators.fit(X_train, Y_train, n_epoch=50, show_metric=True, snapshot_epoch=False, batch_size=128)
-            if not os.path.exists('../model/tflearn/regression_l2_e50/%s_%s' % (train_bd, train_ed)):
-                os.makedirs('../model/tflearn/regression_l2_e50/%s_%s' % (train_bd, train_ed))
-            estimators.save('../model/tflearn/regression_l2_e50/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
+            estimators = TensorflowRegressor("%s_%s_%d"%(train_bd, train_ed, i))
+            if not os.path.exists('../model/tf/regression/%s_%s_%d/model.ckpt' % (train_bd, train_ed, i)):
+                estimators.fit(X_train, Y_train)
         print("Finish train model")
 
         test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
@@ -326,9 +312,9 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
 
         for course in courses:
             for kind in kinds:
-                if not os.path.exists('../data/tflearn/regression_l2_e50'):
-                    os.makedirs('../data/tflearn/regression_l2_e50')
-                fname_result = '../data/tflearn/regression_l2_e50/weekly_tf_nsb_v1_ss_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+                if not os.path.exists('../data/tf/regression'):
+                    os.makedirs('../data/tf/regression')
+                fname_result = '../data/tf/regression/tf_v1_ss_nd%d_y%d_c%d.txt' % (nData, delta_year, course)
                 print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
                 X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.csv', course, kind, nData=nData)
                 #X_test = X_scaler.transform(X_test)
@@ -349,10 +335,9 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                         X_test.to_csv('../log/weekly_train0_%s.csv' % today, index=False)
                     X_test = np.array(X_test)
                     Y_test = np.array(Y_test.reshape(-1,1)).reshape(-1)
-                    X_test = scaler_x.transform(X_test)
                     pred = [0] * MODEL_NUM
                     for i in range(MODEL_NUM):
-                        estimators.load('../model/tflearn/regression_l2_e50/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
+                        estimators = TensorflowRegressor('%s_%s_%d' % (train_bd, train_ed, i))
                         pred[i] = estimators.predict(X_test)
                         pred[i] = scaler_y.inverse_transform(pred[i])
                         score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
@@ -481,7 +466,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
     for m in range(MODEL_NUM+1):
         for course in courses:
             for kind in kinds:
-                fname_result = '../data/tflearn/regression_l2_e50/weekly_tf_nsb_v1_ss_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+                fname_result = '../data/tf/regression/weekly_tf_nsb_v1_ss_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 f_result = open(fname_result, 'a')
                 f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
                 f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (

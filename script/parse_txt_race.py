@@ -545,6 +545,11 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
     return map(lambda x: float(x), md.tr_history_total[course] + md.tr_history_year[course])
 
 
+def get_one_hot(column, value, df):
+    unique_list = df[column].unique()
+    sorted(unique_list)
+    return unique_list.index(value)+1
+
 def get_data(filename, md=mean_data(), rd=RaceDetail()):
     print("race file: %s" % filename)
     date_i = re.search(unicode(r'\d{8}', 'utf-8').encode('utf-8'), filename).group()
@@ -560,10 +565,11 @@ def get_data(filename, md=mean_data(), rd=RaceDetail()):
         data[i].extend(parse_txt_trainer(date, data[i][30], data[i][0], md))
         data[i].extend(rd.get_data(data[i][24], date_i, md))
         data[i].extend(wc.get_jangu_clinic(jangu_clinic, data[i][24]))
-        data[i].extend(gj.get_jockey(data[i][29]))
-        data[i].extend(gt.get_trainer(data[i][30]))
+        #data[i].extend(gj.get_jockey(data[i][29]))
+        #data[i].extend(gt.get_trainer(data[i][30]))
         data[i].extend([date_i])
     df = pd.DataFrame(data)
+
     df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
                   'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10', # 10
                   'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 9
@@ -574,11 +580,8 @@ def get_data(filename, md=mean_data(), rd=RaceDetail()):
                   'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2'] \
                   + ['rd%d'%i for i in range(1,19)] \
                   + ['jc%d'%i for i in range(1,82)] \
-                  + ['jk%d'%i for i in range(1,257)] \
-                  + ['tr%d'%i for i in range(1,130)] \
                   + ['date'] # 11
     return df
-
 
 def get_data2(filename, _date, _rcno):
     print("race file: %s" % filename)

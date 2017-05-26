@@ -56,17 +56,23 @@ def get_lineage(hrno, lineage):
                     lineage[idx][unicode(item[0].string)] += 1
                 except KeyError:
                     lineage[idx][unicode(item[0].string)] = 1
+                try:
+                    lineage[62][unicode(item[0].string)] += 1
+                except KeyError:
+                    lineage[62][unicode(item[0].string)] = 1
                 idx += 1
 
 def analyse_dict(data):
+    res = 0
     for i in range(len(data)):
-        print(i, len(data[i]))
+        res += len(data[i])
+        print(i, len(data[i]), res)
 
 if __name__ == '__main__':
-    lineage = [dict() for _ in range(62)]
+    lineage = [dict() for _ in range(63)]
     #get_lineage(24004, lineage)
     flist = glob.glob('../txt/1/LineageInfo/*')
-    for fname in flist[1000:2000]:
+    for fname in flist:
         get_lineage(int(fname[-10:-4]), lineage)
     analyse_dict(lineage)
 

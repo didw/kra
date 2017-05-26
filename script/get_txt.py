@@ -164,15 +164,11 @@ def download_racehorse(hrno_b, hrno_e, meet, overwrite=False):
              ]
     ]
     item = data[meet-1]
-    import glob
-    flist = glob.glob('../txt/1/racehorse/*')
     base_url = "http://race.kra.co.kr/racehorse/"
     for i in range(1,len(item)):
         line = item[i]
         race_url = base_url + line[0]
-        #for hrno in range(hrno_b, hrno_e):
-        for filename in flist:
-            hrno = int(filename[-10:-4])
+        for hrno in range(hrno_b, hrno_e):
             request = "%s&meet=%d&hrNo=%06d" % (race_url, meet, hrno)
             fname = "../txt/%d/%s/%s_%d_%06d.txt" % (meet, line[1], line[1], meet, hrno)
             if not overwrite and os.path.exists(fname):
@@ -185,7 +181,7 @@ def download_racehorse(hrno_b, hrno_e, meet, overwrite=False):
 
 if __name__ == '__main__':
     for i in range(1, 2):
-        download_racehorse(1, 40000, i, False)
-        #download_chulmaDetailInfo(datetime.date(2017, 4, 20), datetime.date.today(), i, True)
-        #download_txt(datetime.date(2017, 4, 20), datetime.date.today(), i, True)
+        #download_racehorse(29301, 29301, i, False)
+        download_chulmaDetailInfo(datetime.date(2017, 4, 20), datetime.date.today(), i, True)
+        download_txt(datetime.date(2017, 4, 20), datetime.date.today(), i, True)
 
