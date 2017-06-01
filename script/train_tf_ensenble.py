@@ -19,58 +19,56 @@ from sklearn.metrics import mean_squared_error
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 
-MODEL_NUM = 3
+MODEL_NUM = 10
 
-def dense(input, n_in, n_out, p_keep=1.0):
+def dense(input, n_in, n_out, p_keep=0.8):
     weights = tf.get_variable('weight', [n_in, n_out], initializer=tf.contrib.layers.xavier_initializer())
     biases = tf.get_variable('biases', [n_out], initializer=tf.constant_initializer(0.0))
-    #h1 = tf.nn.batch_normalization(input, 0.001, 1.0, 0, 1, 0.0001)
-    return tf.matmul(input, weights) + biases
+    h1 = tf.nn.batch_normalization(input, 0.001, 1.0, 0, 1, 0.0001)
+    return tf.nn.dropout(tf.nn.elu(tf.matmul(h1, weights) + biases), p_keep)
 
 
-def dense_with_onehot(input, n_in, n_out, p_keep=1.0):
-    inputs = tf.reshape(tf.one_hot(tf.to_int32(input), depth=n_in, on_value=1.0, off_value=0.0, axis=-1, dtype=tf.float32), [-1, n_in])
+def dense_with_onehot(input, n_in, n_out, p_keep=0.8):
+    inputs = tf.reshape(tf.one_hot(tf.to_int32(input), depth=n_in, on_value=1.0, off_value=0.0, axis=-1), [-1, n_in])
     weights = tf.get_variable('weight', [n_in, n_out], initializer=tf.contrib.layers.xavier_initializer())
     biases = tf.get_variable('biases', [n_out], initializer=tf.constant_initializer(0.0))
     h1 = tf.nn.batch_normalization(inputs, 0.001, 1.0, 0, 1, 0.0001)
-    return tf.nn.elu(tf.matmul(h1, weights) + biases)
-    #return tf.nn.elu(tf.matmul(inputs, weights)+biases)
+    return tf.nn.dropout(tf.nn.elu(tf.matmul(h1, weights) + biases), p_keep)
+
 
 
 idx_input  = [ 1,  1, 1, 19,  1,  1, 1, 1, 1,   1,   1,   1,  2,  1,  1,  1, 136]
 is_onehot  = [ 1,  1, 1,  0,  1,  1, 1, 1, 0,   1,   1,   1,  0,  1,  1,  1,   0]
 len_onehot = [10, 20, 8,  0, 16, 17, 3, 9, 0, 256, 130, 902,  0, 12, 15, 12,   0]
-len_h1s    = [ 1,  1, 1, 10,  1,  1, 1, 1, 1,   1,   1,   1,  2,  1,  1,  1, 100]
-"""
-idx_input  = [ 1,  1, 1, 19,  1,  1, 1, 1, 1,   1,   1,   1, 2,  1,  1,  1, 136]
-is_onehot  = [ 0,  0, 0,  0,  0,  0, 0, 0, 0,   0,   0,   0, 0,  0,  0,  0,   0]
-len_onehot = [10, 20, 8,  0, 16, 17, 3, 9, 0, 256, 130, 902, 0, 12, 15, 12,   0]
-len_h1s    = [ 1,  1, 1, 10,  1,  1, 1, 1, 1,   1,   1,   1, 2,  1,  1,  1, 100]
-"""
+len_h1s    = [ 2,  2, 2, 10,  2,  2, 2, 2, 1,  50,  50,  50,  2,  3,  3,  3, 100]
 name_one_hot_columns = ['course', 'humidity', 'kind', 'idx', 'cntry', 'gender', 'age', 'jockey', 'trainer', 'owner', 'cnt', 'rcno', 'month']
 
-def build_model(input):
-    
+def build_model(input, p_keep):
     inputs = tf.split(input, idx_input, 1)
     h1s = []
     for i in range(len(idx_input)):
         with tf.variable_scope('h1_%d'%i):
             if is_onehot[i] == 1:
-                h1s.append(dense_with_onehot(inputs[i], len_onehot[i], len_h1s[i]))
+                h1s.append(dense_with_onehot(inputs[i], len_onehot[i], len_h1s[i], p_keep))
             else:
-                h1s.append(dense(inputs[i], idx_input[i], len_h1s[i]))
+                h1s.append(dense(inputs[i], idx_input[i], len_h1s[i], p_keep))
     h1 = tf.concat(h1s, 1)
     """
     with tf.variable_scope('h1'):
         h1 = dense(input, np.sum(idx_input), np.sum(len_h1s))
     """
     with tf.variable_scope('h2'):
-        h2 = dense(h1, np.sum(len_h1s), 10)
+        h2 = dense(h1, np.sum(len_h1s), 100, p_keep)
 
     with tf.variable_scope('h3'):
+        h3 = dense(h2, 100, 10, p_keep)
+
+    with tf.variable_scope('h4'):
         weights = tf.get_variable('weight', [10, 1], initializer=tf.contrib.layers.xavier_initializer())
         biases = tf.get_variable('biases', [1], initializer=tf.constant_initializer(0.0))
-        return tf.matmul(h2, weights) + biases
+        h4 = tf.nn.batch_normalization(h3, 0.001, 1.0, 0, 1, 0.0001)
+        return tf.matmul(h4, weights) + biases
+
 
 class TensorflowRegressor():
     def __init__(self, s_date, scaler_y):
@@ -79,24 +77,31 @@ class TensorflowRegressor():
         # Create two variables.
         self.scaler_y = scaler_y
         tf.reset_default_graph()
-        self.num_epoch = 500
+        self.num_epoch = 80
         self.lr = tf.placeholder(dtype=tf.float32)
 
         self.Input =  tf.placeholder(shape=[None,171],dtype=tf.float32)
-        self.output = tf.reshape(build_model(self.Input), [-1])
+        self.p_keep =  tf.placeholder(shape=None,dtype=tf.float32)
+        self.output = tf.reshape(build_model(self.Input, self.p_keep), [-1])
         
         #Below we obtain the loss by taking the sum of squares difference between the target and prediction Q values.
         self.target = tf.placeholder(shape=[None],dtype=tf.float32)
         self.loss = tf.losses.mean_squared_error(self.target, self.output)
-        self.updateModel = tf.train.GradientDescentOptimizer(self.lr).minimize(self.loss)
+        self.updateModel = tf.train.AdamOptimizer(self.lr).minimize(self.loss)
         self.saver = tf.train.Saver()
-        self.model_dir = '../model/tf/regression/%s' % s_date
+        self.model_dir = '../model/tf/l3_e80_d1_0/%s' % s_date
+
+        tf.summary.scalar('loss', self.loss)
+        self.merged = tf.summary.merge_all()
 
         self.init_op = tf.global_variables_initializer()
         self.config = tf.ConfigProto()
         self.config.gpu_options.allow_growth = True
 
         self.column_unique = joblib.load('../data/column_unique.pkl')
+        self.dir = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        if not os.path.exists(self.dir):
+            os.makedirs(self.dir)
 
     def fit(self, X_data, Y_data, X_val=None, Y_val=None):
         # Add an op to initialize the variables.
@@ -106,6 +111,9 @@ class TensorflowRegressor():
             sess.run(self.init_op)
             bar = ProgressBar(len(X_data)/batch_size*self.num_epoch, max_width=80)
             avg_loss, avg_loss_val = 0, 0
+            smr_train = tf.summary.FileWriter('TB/%s/train'%self.dir, sess.graph)
+            smr_test = tf.summary.FileWriter('TB/%s/test'%self.dir)
+            idx = 0
             for i in range(self.num_epoch):
                 lr *= 0.99
                 #print("\nEpoch %d/%d is started" % (i+1, self.num_epoch), end='\n')
@@ -114,22 +122,31 @@ class TensorflowRegressor():
                     X_batch = X_data[batch_size*j:batch_size*(j+1)]
                     Y_batch = Y_data[batch_size*j:batch_size*(j+1)]
                     X_batch, Y_batch = shuffle(X_batch, Y_batch)
-                    _ = sess.run(self.updateModel, feed_dict={self.lr:lr, self.Input: X_batch, self.target: Y_batch})
+                    _ = sess.run(self.updateModel, feed_dict={self.lr:lr, self.Input: X_batch, self.target: Y_batch, self.p_keep: 1.0})
 
                     bar.numerator += 1
-                    if j%100 == 0:
-                        loss = sess.run(self.loss, feed_dict={self.lr:lr, self.Input: X_batch, self.target: Y_batch})
+                    if j%50 == 0 and j > 0:
+                        idx += 1
+                        if idx_val == 0:
+                            X_val, Y_val = shuffle(X_val, Y_val)
+                        summary, loss = sess.run([self.merged, self.loss], feed_dict={self.lr:lr, self.Input: X_batch, self.target: Y_batch, self.p_keep: 1.0})
+                        smr_train.add_summary(summary, idx)
                         X_val_batch = X_val[batch_size*idx_val:batch_size*(idx_val+1)]
                         Y_val_batch = Y_val[batch_size*idx_val:batch_size*(idx_val+1)]
                         idx_val += 1
                         if batch_size*(idx_val+1) > len(X_val):
                             idx_val = 0
-                        target, loss_val = sess.run([self.output, self.loss], feed_dict={self.lr:lr, self.Input: X_val_batch, self.target: Y_val_batch})
-                        avg_loss = 0.99*avg_loss + 0.01*loss
-                        avg_loss_val = 0.99*avg_loss_val + 0.01*loss_val
+                        summary, target, loss_val = sess.run([self.merged, self.output, self.loss], feed_dict={self.lr:lr, self.Input: X_val_batch, self.target: Y_val_batch, self.p_keep: 1.0})
+                        smr_test.add_summary(summary, idx)
+                        if avg_loss == 0:
+                            avg_loss = loss
+                            avg_loss_val = loss_val
+                        else:
+                            avg_loss = 0.9*avg_loss + 0.1*loss
+                            avg_loss_val = 0.9*avg_loss_val + 0.1*loss_val
                         t = self.scaler_y.inverse_transform(target[0])
                         y = self.scaler_y.inverse_transform(Y_val_batch[0])
-                        print("%s | loss_train: %f, loss_val: %f, course: %d, target: %f, Y: %f" % (bar, avg_loss, avg_loss_val, self.column_unique['course'][int(X_batch[0][0])], t, y), end='\r')
+                        print("%s | loss_train: %f, loss_val: %f, course: %d, target: %f, Y: %f" % (bar, avg_loss, avg_loss_val, self.column_unique['course'][int(X_val_batch[0][0])], t, y), end='\r')
                         sys.stdout.flush()
 
             if not os.path.exists(self.model_dir):
@@ -142,7 +159,7 @@ class TensorflowRegressor():
             sess.run(self.init_op)
             ckpt = tf.train.get_checkpoint_state(self.model_dir)
             self.saver.restore(sess, ckpt.model_checkpoint_path)
-            return sess.run(self.output, feed_dict={self.Input: X_data})
+            return sess.run(self.output, feed_dict={self.Input: X_data, self.p_keep: 1.0})
 
 
 
@@ -218,7 +235,7 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0, kind=0, nData=4
     X_data = X_data.drop(['name', 'rctime', 'rank', 'r3', 'r2', 'r1', 'date', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'ssang', 'samssang', 'index'], axis=1)
     #X_data = X_data.drop(['jockey', 'trainer', 'owner'], axis=1)
     #print(X_data.columns)
-    #X_data = X_data.drop(['jk%d'%i for i in range(1, 257)] + ['tr%d'%i for i in range(1, 130)], axis=1)
+    X_data = X_data.drop(['jk%d'%i for i in range(1, 257)] + ['tr%d'%i for i in range(1, 130)], axis=1)
     if nData == 47:
         X_data = X_data.drop(['ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', 'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl'], axis=1)
         X_data = X_data.drop(['rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
@@ -254,7 +271,7 @@ def training(train_bd, train_ed, course=0, nData=47):
     # evaluate model with standardized dataset
     for i in range(MODEL_NUM):
         print("model[%d] training.." % (i+1))
-        dir_name = '../model/tf/regression/%s_%s_%d/model.ckpt' % (train_bd, train_ed, i)
+        dir_name = '../model/tf/l3_e80_d1_0/%s_%s_%d/model.ckpt' % (train_bd, train_ed, i)
         tf.reset_default_graph()
         estimators[i] = TensorflowRegressor("%s_%s_%d"%(train_bd, train_ed, i))
         if os.path.exists("%s/model_ckpt"%dir_name):
@@ -331,7 +348,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
             print("model[%d] training.." % (i+1))
             tf.reset_default_graph()
             estimators = TensorflowRegressor("%s_%s_%d"%(train_bd, train_ed, i), scaler_y)
-            if not os.path.exists('../model/tf/regression/%s_%s_%d/model.ckpt' % (train_bd, train_ed, i)):
+            if not os.path.exists('../model/tf/l3_e80_d1_0/%s_%s_%d/model.ckpt' % (train_bd, train_ed, i)):
                 estimators.fit(X_train, Y_train, X_val, Y_val)
         print("Finish train model")
 
@@ -340,9 +357,9 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
 
         for course in courses:
             for kind in kinds:
-                if not os.path.exists('../data/tf/regression'):
-                    os.makedirs('../data/tf/regression')
-                fname_result = '../data/tf/regression/tf_v1_ss_nd%d_y%d_c%d.txt' % (nData, delta_year, course)
+                if not os.path.exists('../data/tf/l3_e80_d1_0'):
+                    os.makedirs('../data/tf/l3_e80_d1_0')
+                fname_result = '../data/tf/l3_e80_d1_0/tf_v1_ss_nd%d_y%d_c%d.txt' % (nData, delta_year, course)
                 print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
                 X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.csv', course, kind, nData=nData)
                 X_test = np.array(X_test)
@@ -501,7 +518,7 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
     for m in range(MODEL_NUM+1):
         for course in courses:
             for kind in kinds:
-                fname_result = '../data/tf/regression/weekly_tf_nsb_v1_ss_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
+                fname_result = '../data/tf/l3_e80_d1_0/weekly_tf_nsb_v1_ss_train0_m1_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 f_result = open(fname_result, 'a')
                 f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
                 f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (

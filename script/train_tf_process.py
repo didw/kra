@@ -1,60 +1,193 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+from __future__ import print_function
 import parse_txt_race as pr
 import datetime
 import pandas as pd
 import os.path
+from sklearn.preprocessing import StandardScaler, StandardScaler
 from sklearn.externals import joblib
-import random
 import simulation as sim
 from mean_data import mean_data
 import numpy as np
-import pickle
-import tensorflow as tf
 import time
-from sklearn.preprocessing import StandardScaler
+from etaprogress.progress import ProgressBar
+import sys, os
+os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
+import tensorflow as tf
+from sklearn.metrics import mean_squared_error
+from sklearn.utils import shuffle
+from sklearn.model_selection import train_test_split
 from multiprocessing import Process, Queue
 
 MODEL_NUM = 30
 NUM_ENSEMBLE = 6
 
+def dense(input, n_in, n_out, p_keep=0.8):
+    weights = tf.get_variable('weight', [n_in, n_out], initializer=tf.contrib.layers.xavier_initializer())
+    biases = tf.get_variable('biases', [n_out], initializer=tf.constant_initializer(0.0))
+    h1 = tf.nn.batch_normalization(input, 0.001, 1.0, 0, 1, 0.0001)
+    return tf.nn.dropout(tf.nn.elu(tf.matmul(h1, weights) + biases), p_keep)
+
+
+def dense_with_onehot(input, n_in, n_out, p_keep=0.8):
+    inputs = tf.reshape(tf.one_hot(tf.to_int32(input), depth=n_in, on_value=1.0, off_value=0.0, axis=-1), [-1, n_in])
+    weights = tf.get_variable('weight', [n_in, n_out], initializer=tf.contrib.layers.xavier_initializer())
+    biases = tf.get_variable('biases', [n_out], initializer=tf.constant_initializer(0.0))
+    h1 = tf.nn.batch_normalization(inputs, 0.001, 1.0, 0, 1, 0.0001)
+    return tf.nn.dropout(tf.nn.elu(tf.matmul(h1, weights) + biases), p_keep)
+
+
+
+idx_input  = [ 1,  1, 1, 19,  1,  1, 1, 1, 1,   1,   1,   1,  2,  1,  1,  1, 136]
+is_onehot  = [ 1,  1, 1,  0,  1,  1, 1, 1, 0,   1,   1,   1,  0,  1,  1,  1,   0]
+len_onehot = [10, 20, 8,  0, 16, 17, 3, 9, 0, 256, 130, 902,  0, 12, 15, 12,   0]
+len_h1s    = [ 2,  2, 2, 10,  2,  2, 2, 2, 1,  50,  50,  50,  2,  3,  3,  3, 100]
+name_one_hot_columns = ['course', 'humidity', 'kind', 'idx', 'cntry', 'gender', 'age', 'jockey', 'trainer', 'owner', 'cnt', 'rcno', 'month']
+
+def build_model(input, p_keep):
+    inputs = tf.split(input, idx_input, 1)
+    h1s = []
+    for i in range(len(idx_input)):
+        with tf.variable_scope('h1_%d'%i):
+            if is_onehot[i] == 1:
+                h1s.append(dense_with_onehot(inputs[i], len_onehot[i], len_h1s[i], p_keep))
+            else:
+                h1s.append(dense(inputs[i], idx_input[i], len_h1s[i], p_keep))
+    h1 = tf.concat(h1s, 1)
+    """
+    with tf.variable_scope('h1'):
+        h1 = dense(input, np.sum(idx_input), np.sum(len_h1s))
+    """
+    with tf.variable_scope('h2'):
+        h2 = dense(h1, np.sum(len_h1s), 100, p_keep)
+
+    with tf.variable_scope('h3'):
+        h3 = dense(h2, 100, 10, p_keep)
+
+    with tf.variable_scope('h4'):
+        weights = tf.get_variable('weight', [10, 1], initializer=tf.contrib.layers.xavier_initializer())
+        biases = tf.get_variable('biases', [1], initializer=tf.constant_initializer(0.0))
+        h4 = tf.nn.batch_normalization(h3, 0.001, 1.0, 0, 1, 0.0001)
+        return tf.matmul(h4, weights) + biases
+
+
+class TensorflowRegressor():
+    def __init__(self, s_date):
+        #The network recieves a frame from the game, flattened into an array.
+        #It then resizes it and processes it through four convolutional layers.
+        # Create two variables.
+        self.scaler_y = None
+        tf.reset_default_graph()
+        self.num_epoch = 80
+        self.lr = tf.placeholder(dtype=tf.float32)
+
+        self.Input =  tf.placeholder(shape=[None,171],dtype=tf.float32)
+        self.p_keep =  tf.placeholder(shape=None,dtype=tf.float32)
+        self.output = tf.reshape(build_model(self.Input, self.p_keep), [-1])
+        
+        #Below we obtain the loss by taking the sum of squares difference between the target and prediction Q values.
+        self.target = tf.placeholder(shape=[None],dtype=tf.float32)
+        self.loss = tf.losses.mean_squared_error(self.target, self.output)
+        self.updateModel = tf.train.AdamOptimizer(self.lr).minimize(self.loss)
+        self.saver = tf.train.Saver()
+        self.model_dir = '../model/tf/l3_e80_d1_0/%s' % s_date
+
+        tf.summary.scalar('loss', self.loss)
+        self.merged = tf.summary.merge_all()
+
+        self.init_op = tf.global_variables_initializer()
+        self.config = tf.ConfigProto()
+        self.config.gpu_options.allow_growth = True
+
+        self.column_unique = joblib.load('../data/column_unique.pkl')
+        self.dir = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        if not os.path.exists(self.dir):
+            os.makedirs(self.dir)
+        self.sess = None
+
+    def set_scaler(self, scaler_y):
+        self.scaler_y = scaler_y
+
+    def fit(self, X_data, Y_data, X_val=None, Y_val=None):
+        # Add an op to initialize the variables.
+        batch_size = 512
+        lr = 1e-2
+        with tf.Session(config=self.config) as sess:
+            sess.run(self.init_op)
+            bar = ProgressBar(len(X_data)/batch_size*self.num_epoch, max_width=80)
+            avg_loss, avg_loss_val = 0, 0
+            smr_train = tf.summary.FileWriter('TB/%s/train'%self.dir, sess.graph)
+            smr_test = tf.summary.FileWriter('TB/%s/test'%self.dir)
+            idx = 0
+            for i in range(self.num_epoch):
+                lr *= 0.99
+                #print("\nEpoch %d/%d is started" % (i+1, self.num_epoch), end='\n')
+                idx_val = 0
+                for j in range(int(len(X_data)/batch_size)-1):
+                    X_batch = X_data[batch_size*j:batch_size*(j+1)]
+                    Y_batch = Y_data[batch_size*j:batch_size*(j+1)]
+                    X_batch, Y_batch = shuffle(X_batch, Y_batch)
+                    _ = sess.run(self.updateModel, feed_dict={self.lr:lr, self.Input: X_batch, self.target: Y_batch, self.p_keep: 1.0})
+
+                    bar.numerator += 1
+                    if j%50 == 0 and j > 0:
+                        idx += 1
+                        if idx_val == 0:
+                            X_val, Y_val = shuffle(X_val, Y_val)
+                        summary, loss = sess.run([self.merged, self.loss], feed_dict={self.lr:lr, self.Input: X_batch, self.target: Y_batch, self.p_keep: 1.0})
+                        smr_train.add_summary(summary, idx)
+                        X_val_batch = X_val[batch_size*idx_val:batch_size*(idx_val+1)]
+                        Y_val_batch = Y_val[batch_size*idx_val:batch_size*(idx_val+1)]
+                        idx_val += 1
+                        if batch_size*(idx_val+1) > len(X_val):
+                            idx_val = 0
+                        summary, target, loss_val = sess.run([self.merged, self.output, self.loss], feed_dict={self.lr:lr, self.Input: X_val_batch, self.target: Y_val_batch, self.p_keep: 1.0})
+                        smr_test.add_summary(summary, idx)
+                        if avg_loss == 0:
+                            avg_loss = loss
+                            avg_loss_val = loss_val
+                        else:
+                            avg_loss = 0.9*avg_loss + 0.1*loss
+                            avg_loss_val = 0.9*avg_loss_val + 0.1*loss_val
+                        t = self.scaler_y.inverse_transform(target[0])
+                        y = self.scaler_y.inverse_transform(Y_val_batch[0])
+                        print("%s | loss_train: %f, loss_val: %f, course: %d, target: %f, Y: %f" % (bar, avg_loss, avg_loss_val, self.column_unique['course'][int(X_val_batch[0][0])], t, y), end='\r')
+                        sys.stdout.flush()
+
+            if not os.path.exists(self.model_dir):
+                os.makedirs(self.model_dir)
+            save_path = self.saver.save(sess,'%s/model.ckpt' % self.model_dir)
+            print("\nModel saved in file: %s" % save_path)
+
+    def load(self):
+        self.sess = tf.Session(config=self.config)
+        self.sess.run(self.init_op)
+        ckpt = tf.train.get_checkpoint_state(self.model_dir)
+        self.saver.restore(self.sess, ckpt.model_checkpoint_path)
+
+    def close(self):
+        self.sess.close()
+
+    def predict(self, X_data):
+        if self.sess is None:
+            self.load()
+        return self.sess.run(self.output, feed_dict={self.Input: X_data, self.p_keep: 1.0})
+
+
 
 def normalize_data(org_data):
     data = org_data.dropna()
     data = data.reset_index()
-    data.loc[data['gender'] == '암', 'gender'] = 0
-    data.loc[data['gender'] == '수', 'gender'] = 1
-    data.loc[data['gender'] == '거', 'gender'] = 2
-    data.loc[data['cntry'] == '한', 'cntry'] = 0
-    data.loc[data['cntry'] == '한(포)', 'cntry'] = 1
-    data.loc[data['cntry'] == '일', 'cntry'] = 2
-    data.loc[data['cntry'] == '중', 'cntry'] = 3
-    data.loc[data['cntry'] == '미', 'cntry'] = 4
-    data.loc[data['cntry'] == '캐', 'cntry'] = 5
-    data.loc[data['cntry'] == '뉴', 'cntry'] = 6
-    data.loc[data['cntry'] == '호', 'cntry'] = 7
-    data.loc[data['cntry'] == '브', 'cntry'] = 8
-    data.loc[data['cntry'] == '헨', 'cntry'] = 9
-    data.loc[data['cntry'] == '남', 'cntry'] = 10
-    data.loc[data['cntry'] == '아일', 'cntry'] = 11
-    data.loc[data['cntry'] == '모', 'cntry'] = 12
-    data.loc[data['cntry'] == '영', 'cntry'] = 13
-    data.loc[data['cntry'] == '인', 'cntry'] = 14
-    data.loc[data['cntry'] == '아', 'cntry'] = 15
-    data.loc[data['cntry'] == '프', 'cntry'] = 16
-    oh_course = [[0]*13 for _ in range(len(data))]
-    oh_gen = [[0]*3 for _ in range(len(data))]
-    oh_cnt = [[0]*17 for _ in range(len(data))]
-    course_list = [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2200, 2300]
-    for i in range(len(data)):
-        oh_course[i][course_list.index(data['course'][i])] = 1
-        oh_gen[i][data['gender'][i]] = 1
-        oh_cnt[i][data['cntry'][i]] = 1
-    df_course = pd.DataFrame(oh_course, columns=['cr%d'%i for i in range(1,14)])
-    df_gen = pd.DataFrame(oh_gen, columns=['g1', 'g2', 'g3'])
-    df_cnt = pd.DataFrame(oh_cnt, columns=['c%d'%i for i in range(1,18)])
-    return pd.concat([data, df_course, df_gen, df_cnt], axis=1)
+
+    column_unique = joblib.load('../data/column_unique.pkl')
+    for column in name_one_hot_columns:
+        for idx, value in enumerate(column_unique[column]):
+            try:
+                data.loc[data[column]==value, column] = idx
+            except TypeError:
+                print(column, idx, value)
+                raise
     return data
 
 def get_data(begin_date, end_date):
@@ -97,7 +230,7 @@ def get_data(begin_date, end_date):
     return X_data, Y_data, R_data, data
 
 
-def get_data_from_csv(begin_date, end_date, fname_csv, course=0, kind=0, nData=201):
+def get_data_from_csv(begin_date, end_date, fname_csv, course=0, kind=0, nData=47):
     df = pd.read_csv(fname_csv)
     remove_index = []
     for idx in range(len(df)):
@@ -112,50 +245,10 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0, kind=0, nData=2
     R_data = data[['name', 'rank', 'r1', 'r2', 'r3', 'hr_nt', 'hr_dt', 'jk_nt', 'tr_nt', 'cnt', 'rcno', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'samssang', 'idx']]
     Y_data = data['rctime']
     X_data = data.copy()
-    X_data = X_data.drop(['name', 'jockey', 'trainer', 'owner', 'rctime', 'rank', 'r3', 'r2', 'r1', 'date', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'ssang', 'samssang', 'index'], axis=1)
-    if nData == 11:
-        X_data = X_data.drop(['humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
-                  'idx', 'cntry', 'gender', 'age', 'budam', # 9
-                  'weight', 'dweight', 'cnt', 'rcno', 'month',
-                  'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
-                  'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
-                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
-                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2',  #10
-                  'rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
-                  'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',  # 30
-                  'jc31', 'jc32', 'jc33', 'jc34', 'jc35', 'jc36', 'jc37', 'jc38', 'jc39', 'jc40', 'jc41', 'jc42', 'jc43', 'jc44', 'jc45', 'jc46', 'jc47', 'jc48', 'jc49', 'jc50', 'jc51', 'jc52', 'jc53', 'jc54', 'jc55', 'jc56', 'jc57', 'jc58', 'jc59', 'jc60',  # 30
-                  'jc61', 'jc62', 'jc63', 'jc64', 'jc65', 'jc66', 'jc67', 'jc68', 'jc69', 'jc70', 'jc71', 'jc72', 'jc73', 'jc74', 'jc75', 'jc76', 'jc77', 'jc78', 'jc79', 'jc80', 'jc81',  # 21
-                  ], axis=1)
-    if nData == 29:
-        X_data = X_data.drop(['humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
-                  'idx', 'cntry', 'gender', 'age', 'budam', # 9
-                  'weight', 'dweight', 'cnt', 'rcno', 'month',
-                  'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
-                  'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
-                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
-                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2',  #10
-                  'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',  # 30
-                  'jc31', 'jc32', 'jc33', 'jc34', 'jc35', 'jc36', 'jc37', 'jc38', 'jc39', 'jc40', 'jc41', 'jc42', 'jc43', 'jc44', 'jc45', 'jc46', 'jc47', 'jc48', 'jc49', 'jc50', 'jc51', 'jc52', 'jc53', 'jc54', 'jc55', 'jc56', 'jc57', 'jc58', 'jc59', 'jc60',  # 30
-                  'jc61', 'jc62', 'jc63', 'jc64', 'jc65', 'jc66', 'jc67', 'jc68', 'jc69', 'jc70', 'jc71', 'jc72', 'jc73', 'jc74', 'jc75', 'jc76', 'jc77', 'jc78', 'jc79', 'jc80', 'jc81',  # 21
-                  ], axis=1)
-    if nData == 118:
-        X_data = X_data.drop(['kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
-                  'weight', 'dweight', 'rcno',
-                  'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
-                  'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
-                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
-                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2',  #10
-                  'cr1', 'cr2', 'cr3', 'cr4', 'cr5', 'cr6', 'cr7', 'cr8', 'cr9', 'cr10', 'cr11', 'cr12', 'cr13', 'g1', 'g2', 'g3',
-                  'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'c10', 'c11', 'c12', 'c13', 'c14', 'c15', 'c16', 'c17',
-                  ], axis=1)
-    if nData == 151:
-        X_data = X_data.drop(['kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
-                  'weight', 'dweight', 'rcno',
-                  'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
-                  'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
-                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
-                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2',  #10
-                  ], axis=1)
+    X_data = X_data.drop(['name', 'rctime', 'rank', 'r3', 'r2', 'r1', 'date', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'ssang', 'samssang', 'index'], axis=1)
+    #X_data = X_data.drop(['jockey', 'trainer', 'owner'], axis=1)
+    #print(X_data.columns)
+    X_data = X_data.drop(['jk%d'%i for i in range(1, 257)] + ['tr%d'%i for i in range(1, 130)], axis=1)
     if nData == 47:
         X_data = X_data.drop(['ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', 'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl'], axis=1)
         X_data = X_data.drop(['rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
@@ -166,7 +259,7 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0, kind=0, nData=2
         X_data = X_data.drop(['jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',
                   'jc31', 'jc32', 'jc33', 'jc34', 'jc35', 'jc36', 'jc37', 'jc38', 'jc39', 'jc40', 'jc41', 'jc42', 'jc43', 'jc44', 'jc45', 'jc46', 'jc47', 'jc48', 'jc49', 'jc50', 'jc51', 'jc52', 'jc53', 'jc54', 'jc55', 'jc56', 'jc57', 'jc58', 'jc59', 'jc60',
                   'jc61', 'jc62', 'jc63', 'jc64', 'jc65', 'jc66', 'jc67', 'jc68', 'jc69', 'jc70', 'jc71', 'jc72', 'jc73', 'jc74', 'jc75', 'jc76', 'jc77', 'jc78', 'jc79', 'jc80', 'jc81'], axis=1)
-    return np.array(X_data), np.array(Y_data), R_data, data
+    return X_data, Y_data, R_data, data
 
 def delete_lack_data(X_data, Y_data):
     remove_index = []
@@ -178,64 +271,37 @@ def delete_lack_data(X_data, Y_data):
     return X_data.drop(X_data.index[remove_index]), Y_data.drop(Y_data.index[remove_index])
 
 def training(train_bd, train_ed, course=0, nData=47):
-    from keras.wrappers.scikit_learn import KerasRegressor
-    from keras.models import model_from_json
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-    #os.system('rm -r \"../model/keras/e200_i586_l3/%d_%d/\"' % (train_bd_i, train_ed_i))
-    model_dir = '../model/keras/e200_i586_l3/%d_%d/' % (train_bd_i, train_ed_i)
-    if not os.path.exists(model_dir):
-        os.makedirs(model_dir)
-    model_name = "%s/model_v1.h5" % model_dir
     estimators = [0] * MODEL_NUM
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-    X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv')
-    print("%d data is fully loaded" % len(X_train))
-    #X_scaler = StandardScaler()
-    #X_train = X_scaler.fit_transform(X_train)
-    print("Start train model")
-    # fix random seed for reproducibility
-    scaler_x = StandardScaler()
-    scaler_y = StandardScaler()
-    X_train = scaler_x.fit_transform(X_train)
+    X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', 0, nData=nData)
+    X_train = np.array(X_train)
+    Y_train = np.array(Y_train)
+    X_train[:,3:22] = scaler_x1.fit_transform(X_train[:,3:22])
+    X_train[:,26:27] = scaler_x2.fit_transform(X_train[:,26:27])
+    X_train[:,30:32] = scaler_x3.fit_transform(X_train[:,30:32])
+    X_train[:,35:171] = scaler_x4.fit_transform(X_train[:,35:171])
     Y_train = scaler_y.fit_transform(Y_train)
     seed = 7
     np.random.seed(seed)
     # evaluate model with standardized dataset
     for i in range(MODEL_NUM):
-        if os.path.exists(model_name.replace('h5', '%d.h5'%i)):
-            from keras.models import model_from_json
-            print("model[%d] exist. try to loading.. %s - %s" % (i, str(train_bd), str(train_ed)))
-            estimators[i] = model_from_json(open(model_name.replace('h5', 'json')).read())
-            estimators[i].load_weights(model_name.replace('h5', '%d.h5'%i))
+        print("model[%d] training.." % (i+1))
+        dir_name = '../model/tf/l3_e80_d1_0/%s_%s/%d' % (train_bd, train_ed, i)
+        if not os.path.exists(dir_name):
+            os.makedirs(dir_name)
+        tf.reset_default_graph()
+        estimators[i] = TensorflowRegressor("%s_%s/%d"%(train_bd, train_ed, i))
+        model_name = "%s/%d/model.ckpt.index" % (model_dir, i)
+        if os.path.exists(model_name):
+            print("loading exists model")
+            estimators[i].load()
         else:
-            print("model[%d] training.." % (i+1))
-            def baseline_model():
-                from keras.models import Sequential
-                from keras.layers import Dense, Dropout
-                # create model
-                model = Sequential()
-                model.add(Dense(128, input_shape=(201,), kernel_initializer='he_normal', activation='relu'))
-                model.add(Dense(1, kernel_initializer='he_normal'))
-                # Compile model
-                model.compile(loss='mean_squared_error', optimizer='adam')
-                return model
-
-            config = tf.ConfigProto()
-            config.gpu_options.allow_growth = True
-            sess = tf.Session(config=config)
-            from keras import backend as K
-            K.set_session(sess)
-            from keras.wrappers.scikit_learn import KerasRegressor
-            estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=200, batch_size=32, verbose=0)
             estimators[i].fit(X_train, Y_train)
-            # saving model
-            json_model = estimators[i].model.to_json()
-            open(model_name.replace('h5', 'json'), 'w').write(json_model)
-            estimators[i].model.save_weights(model_name.replace('h5', '%d.h5'%i), overwrite=True)
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
-    return estimators, md, [scaler_x, scaler_y]
+    return estimators, md, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_y
 
 def print_log(data, pred, fname):
     flog = open(fname, 'w')
@@ -256,70 +322,59 @@ def print_log(data, pred, fname):
     flog.close()
 
 
-def process_train(train_bd, train_ed):
-    #Tensorflow GPU optimization
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
-    sess = tf.Session(config=config)
-    from keras import backend as K
-    K.set_session(sess)
-    
+def process_train(train_bd, train_ed, q):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-
-    model_dir = "../model/keras/e200_i586_l3/%d_%d" % (train_bd_i, train_ed_i)
-    model_name = "%s/model_v1.h5" % (model_dir)
+    model_dir = "../model/tf/l3_e80_d1_0/%d_%d" % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
-    estimators = [0] * MODEL_NUM
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
     X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', 0, nData=nData)
-    #scaler_x = StandardScaler()
-    #scaler_y = StandardScaler()
-    #X_train = scaler_x.fit_transform(X_train)
-    #Y_train = scaler_y.fit_transform(Y_train)
-    #joblib.dump(scaler_x, '%s/scaler_x.pkl'%model_dir)
-    #joblib.dump(scaler_y, '%s/scaler_y.pkl'%model_dir)
+    scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_y = StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler()
+    X_train = np.array(X_train)
+    Y_train = np.array(Y_train)
+    X_train, Y_train = shuffle(X_train, Y_train)
+    
+    X_train[:,3:22] = scaler_x1.fit_transform(X_train[:,3:22])
+    X_train[:,26:27] = scaler_x2.fit_transform(X_train[:,26:27])
+    X_train[:,30:32] = scaler_x3.fit_transform(X_train[:,30:32])
+    X_train[:,35:171] = scaler_x4.fit_transform(X_train[:,35:171])
+    Y_train = scaler_y.fit_transform(Y_train)
+    X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, random_state=0)
+
+    joblib.dump((scaler_x1, scaler_x2, scaler_x3, scaler_x4), "%s/scaler_x.pkl" % (model_dir,))
+    joblib.dump(scaler_y, "%s/scaler_y.pkl" % (model_dir,))
+
+    estimators = [0] * MODEL_NUM
     for i in range(MODEL_NUM):
-        if os.path.exists(model_name.replace('h5', '%d.h5'%i)):
-            from keras.models import model_from_json
+        model_name = "%s/%d/model.ckpt.index" % (model_dir, i)
+        if os.path.exists("%s/%d/" % (model_dir, i)):
             print("model[%d] exist. try to loading.. %s - %s" % (i, str(train_bd), str(train_ed)))
-            estimators[i] = model_from_json(open(model_name.replace('h5', 'json')).read())
-            estimators[i].load_weights(model_name.replace('h5', '%d.h5'%i))
+            estimators[i] = TensorflowRegressor('%s_%s/%d' % (train_bd, train_ed, i))
+            estimators[i].load()
+            estimators[i].set_scaler(scaler_y)
         else:
+            if not os.path.exists("%s/%d" % (model_dir, i)):
+                os.makedirs("%s/%d" % (model_dir, i))
+                print("making directory %s" % "%s/%d" % (model_dir, i))
             print("model[%d] training.." % (i+1))
-            def baseline_model():
-                from keras.models import Sequential
-                from keras.layers import Dense, Dropout
-                from keras import regularizers
-                # create model
-                model = Sequential()
-                model.add(Dense(100, input_shape=(586,), kernel_initializer='he_normal', activation='relu'))
-                model.add(Dense(10, kernel_initializer='he_normal', activation='relu'))
-                model.add(Dense(1, kernel_initializer='he_normal'))
-                # Compile model
-                model.compile(loss='mean_squared_error', optimizer='adam')
-                return model
-
-            from keras.wrappers.scikit_learn import KerasRegressor
-            estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=400, batch_size=32, verbose=0)
-            estimators[i].fit(X_train, Y_train, epochs=20)
-            # saving model
-            json_model = estimators[i].model.to_json()
-            open(model_name.replace('h5', 'json'), 'w').write(json_model)
-            estimators[i].model.save_weights(model_name.replace('h5', '%d.h5'%i), overwrite=True)
+            tf.reset_default_graph()
+            estimators[i] = TensorflowRegressor("%s_%s/%d"%(train_bd_i, train_ed_i, i))
+            estimators[i].set_scaler(scaler_y)
+            estimators[i].fit(X_train, Y_train, X_val, Y_val)
     print("Finish train model")
+    q.put(scaler_x1)
+    q.put(scaler_x2)
+    q.put(scaler_x3)
+    q.put(scaler_x4)
+    q.put(scaler_y)
 
 
-def process_test(train_bd, train_ed, q):
-    #Tensorflow GPU optimization
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
-    sess = tf.Session(config=config)
-    from keras import backend as K
-    K.set_session(sess)
 
+def process_test(train_bd, train_ed, scaler, q):
+
+    scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_y = scaler
     sr, sscore = q.get()
 
     test_bd = train_ed + datetime.timedelta(days=1)
@@ -329,21 +384,28 @@ def process_test(train_bd, train_ed, q):
     
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/keras/e200_i586_l3/%d_%d" % (train_bd_i, train_ed_i)
-    model_name = "%s/model_v1.h5" % (model_dir)
-    data_dir = "../data/keras/e200_i586_l3"
+    model_dir = "../model/tf/l3_e80_d1_0/%d_%d" % (train_bd_i, train_ed_i)
+    data_dir = "../data/tf/l3_e80_d1_0"
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
-    print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
 
-    X_test, Y_test, R_test, _ = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.csv', nData=nData)
-    #scaler_x = joblib.load('%s/scaler_x.pkl'%model_dir)
-    #scaler_y = joblib.load('%s/scaler_y.pkl'%model_dir)
-    #X_test = scaler_x.transform(X_test)
+    if not os.path.exists('../data/tf/l3_e80_d1_0'):
+        os.makedirs('../data/tf/l3_e80_d1_0')
+    fname_result = '../data/tf/l3_e80_d1_0/tf_nd%d_y%d.txt' % (nData, delta_year)
+    print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
+    X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.csv', nData=nData)
+    X_test = np.array(X_test)
+    X_test[:,3:22] = scaler_x1.transform(X_test[:,3:22])
+    X_test[:,26:27] = scaler_x2.transform(X_test[:,26:27])
+    X_test[:,30:32] = scaler_x3.transform(X_test[:,30:32])
+    X_test[:,35:171] = scaler_x4.transform(X_test[:,35:171])
+    """
+    X_test = scaler_x1.transform(X_test)
+    """
     print("%d data is fully loaded" % (len(X_test)))
 
-    #print("train data: %s - %s" % (str(train_bd), str(train_ed)))
-    #print("test data: %s - %s" % (str(test_bd), str(test_ed)))
+    print("train data: %s - %s" % (str(train_bd), str(train_ed)))
+    print("test data: %s - %s" % (str(test_bd), str(test_ed)))
     print("%15s%10s%10s%10s%10s%10s%10s%10s" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
 
     res = [0]*10
@@ -354,13 +416,13 @@ def process_test(train_bd, train_ed, q):
         DEBUG = False
         if DEBUG:
             X_test.to_csv('../log/weekly_train0_%s.csv' % today, index=False)
+        X_test = np.array(X_test)
+        Y_test = np.array(Y_test.reshape(-1,1)).reshape(-1)
         pred = [0] * MODEL_NUM
         for i in range(MODEL_NUM):
-            from keras.models import model_from_json
-            estimator = model_from_json(open(model_name.replace('h5', 'json')).read())
-            estimator.load_weights(model_name.replace('h5', '%d.h5'%i))
-            pred[i] = estimator.predict(X_test).flatten()
-            #pred[i] = scaler_y.inverse_transform(pred[i])
+            estimator = TensorflowRegressor('%s_%s/%d' % (train_bd_i, train_ed_i, i))
+            pred[i] = estimator.predict(X_test)
+            pred[i] = scaler_y.inverse_transform(pred[i])
             score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
 
             res[0] = sim.simulation7(pred[i], R_test, [[1],[2],[3]])
@@ -530,7 +592,6 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         while today.weekday() != 3:
             today = today + datetime.timedelta(days=1)
         today = today + datetime.timedelta(days=1)
-
         train_bd = today + datetime.timedelta(days=-365*delta_year)
         #train_bd = datetime.date(2011, 1, 1)
         train_ed = today + datetime.timedelta(days=-delta_day)
@@ -540,11 +601,16 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         test_ed_s = "%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day)
         if not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_bd_s) and not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_ed_s):
             continue
-        p = Process(target=process_train, args=(train_bd, train_ed))
+        p = Process(target=process_train, args=(train_bd, train_ed, q))
         p.start()
         p.join()
+        scaler_x1 = q.get()
+        scaler_x2 = q.get()
+        scaler_x3 = q.get()
+        scaler_x4 = q.get()
+        scaler_y = q.get()
         q.put((sr, sscore))
-        p = Process(target=process_test, args=(train_bd, train_ed, q))
+        p = Process(target=process_test, args=(train_bd, train_ed, (scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_y), q))
         p.start()
         p.join()
         sr, sscore = q.get()
@@ -558,10 +624,7 @@ if __name__ == '__main__':
     test_bd = datetime.date(2016, 6, 5)
     test_ed = datetime.date(2017, 5, 15)
 
-    for delta_year in [8]:
-        for nData in [201]:
+    for delta_year in [6]:
+        for nData in [186]:
             simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[0], nData=nData)
-            #for c in [1000, 1200, 1300, 1400, 1700]:
-            #    for k in [0]:
-            #        outfile = '../data/weekly_keras_m1_nd%d_y%d_c%d_0_k%d.txt' % (nData, delta_year, c, k)
-            #        simulation_weekly(test_bd, test_ed, outfile, 0, delta_year, c, k, nData=nData)
+
