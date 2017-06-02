@@ -102,25 +102,23 @@ class TensorflowRegressor():
 
         self.column_unique = joblib.load('../data/column_unique.pkl')
         self.dir = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        if not os.path.exists(self.dir):
-            os.makedirs(self.dir)
         self.sess = None
 
     def set_scaler(self, scaler_y):
         self.scaler_y = scaler_y
 
-    def fit(self, X_data, Y_data, X_val=None, Y_val=None):
+    def fit(self, X_data, Y_data, X_val=None, Y_val=None, n_epoch=80):
         # Add an op to initialize the variables.
         batch_size = 512
         lr = 1e-2
         with tf.Session(config=self.config) as sess:
             sess.run(self.init_op)
-            bar = ProgressBar(len(X_data)/batch_size*self.num_epoch, max_width=80)
+            bar = ProgressBar(len(X_data)/batch_size*n_epoch, max_width=80)
             avg_loss, avg_loss_val = 0, 0
             smr_train = tf.summary.FileWriter('TB/%s/train'%self.dir, sess.graph)
             smr_test = tf.summary.FileWriter('TB/%s/test'%self.dir)
             idx = 0
-            for i in range(self.num_epoch):
+            for i in range(n_epoch):
                 lr *= 0.99
                 #print("\nEpoch %d/%d is started" % (i+1, self.num_epoch), end='\n')
                 idx_val = 0
@@ -133,26 +131,35 @@ class TensorflowRegressor():
                     bar.numerator += 1
                     if j%50 == 0 and j > 0:
                         idx += 1
-                        if idx_val == 0:
+                        if idx_val == 0 and X_val is not None:
                             X_val, Y_val = shuffle(X_val, Y_val)
                         summary, loss = sess.run([self.merged, self.loss], feed_dict={self.lr:lr, self.Input: X_batch, self.target: Y_batch, self.p_keep: 1.0})
                         smr_train.add_summary(summary, idx)
-                        X_val_batch = X_val[batch_size*idx_val:batch_size*(idx_val+1)]
-                        Y_val_batch = Y_val[batch_size*idx_val:batch_size*(idx_val+1)]
-                        idx_val += 1
-                        if batch_size*(idx_val+1) > len(X_val):
-                            idx_val = 0
-                        summary, target, loss_val = sess.run([self.merged, self.output, self.loss], feed_dict={self.lr:lr, self.Input: X_val_batch, self.target: Y_val_batch, self.p_keep: 1.0})
-                        smr_test.add_summary(summary, idx)
                         if avg_loss == 0:
                             avg_loss = loss
-                            avg_loss_val = loss_val
                         else:
                             avg_loss = 0.9*avg_loss + 0.1*loss
-                            avg_loss_val = 0.9*avg_loss_val + 0.1*loss_val
-                        t = self.scaler_y.inverse_transform(target[0])
-                        y = self.scaler_y.inverse_transform(Y_val_batch[0])
-                        print("%s | loss_train: %f, loss_val: %f, course: %d, target: %f, Y: %f" % (bar, avg_loss, avg_loss_val, self.column_unique['course'][int(X_val_batch[0][0])], t, y), end='\r')
+                        if X_val is not None:
+                            X_val_batch = X_val[batch_size*idx_val:batch_size*(idx_val+1)]
+                            Y_val_batch = Y_val[batch_size*idx_val:batch_size*(idx_val+1)]
+                            idx_val += 1
+                            if batch_size*(idx_val+1) > len(X_val):
+                                idx_val = 0
+                            summary, target, loss_val = sess.run([self.merged, self.output, self.loss], feed_dict={self.lr:lr, self.Input: X_val_batch, self.target: Y_val_batch, self.p_keep: 1.0})
+                            smr_test.add_summary(summary, idx)
+                            if avg_loss_val == 0:
+                                avg_loss_val = loss_val
+                            else:
+                                avg_loss_val = 0.9*avg_loss_val + 0.1*loss_val
+                        if X_val is not None:
+                            t = self.scaler_y.inverse_transform(target[0])
+                            y = self.scaler_y.inverse_transform(Y_val_batch[0])
+                        else:
+                            t = y = 0
+                        if X_val is None:
+                            print("%s | loss_train: %f" % (bar, avg_loss), end='\r')
+                        else:
+                            print("%s | loss_train: %f, loss_val: %f, course: %d, target: %f, Y: %f" % (bar, avg_loss, avg_loss_val, self.column_unique['course'][int(X_val_batch[0][0])], t, y), end='\r')
                         sys.stdout.flush()
 
             if not os.path.exists(self.model_dir):
@@ -248,7 +255,7 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0, kind=0, nData=4
     X_data = X_data.drop(['name', 'rctime', 'rank', 'r3', 'r2', 'r1', 'date', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'ssang', 'samssang', 'index'], axis=1)
     #X_data = X_data.drop(['jockey', 'trainer', 'owner'], axis=1)
     #print(X_data.columns)
-    X_data = X_data.drop(['jk%d'%i for i in range(1, 257)] + ['tr%d'%i for i in range(1, 130)], axis=1)
+    #X_data = X_data.drop(['jk%d'%i for i in range(1, 257)] + ['tr%d'%i for i in range(1, 130)], axis=1)
     if nData == 47:
         X_data = X_data.drop(['ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', 'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl'], axis=1)
         X_data = X_data.drop(['rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
@@ -270,13 +277,17 @@ def delete_lack_data(X_data, Y_data):
     print(len(remove_index))
     return X_data.drop(X_data.index[remove_index]), Y_data.drop(Y_data.index[remove_index])
 
-def training(train_bd, train_ed, course=0, nData=47):
+def training(train_bd, train_ed, course=0, nData=47, n_epoch=100):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
+    model_dir = "../model/tf/l3_e80_d1_0/%d_%d" % (train_bd_i, train_ed_i)
+    if not os.path.exists(model_dir):
+        os.makedirs(model_dir)
 
     estimators = [0] * MODEL_NUM
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
     X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', 0, nData=nData)
+    scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_y = StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler()
     X_train = np.array(X_train)
     Y_train = np.array(Y_train)
     X_train[:,3:22] = scaler_x1.fit_transform(X_train[:,3:22])
@@ -289,17 +300,17 @@ def training(train_bd, train_ed, course=0, nData=47):
     # evaluate model with standardized dataset
     for i in range(MODEL_NUM):
         print("model[%d] training.." % (i+1))
-        dir_name = '../model/tf/l3_e80_d1_0/%s_%s/%d' % (train_bd, train_ed, i)
+        dir_name = '../model/tf/l3_e80_d1_0/%s_%s/%d' % (train_bd_i, train_ed_i, i)
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
         tf.reset_default_graph()
-        estimators[i] = TensorflowRegressor("%s_%s/%d"%(train_bd, train_ed, i))
+        estimators[i] = TensorflowRegressor("%s_%s/%d"%(train_bd_i, train_ed_i, i))
         model_name = "%s/%d/model.ckpt.index" % (model_dir, i)
         if os.path.exists(model_name):
             print("loading exists model")
             estimators[i].load()
         else:
-            estimators[i].fit(X_train, Y_train)
+            estimators[i].fit(X_train, Y_train, n_epoch=n_epoch)
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
     return estimators, md, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_y
 
@@ -351,7 +362,7 @@ def process_train(train_bd, train_ed, q):
         model_name = "%s/%d/model.ckpt.index" % (model_dir, i)
         if os.path.exists("%s/%d/" % (model_dir, i)):
             print("model[%d] exist. try to loading.. %s - %s" % (i, str(train_bd), str(train_ed)))
-            estimators[i] = TensorflowRegressor('%s_%s/%d' % (train_bd, train_ed, i))
+            estimators[i] = TensorflowRegressor('%s_%s/%d' % (train_bd_i, train_ed_i, i))
             estimators[i].load()
             estimators[i].set_scaler(scaler_y)
         else:
@@ -362,7 +373,7 @@ def process_train(train_bd, train_ed, q):
             tf.reset_default_graph()
             estimators[i] = TensorflowRegressor("%s_%s/%d"%(train_bd_i, train_ed_i, i))
             estimators[i].set_scaler(scaler_y)
-            estimators[i].fit(X_train, Y_train, X_val, Y_val)
+            estimators[i].fit(X_train, Y_train, X_val, Y_val, n_epoch=80)
     print("Finish train model")
     q.put(scaler_x1)
     q.put(scaler_x2)

@@ -215,9 +215,9 @@ def parse_xml_entry(meet, date_i, number, md=mean_data(), rd=RaceDetail()):
         rd_data = rd.get_data(hrname, date_i, md)
         jc_data = wc.get_jangu_clinic(jangu_clinic, hrname)
 
-        adata = [unicode(itemElm.rcdist.string),
-                 humidity,
-                 kind,
+        adata = [int(unicode(itemElm.rcdist.string)),
+                 int(humidity),
+                 int(kind),
 
                  dbudam,
                  drweight,
@@ -240,11 +240,11 @@ def parse_xml_entry(meet, date_i, number, md=mean_data(), rd=RaceDetail()):
                  race_score[8],
                  race_score[9],
 
-                 itemElm.chulno.string,
+                 int(itemElm.chulno.string),
                  itemElm.hrname.string,
                  itemElm.prdctyname.string,
                  hr_gender,
-                 itemElm.age.string,
+                 int(itemElm.age.string),
                  itemElm.wgbudam.string,
                  itemElm.jkname.string,
 
@@ -252,8 +252,8 @@ def parse_xml_entry(meet, date_i, number, md=mean_data(), rd=RaceDetail()):
                  itemElm.owname.string,
                  hr_weight,
                  hr_dweight,
-                 cnt,
-                 itemElm.rcno.string,
+                 int(cnt),
+                 int(itemElm.rcno.string),
                  date_i / 100 % 100,
                  hr_days,
 

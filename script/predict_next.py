@@ -10,84 +10,30 @@ import train as tr
 import train_keras as tk
 import train_keras_ensenble as tkn
 import train_tf_ensenble as tfn
+import train_tf_process as tfp
 from get_race_detail import RaceDetail
 import numpy as np
 import os
 
 def normalize_data(org_data, nData=47):
+    name_one_hot_columns = ['course', 'humidity', 'kind', 'idx', 'cntry', 'gender', 'age', 'jockey', 'trainer', 'owner', 'cnt', 'rcno', 'month']
     data = org_data.dropna()
     data = data.reset_index()
-    data.loc[data['gender'] == '암', 'gender'] = 0
-    data.loc[data['gender'] == '수', 'gender'] = 1
-    data.loc[data['gender'] == '거', 'gender'] = 2
-    data.loc[data['cntry'] == '한', 'cntry'] = 0
-    data.loc[data['cntry'] == '한(포)', 'cntry'] = 1
-    data.loc[data['cntry'] == '일', 'cntry'] = 2
-    data.loc[data['cntry'] == '중', 'cntry'] = 3
-    data.loc[data['cntry'] == '미', 'cntry'] = 4
-    data.loc[data['cntry'] == '캐', 'cntry'] = 5
-    data.loc[data['cntry'] == '뉴', 'cntry'] = 6
-    data.loc[data['cntry'] == '호', 'cntry'] = 7
-    data.loc[data['cntry'] == '브', 'cntry'] = 8
-    data.loc[data['cntry'] == '헨', 'cntry'] = 9
-    data.loc[data['cntry'] == '남', 'cntry'] = 10
-    data.loc[data['cntry'] == '아일', 'cntry'] = 11
-    data.loc[data['cntry'] == '모', 'cntry'] = 12
-    data.loc[data['cntry'] == '영', 'cntry'] = 13
-    data.loc[data['cntry'] == '인', 'cntry'] = 14
-    data.loc[data['cntry'] == '아', 'cntry'] = 15
-    data.loc[data['cntry'] == '프', 'cntry'] = 16
-    
-    oh_course = [[0]*13 for _ in range(len(data))]
-    oh_gen = [[0]*3 for _ in range(len(data))]
-    oh_cnt = [[0]*17 for _ in range(len(data))]
-    course_list = [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2200, 2300]
-    for i in range(len(data)):
-        oh_course[i][course_list.index(int(data['course'][i]))] = 1
-        oh_gen[i][data['gender'][i]] = 1
-        oh_cnt[i][data['cntry'][i]] = 1
-    df_course = pd.DataFrame(oh_course, columns=['cr%d'%i for i in range(1,14)])
-    df_gen = pd.DataFrame(oh_gen, columns=['g1', 'g2', 'g3'])
-    df_cnt = pd.DataFrame(oh_cnt, columns=['c%d'%i for i in range(1,18)])
-    data = pd.concat([data, df_course, df_gen, df_cnt], axis=1)
 
-    if nData == 29:
-        data = data.drop(['humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
-                  'idx', 'cntry', 'gender', 'age', 'budam', # 9
-                  'weight', 'dweight', 'cnt', 'month',
-                  'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
-                  'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
-                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
-                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2',  #10
-                  'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',  # 30
-                  'jc31', 'jc32', 'jc33', 'jc34', 'jc35', 'jc36', 'jc37', 'jc38', 'jc39', 'jc40', 'jc41', 'jc42', 'jc43', 'jc44', 'jc45', 'jc46', 'jc47', 'jc48', 'jc49', 'jc50', 'jc51', 'jc52', 'jc53', 'jc54', 'jc55', 'jc56', 'jc57', 'jc58', 'jc59', 'jc60',  # 30
-                  'jc61', 'jc62', 'jc63', 'jc64', 'jc65', 'jc66', 'jc67', 'jc68', 'jc69', 'jc70', 'jc71', 'jc72', 'jc73', 'jc74', 'jc75', 'jc76', 'jc77', 'jc78', 'jc79', 'jc80', 'jc81',  # 21
-                  ], axis=1)
-    if nData == 118:
-        data = data.drop(['kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
-                  'weight', 'dweight',
-                  'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
-                  'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
-                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
-                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2',  #10
-                  'cr1', 'cr2', 'cr3', 'cr4', 'cr5', 'cr6', 'cr7', 'cr8', 'cr9', 'cr10', 'cr11', 'cr12', 'cr13', 'g1', 'g2', 'g3',
-                  'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'c10', 'c11', 'c12', 'c13', 'c14', 'c15', 'c16', 'c17',
-                  ], axis=1)
-    if nData == 151:
-        data = data.drop(['kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
-                  'weight', 'dweight',
-                  'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
-                  'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
-                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
-                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2',  #10
-                  ], axis=1)
-    if nData == 47:
-        data = data.drop(['ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', 'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl'], axis=1)
-        data = data.drop(['rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
-                  'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',
-                  'jc31', 'jc32', 'jc33', 'jc34', 'jc35', 'jc36', 'jc37', 'jc38', 'jc39', 'jc40', 'jc41', 'jc42', 'jc43', 'jc44', 'jc45', 'jc46', 'jc47', 'jc48', 'jc49', 'jc50', 'jc51', 'jc52', 'jc53', 'jc54', 'jc55', 'jc56', 'jc57', 'jc58', 'jc59', 'jc60',
-                  'jc61', 'jc62', 'jc63', 'jc64', 'jc65', 'jc66', 'jc67', 'jc68', 'jc69', 'jc70', 'jc71', 'jc72', 'jc73', 'jc74', 'jc75', 'jc76', 'jc77', 'jc78', 'jc79', 'jc80', 'jc81'], axis=1)
+    column_unique = joblib.load('../data/column_unique.pkl')
+    for column in name_one_hot_columns:
+        for idx, value in enumerate(column_unique[column]):
+            try:
+                data.loc[data[column]==value, column] = idx
+            except TypeError:
+                print(column, idx, value)
+                raise
 
+    for column in name_one_hot_columns:
+        for i in range(len(data)):
+            if not np.isreal(data[column][i]):
+                print("data[%s]"%column, data[column][i], "is not real number")
+                data[column][i] = -1
     return data
 
 
@@ -243,8 +189,8 @@ def print_detail(players, cand, fresult, mode):
     elif cand == [[1],[2],[3]]:
         print("bet: 10000")  # 14200
         print("%s,%s,%s" % (players[0], players[1], players[2]))
-        fresult.write("\n\nbet: 200")  # 14200
-        fresult.write("\n%s,%s,%s, %s: 200" % (players[0], players[1], players[2], mode))
+        fresult.write("\n\nbet: 1000")  # 14200
+        fresult.write("\n%s,%s,%s, %s: 1000" % (players[0], players[1], players[2], mode))
     elif cand == [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]]:
         print("bet: 100") # 14200 / 55 = 258
         print("%s,%s,{%s,%s,%s,%s}" % (players[0], players[1], players[2], players[3], players[4], players[5]))
@@ -312,7 +258,7 @@ def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
     fresult.write("%s,%s,%s,%s,%s,%s\n" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
     if nData == 201:
         print_detail(rcdata['idx'], [[1,2],[1,2,3],[1,2,3]], fresult, "ss")
-    elif nData in [118, 151]:
+    elif nData in [118, 151, 300]:
         print_detail(rcdata['idx'], [[1],[2],[3]], fresult, "ss")
     else:
         print("please check nData:%d" % nData)
@@ -320,17 +266,14 @@ def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
     fresult.close()
 
 
-def predict_next(estimators, data_pre, md, rd, meet, date, rcno, course=0, nData=47, year=4, train_course=0):
+def predict_next(estimators, data_pre, md, rd, meet, date, rcno, course=0, nData=47, year=4, train_course=0, scaler_x1=None, scaler_x2=None, scaler_x3=None, scaler_x4=None, scaler_y=None):
     #data_pre = xe.parse_xml_entry(meet, date, rcno, md, rd)
     data = normalize_data(data_pre, nData=nData)
     print(len(data.columns))
     X_data = data.copy()
     print(len(X_data.columns))
-    del X_data['name']
-    del X_data['jockey']
-    del X_data['trainer']
-    del X_data['owner']
-    del X_data['index']
+    X_data = X_data.drop(['name', 'index'], axis=1)
+    #X_data = X_data.drop(['jockey', 'trainer', 'owner'], axis=1)
     if nData in [118, 151]:
         del X_data['rcno']
     __DEBUG__ = True
@@ -338,6 +281,11 @@ def predict_next(estimators, data_pre, md, rd, meet, date, rcno, course=0, nData
         X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
     print(len(X_data.columns))
     X_array = np.array(X_data)
+    X_array[:,3:22] = scaler_x1.transform(X_array[:,3:22])
+    X_array[:,26:27] = scaler_x2.transform(X_array[:,26:27])
+    X_array[:,30:32] = scaler_x3.transform(X_array[:,30:32])
+    X_array[:,35:171] = scaler_x4.transform(X_array[:,35:171])
+
     __DEBUG__ = False
     for estimator in estimators:
         rcdata = []
@@ -355,7 +303,7 @@ def predict_next(estimators, data_pre, md, rd, meet, date, rcno, course=0, nData
                 pass
             if row['rcno'] != prev_rc or idx+1 == len(data):
                 if idx+1 == len(data):
-                    rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
+                    rcdata.append([row['idx'], row['name'], float(scaler_y.inverse_transform(pred['predict'][idx]))])
                 rcdata = pd.DataFrame(rcdata)
                 rcdata.columns = ['idx', 'name', 'time']
                 rcdata = rcdata.sort_values(by='time')
@@ -369,9 +317,9 @@ def predict_next(estimators, data_pre, md, rd, meet, date, rcno, course=0, nData
                 rcdata = []
                 prev_rc = row['rcno']
                 if idx+1 != len(data):
-                    rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
+                    rcdata.append([row['idx'], row['name'], float(scaler_y.inverse_transform(pred['predict'][idx]))])
             else:
-                rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
+                rcdata.append([row['idx'], row['name'], float(scaler_y.inverse_transform(pred['predict'][idx]))])
         #print(X_data.columns)
         #print(estimator.feature_importances_)
 
@@ -455,42 +403,42 @@ if __name__ == '__main__':
     meet = 1
     train_course = 0
     courses = [0,0,0,0,0,0,0,0,0,0,0,0,0]
-    rcno = 4
+    rcno = 0
     #for rcno in range(11, len(courses)):
     course = courses[rcno]
     test_course = course
-    init_date = 20170513
+    init_date = 20170603
     rd = get_race_detail(init_date)
     from sklearn.externals import joblib
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
     data_pre1 = xe.parse_xml_entry(meet, init_date+0, rcno, md, rd)
     data_pre2 = xe.parse_xml_entry(meet, init_date+1, rcno, md, rd)
-    for idx in range(4,5):
-        nData, year, train_course, epoch = [118,151,201,201][idx-1], [6,6,8,6][idx-1], [0,0,0,0][idx-1], [200,200,200,800][idx-1]
+    for idx in range(1,2):
+        nData, year, train_course, epoch = [300,151,201,201][idx-1], [6,6,8,6][idx-1], [0,0,0,0][idx-1], [80,200,200,800][idx-1]
         date = init_date
         if train_course == 1: train_course = course
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
         #estimator, md = tk.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
         #predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
 
-        estimators, md = tkn.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData, epoch)
+        estimators, md, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_y = tfp.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData, n_epoch=epoch)
 
         if idx == 5:
-            fname = '../result/1705/%d_%d.txt' % (date%100, idx)
+            fname = '../result/1706/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
             predict_next_ens(estimators, data_pre1, md, rd, meet, date, rcno, test_course, nData, year, train_course)
             date += 1
-            fname = '../result/1705/%d_%d.txt' % (date%100, idx)
+            fname = '../result/1706/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
             predict_next_ens(estimators, data_pre2, md, rd, meet, date, rcno, test_course, nData, year, train_course)
         else:
-            fname = '../result/1705/%d_%d.txt' % (date%100, idx)
+            fname = '../result/1706/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            predict_next(estimators, data_pre1, md, rd, meet, date, rcno, test_course, nData, year, train_course)
+            predict_next(estimators, data_pre1, md, rd, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_y)
             date += 1
-            fname = '../result/1705/%d_%d.txt' % (date%100, idx)
+            fname = '../result/1706/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            predict_next(estimators, data_pre2, md, rd, meet, date, rcno, test_course, nData, year, train_course)
+            predict_next(estimators, data_pre2, md, rd, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_y)
         idx += 1
 
 # Strategy
