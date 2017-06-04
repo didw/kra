@@ -304,7 +304,6 @@ def norm_racescore(course, month, humidity, value, md=mean_data()):
     column_list = ['humidity', 'month', 'age', 'idx', 'rcno', 'budam', 'dbudam', 'jockey', 'trainer', 'rank']
     for column in column_list:
         value /= md.mean_data[column][data[column]]
-    column_list = ['humidity', 'month', 'age', 'hr_days', 'lastday', 'idx', 'rcno', 'budam', 'dbudam', 'jockey', 'trainer', 'rank']
     value /= md.mean_data['hr_days'][int(data['hr_days']/100)*100]
     value /= md.mean_data['lastday'][int(data['lastday']/10)*10]
     return value

@@ -570,7 +570,6 @@ def get_data(filename, md=mean_data(), rd=RaceDetail()):
         data[i].extend(wc.get_jangu_clinic(jangu_clinic, data[i][24]))
         #data[i].extend(gj.get_jockey(data[i][29]))
         #data[i].extend(gt.get_trainer(data[i][30]))
-        data[i].extend(parse_txt_lineage(data[i][24], md))
         data[i].extend([date_i])
     df = pd.DataFrame(data)
 

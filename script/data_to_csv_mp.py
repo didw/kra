@@ -110,7 +110,7 @@ def update_data(end_date, fname_csv):
         print("processed rc in %d" % year)
         for fname in filelist2:
             rd.parse_race_detail(fname)
-    joblib.dump(rd, fname_csv.replace('.csv', '_rd3.pkl'))
+    joblib.dump(rd, fname_csv.replace('.csv', '_rd.pkl'))
     while date <= train_ed:
         date += datetime.timedelta(days=1)
         if date.weekday() != 5 and date.weekday() != 6:
