@@ -95,7 +95,7 @@ def parse_txt_race(filename, md=mean_data()):
             train_state = gdd.get_train_state(1, date, int(rcno), hrname)
             hr_no = gdd.get_hrno(1, date, int(rcno), hrname)
             race_score, w_ = gdd.get_hr_racescore(1, hr_no, date, month, course, 'File', md)
-            lineage_info = gl.get_ligeane(1, hr_no, 'File', md)
+            lineage_info = gl.get_ligeane(1, hr_no, 'File')
 
             assert len(words) >= 10
             adata = [course, humidity, kind, dbudam, drweight, lastday]
