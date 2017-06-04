@@ -17,10 +17,7 @@ import pandas as pd
 from sklearn.externals import joblib
 from etaprogress.progress import ProgressBar
 
-
 DEBUG = False
-
-
 
 def get_csv():
     df = pd.read_csv('../data/1_2007_2016_v1.csv', index_col='date')
@@ -40,7 +37,6 @@ class Make_mean:
 
     def get_data(self):
         self.data = {}
-        print("Loading data")
         name_list = self.df['name'].unique()
 
         self.data = {}
@@ -109,6 +105,8 @@ class Make_mean:
                     bar.numerator += 1
                     if bar.numerator%100 == 0:
                         print("%s" % (bar,), end='\r')
+                    if self.data[c][item_class][item] == 1.0:
+                        continue
                     try:
                         item_list[item].append(self.data[c][item_class][item])
                     except KeyError:
@@ -131,6 +129,8 @@ class Make_mean:
                     bar.numerator += 1
                     if bar.numerator%100 == 0:
                         print("%s" % (bar,), end='\r')
+                    if self.data[c][item_class][key] == 1.0:
+                        continue
                     try:
                         item_list[key].append(self.data[c][item_class][key])
                     except KeyError:
@@ -142,6 +142,7 @@ class Make_mean:
                 except TypeError:
                     print("TypeError: ", item_class, key)
 
+        print("Loading data1")
         bar = ProgressBar(len(self.df), max_width=80)
         for i in range(len(self.df)):
             bar.numerator += 1
@@ -151,8 +152,8 @@ class Make_mean:
             add_course(row)
         for key in self.df['course'].unique():
             self.mean_data['course'][key] = np.mean(self.data['course'][key])
-        print("\n\n")
 
+        print("\n\nLoading data2")
         bar = ProgressBar(len(self.df), max_width=80)
         for i in range(len(self.df)):
             bar.numerator += 1
@@ -164,7 +165,7 @@ class Make_mean:
             add_item(row, 'month')
             add_item(row, 'age')
             add_item_days(row, 'hr_days', 100)
-            add_item_days(row, 'lastday', 30)
+            add_item_days(row, 'lastday', 10)
             add_item(row, 'idx')
             add_item(row, 'rcno')
             add_item(row, 'budam')
@@ -184,7 +185,7 @@ class Make_mean:
             make_norm(c, 'month')
             make_norm(c, 'age')
             make_norm_day(c, 'hr_days', 100)
-            make_norm_day(c, 'lastday', 30)
+            make_norm_day(c, 'lastday', 10)
             make_norm(c, 'idx')
             make_norm(c, 'rcno')
             make_norm(c, 'budam')
@@ -199,7 +200,7 @@ class Make_mean:
         make_mean('month')
         make_mean('age')
         make_mean_day('hr_days', 100)
-        make_mean_day('lastday', 30)
+        make_mean_day('lastday', 10)
         make_mean('idx')
         make_mean('rcno')
         make_mean('budam')
@@ -213,20 +214,17 @@ class Make_mean:
         print(self.mean_data)
 
 
-
 class mean_data2:
     def __init__(self):
-        self.mean_pkl = joblib.load('mean_data3.pkl')
+        self.mean_pkl = joblib.load('../data/mean_data3.pkl')
         md = self.mean_pkl.mean_data
-        fout = open('mean_data3.csv', 'wt')
-        fout.write("data..\n")
+        fout = open('../data/mean_data3.csv', 'wt')
+        fout.write("write to csv\n")
         for k1 in md.keys():
             fout.write("%s\n"%k1)
             for k2 in md[k1].keys():
                 fout.write("%s\t%f\n"%(k2, md[k1][k2]))
         fout.close()
-
-
 
     def make_humidity(self):
         pass
@@ -235,11 +233,10 @@ class mean_data2:
         pass
 
 
-
 if __name__ == '__main__':
     DEBUG = True
     m = Make_mean()
     m.get_data()
-    joblib.dump(m, 'mean_data3.pkl')
+    joblib.dump(m, '../data/mean_data3.pkl')
     md = mean_data2()
 
