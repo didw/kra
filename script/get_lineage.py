@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-
+from __future__ import print_function
 from urllib2 import urlopen
 import os
 from bs4 import BeautifulSoup
@@ -10,6 +10,7 @@ from mean_data import mean_data
 import time
 import glob
 from sklearn.externals import joblib
+from etaprogress.progress import ProgressBar
 
 DEBUG = False
 
@@ -33,8 +34,12 @@ def add_lineage_info(meet, hrno, lineage):
 def save_lineage_info(meet):
     lineage = [[] for _ in range(62)]
     flist = glob.glob('../txt/%d/LineageInfo/*'%meet)
+    bar = ProgressBar(len(flist), max_width=80)
     for fname in flist:
+        bar.numerator += 1
         add_lineage_info(meet, int(fname[-10:-4]), lineage)
+        print("%s" % (bar,), end='\r')
+        sys.stdout.flush()
     joblib.dump(lineage, '../data/lineage_1.pkl')
 
 
