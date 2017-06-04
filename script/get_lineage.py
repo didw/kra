@@ -39,11 +39,23 @@ def get_hrno(meet, date, rcno, name):
     return -1
 
 
-def get_lineage(hrno, lineage):
-    meet = 1
+def get_lineage(meet, hrno, mode='File', md=mean_data()):
+    lineage = []*62
     fname = "../txt/%d/LineageInfo/LineageInfo_%d_%06d.txt" % (meet, meet, hrno)
     print("processing %s" % fname)
-    response_body = open(fname).read()
+    if os.path.exists(fname) and mode == 'File':
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/racehorse/profileLineageInfo.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&hrNo=%06d" % (meet, hrno)
+        response_body = urlopen(url).read()
+        fout = open(fname, 'w')
+        fout.write(response_body)
+        fout.close()
+        if os.path.getsize(fname) < 43000:
+            os.remove(fname)
+        print("open url %d" % hrno)
+
     xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
     idx = 0
     for i1, itemElm in enumerate(xml_text.findAll('tbody')[1:]):
@@ -51,28 +63,14 @@ def get_lineage(hrno, lineage):
             itemList = itemElm2.findAll('td')
             for items in itemList:
                 item = items.findAll('span')
-                #print(item[0].string)
-                try:
-                    lineage[idx][unicode(item[0].string)] += 1
-                except KeyError:
-                    lineage[idx][unicode(item[0].string)] = 1
-                try:
-                    lineage[62][unicode(item[0].string)] += 1
-                except KeyError:
-                    lineage[62][unicode(item[0].string)] = 1
+                lineage[idx] = md['lineage'].index(item[0].string)
                 idx += 1
+    return lineage
 
-def analyse_dict(data):
-    res = 0
-    for i in range(len(data)):
-        res += len(data[i])
-        print(i, len(data[i]), res)
 
 if __name__ == '__main__':
     lineage = [dict() for _ in range(63)]
-    #get_lineage(24004, lineage)
     flist = glob.glob('../txt/1/LineageInfo/*')
-    for fname in flist:
-        get_lineage(int(fname[-10:-4]), lineage)
-    analyse_dict(lineage)
+    for fname in flist[-100:]:
+        print(get_lineage(1, int(fname[-10:-4]), mode='File'))
 
