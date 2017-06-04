@@ -301,11 +301,13 @@ def get_hrno(meet, date, rcno, name):
 
 
 def norm_racescore(course, month, humidity, value, md=mean_data()):
-    humidity = min(humidity, 20) - 1
-    try:
-        return value * np.array(md.race_score[0])[:,20].mean() / md.race_score[0][month][humidity]
-    except KeyError:
-        return value
+    column_list = ['humidity', 'month', 'age', 'idx', 'rcno', 'budam', 'dbudam', 'jockey', 'trainer', 'rank']
+    for column in column_list:
+        value /= md.mean_data[column][data[column]]
+    column_list = ['humidity', 'month', 'age', 'hr_days', 'lastday', 'idx', 'rcno', 'budam', 'dbudam', 'jockey', 'trainer', 'rank']
+    value /= md.mean_data['hr_days'][int(data['hr_days']/100)*100]
+    value /= md.mean_data['lastday'][int(data['lastday']/10)*10]
+    return value
 
 
 def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data()):
