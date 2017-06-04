@@ -27,13 +27,11 @@ def add_lineage_info(meet, hrno, lineage):
                 item = items.findAll('span')
                 if unicode(item[0].string) not in lineage[idx]:
                     lineage[idx].append(unicode(item[0].string))
-                if unicode(item[0].string) not in lineage[62]:
-                    lineage[62].append(unicode(item[0].string))
                 idx += 1
 
 
 def save_lineage_info(meet):
-    lineage = [[] for _ in range(63)]
+    lineage = [[] for _ in range(62)]
     flist = glob.glob('../txt/%d/LineageInfo/*'%meet)
     for fname in flist:
         add_lineage_info(meet, int(fname[-10:-4]), lineage)
@@ -46,8 +44,9 @@ def load_lineage_info(meet):
         print(i, len(lineage[i]))
 
 
-def get_lineage(meet, hrno, mode='File', md=mean_data()):
+def get_lineage(meet, hrno, mode='File'):
     lineage = []*62
+    md = joblib.load('../data/lineage_%d.pkl'%meet)
     fname = "../txt/%d/LineageInfo/LineageInfo_%d_%06d.txt" % (meet, meet, hrno)
     print("processing %s" % fname)
     if os.path.exists(fname) and mode == 'File':
@@ -70,7 +69,7 @@ def get_lineage(meet, hrno, mode='File', md=mean_data()):
             itemList = itemElm2.findAll('td')
             for items in itemList:
                 item = items.findAll('span')
-                lineage[idx] = md['lineage'].index(item[0].string)
+                lineage[idx] = md[idx].index(item[0].string)
                 idx += 1
     return lineage
 
