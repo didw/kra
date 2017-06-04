@@ -112,7 +112,10 @@ class cmake_mean:
                     except KeyError:
                         print("Key Error: ", c, item_class, item)
                 try:
-                    self.mean_data[item_class][item] = np.mean(item_list[item])
+                    if len(item_list[item]) == 0:
+                        self.mean_data[item_class][item] = 1.0
+                    else:
+                        self.mean_data[item_class][item] = np.mean(item_list[item])
                 except ValueError:
                     print("ValueError: ", item_class, item)
                 except TypeError:
