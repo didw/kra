@@ -31,7 +31,7 @@ def get_csv():
     return df
 
 
-class Make_mean:
+class cmake_mean:
     def __init__(self):
         self.df = get_csv()
 
@@ -235,7 +235,7 @@ class mean_data2:
 
 if __name__ == '__main__':
     DEBUG = True
-    m = Make_mean()
+    m = cmake_mean()
     m.get_data()
     joblib.dump(m, '../data/1_2007_2016_v1_md3.pkl')
     md = mean_data2()
