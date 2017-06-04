@@ -28,7 +28,7 @@ def get_data(begin_date, end_date, fname_csv):
     data = pd.DataFrame()
     first = True
     date += datetime.timedelta(days=-1)
-    fname_md = fname_csv.replace('.csv', '_md.pkl')
+    fname_md = fname_csv.replace('.csv', '_md3.pkl')
     if os.path.isfile(fname_md):
         md = joblib.load(fname_md)
     else:
@@ -87,7 +87,7 @@ def get_data(begin_date, end_date, fname_csv):
             print("feature extraction finished")
             break
     data.to_csv(fname_csv, index=False)
-    joblib.dump(md, fname_csv.replace('.csv', '_md.pkl'))
+    joblib.dump(md, fname_csv.replace('.csv', '_md3.pkl'))
     return data
 
 
@@ -110,7 +110,7 @@ def update_data(end_date, fname_csv):
         print("processed rc in %d" % year)
         for fname in filelist2:
             rd.parse_race_detail(fname)
-    joblib.dump(rd, fname_csv.replace('.csv', '_rd.pkl'))
+    joblib.dump(rd, fname_csv.replace('.csv', '_rd3.pkl'))
     while date <= train_ed:
         date += datetime.timedelta(days=1)
         if date.weekday() != 5 and date.weekday() != 6:
@@ -137,7 +137,7 @@ def update_md(fname):
     data = pd.read_csv(fname)
     md = mean_data()
     md.update_data(data)
-    joblib.dump(md, fname.replace('.csv', '_md.pkl'))
+    joblib.dump(md, fname.replace('.csv', '_md3.pkl'))
 
 
 if __name__ == '__main__':

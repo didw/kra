@@ -216,9 +216,9 @@ class Make_mean:
 
 class mean_data2:
     def __init__(self):
-        self.mean_pkl = joblib.load('../data/mean_data3.pkl')
+        self.mean_pkl = joblib.load('../data/1_2007_2016_v1_md3.pkl')
         md = self.mean_pkl.mean_data
-        fout = open('../data/mean_data3.csv', 'wt')
+        fout = open('../data/1_2007_2016_v1_md3.csv', 'wt')
         fout.write("write to csv\n")
         for k1 in md.keys():
             fout.write("%s\n"%k1)
@@ -237,6 +237,6 @@ if __name__ == '__main__':
     DEBUG = True
     m = Make_mean()
     m.get_data()
-    joblib.dump(m, '../data/mean_data3.pkl')
+    joblib.dump(m, '../data/1_2007_2016_v1_md3.pkl')
     md = mean_data2()
 

@@ -16,7 +16,7 @@ def get_data(begin_date, end_date, fname_csv):
     data = pd.DataFrame()
     first = True
     date += datetime.timedelta(days=-1)
-    fname_md = fname_csv.replace('.csv', '_md.pkl')
+    fname_md = fname_csv.replace('.csv', '_md3.pkl')
     if os.path.isfile(fname_md):
         md = joblib.load(fname_md)
     else:
@@ -56,7 +56,7 @@ def get_data(begin_date, end_date, fname_csv):
             md.update_data(adata)
             data = data.append(adata, ignore_index=True)
     data.to_csv(fname_csv, index=False)
-    joblib.dump(md, fname_csv.replace('.csv', '_md.pkl'))
+    joblib.dump(md, fname_csv.replace('.csv', '_md3.pkl'))
     return data
 
 
@@ -66,7 +66,7 @@ def update_data(end_date, fname_csv):
     train_bd = data.loc[len(data)-1]['date']
     train_ed = end_date
     date = datetime.date(train_bd/10000, train_bd/100%100, train_bd%100)
-    fname_md = fname_csv.replace('.csv', '_md.pkl')
+    fname_md = fname_csv.replace('.csv', '_md3.pkl')
     md = joblib.load(fname_md)
     rd = RaceDetail()
     import glob
@@ -106,7 +106,7 @@ def update_md(fname):
     data = pd.read_csv(fname)
     md = mean_data()
     md.update_data(data)
-    joblib.dump(md, fname.replace('.csv', '_md.pkl'))
+    joblib.dump(md, fname.replace('.csv', '_md3.pkl'))
 
 
 if __name__ == '__main__':
