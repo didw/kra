@@ -13,6 +13,7 @@ from get_race_detail import RaceDetail
 import get_weekly_clinic as wc
 import get_jockey as gj
 import get_trainer as gt
+import get_lineage as gl
 
 NEXT = re.compile(r'마 체 중|단승식|복승식|매출액')
 WORD = re.compile(r"[^\s]+")
@@ -94,11 +95,13 @@ def parse_txt_race(filename, md=mean_data()):
             train_state = gdd.get_train_state(1, date, int(rcno), hrname)
             hr_no = gdd.get_hrno(1, date, int(rcno), hrname)
             race_score, w_ = gdd.get_hr_racescore(1, hr_no, date, month, course, 'File', md)
+            lineage_info = gl.get_ligeane(1, hr_no, 'File', md)
 
             assert len(words) >= 10
             adata = [course, humidity, kind, dbudam, drweight, lastday]
             adata.extend(train_state)
             adata.extend(race_score)
+            adata.extend(lineage_info)
             for i in range(10):
                 adata.append(words[i])
             data.append(adata)
@@ -567,12 +570,14 @@ def get_data(filename, md=mean_data(), rd=RaceDetail()):
         data[i].extend(wc.get_jangu_clinic(jangu_clinic, data[i][24]))
         #data[i].extend(gj.get_jockey(data[i][29]))
         #data[i].extend(gt.get_trainer(data[i][30]))
+        data[i].extend(parse_txt_lineage(data[i][24], md))
         data[i].extend([date_i])
     df = pd.DataFrame(data)
 
     df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
-                  'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10', # 10
-                  'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 9
+                  'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10'] \
+                  + ['lg%d'%i for i in range(1,63)] \
+                  + ['rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 9
                   'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'month', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'samssang', # 18
                   'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
                   'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
