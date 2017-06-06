@@ -16,6 +16,7 @@ import get_trainer as gt
 import get_lineage as gl
 import glob
 import time
+import cPickle, gzip
 
 NEXT = re.compile(r'마 체 중|단승식|복승식|매출액')
 WORD = re.compile(r"[^\s]+")
@@ -295,15 +296,28 @@ def parse_txt_race(filename, race_record):
 class RaceRecord:
     def __init__(self):
         self.data = {}
+        self.cur_file = 0
 
     def get_all_record(self):
         flist = glob.glob('../txt/1/rcresult/rcresult_1_2*.txt')
         for fname in sorted(flist):
+            if int(fname[-12:-4]) < self.cur_file:
+                print("%s is already loaded, pass" % fname)
+                continue
+            print("%s is processing.." % fname)
             parse_txt_race(fname, self.data)
+            self.cur_file = int(fname[-12:-4])
+            serialized = cPickle.dumps(self.__dict__)
+            with gzip.open('../data/race_record.gz', 'wb') as f:
+                f.write(serialized)
 
 
 if __name__ == '__main__':
     race_record = RaceRecord()
+    if os.path.exists('../data/race_record.gz'):
+        with gzip.open('../data/race_record.gz', 'rb') as f:
+            tmp_dict = cPickle.loads(f.read())
+            race_record.__dict__.update(tmp_dict)
     race_record.get_all_record()
     print(race_record)
 
