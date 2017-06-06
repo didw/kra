@@ -42,11 +42,11 @@ class cmake_mean:
         self.data = {}
         self.data['course'] = {}
         for c in name_list:
-            self.data[c] = {'humidity':{}, 'month':{}, 'age':{}, 'hr_days':{}, 'lastday':{}, 'idx':{}, 'rcno':{}, 'budam':{}, 'dbudam':{}, 'jockey':{}, 'trainer':{}, 'rank':{}}
+            self.data[c] = {'humidity':{}, 'month':{}, 'age':{}, 'hr_days':{}, 'lastday':{}, 'idx':{}, 'rcno':{}, 'budam':{}, 'dbudam':{}, 'jockey':{}, 'trainer':{}, 'weight':{}, 'dweight':{}, 'rank':{}}
             for j in range(1,82):
                 self.data[c]['jc%d'%j] = {}
 
-        self.mean_data = {'course':{}, 'humidity':{}, 'month':{}, 'age':{}, 'hr_days':{}, 'lastday':{}, 'idx':{}, 'rcno':{}, 'budam':{}, 'dbudam':{}, 'jockey':{}, 'trainer':{}, 'rank':{}}
+        self.mean_data = {'course':{}, 'humidity':{}, 'month':{}, 'age':{}, 'hr_days':{}, 'lastday':{}, 'idx':{}, 'rcno':{}, 'budam':{}, 'dbudam':{}, 'jockey':{}, 'trainer':{}, 'weight':{}, 'dweight':{}, 'rank':{}}
         for j in range(1,82):
             self.mean_data['jc%d'%j] = {}
 
