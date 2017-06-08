@@ -9,6 +9,7 @@ import numpy as np
 from mean_data import mean_data
 import time
 import glob
+import sys
 from sklearn.externals import joblib
 from etaprogress.progress import ProgressBar
 
@@ -17,7 +18,6 @@ DEBUG = False
 
 def add_lineage_info(meet, hrno, lineage):
     fname = "../txt/%d/LineageInfo/LineageInfo_%d_%06d.txt" % (meet, meet, hrno)
-    print("processing %s" % fname)
     response_body = open(fname).read()
     xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
     idx = 0

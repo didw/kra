@@ -210,8 +210,8 @@ def training(train_bd, train_ed, course=0, nData=47, n_epochs=200):
                 from keras.layers import Dense, Dropout
                 # create model
                 model = Sequential()
-                model.add(Dense(128, input_shape=(nData,), init='he_normal', activation='relu'))
-                model.add(Dense(1, init='he_normal'))
+                model.add(Dense(128, input_shape=(nData,), kernel_initializer='he_normal', activation='relu'))
+                model.add(Dense(1, kernel_initializer='he_normal'))
                 # Compile model
                 model.compile(loss='mean_squared_error', optimizer='adam')
                 return model
@@ -219,10 +219,10 @@ def training(train_bd, train_ed, course=0, nData=47, n_epochs=200):
             from keras.wrappers.scikit_learn import KerasRegressor
             if n_epochs == 200:
                 estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=200, batch_size=32, verbose=0)
-                estimators[i].fit(X_train, Y_train, nb_epoch=10)
+                estimators[i].fit(X_train, Y_train, epochs=10)
             elif n_epochs == 800:
                 estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=400, batch_size=32, verbose=0)
-                estimators[i].fit(X_train, Y_train, nb_epoch=20)
+                estimators[i].fit(X_train, Y_train, epochs=20)
             # saving model
             json_model = estimators[i].model.to_json()
             open(model_name.replace('h5', 'json'), 'w').write(json_model)
@@ -294,11 +294,11 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     from keras.layers import Dense, Dropout
                     # create model
                     model = Sequential()
-                    model.add(Dense(128, input_shape=(201,), init='he_normal', activation='relu'))
+                    model.add(Dense(128, input_shape=(201,), kernel_initializer='he_normal', activation='relu'))
                     #model.add(Dense(128, input_dim=87, init='he_normal', activation='relu'))
                     #model.add(Dropout(0.1))
                     #model.add(Dense(128, init='he_normal'))
-                    model.add(Dense(1, init='he_normal'))
+                    model.add(Dense(1, kernel_initializer='he_normal'))
                     # Compile model
                     model.compile(loss='mean_squared_error', optimizer='adam')
                     return model

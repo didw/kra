@@ -7,6 +7,7 @@ import datetime
 import re
 import numpy as np
 from mean_data import mean_data
+from mean_data3 import cmake_mean
 import time
 
 DEBUG = False
@@ -300,19 +301,44 @@ def get_hrno(meet, date, rcno, name):
     return -1
 
 
-def norm_racescore(course, month, humidity, value, md=mean_data()):
-    column_list = ['humidity', 'month', 'age', 'idx', 'rcno', 'budam', 'dbudam', 'jockey', 'trainer', 'rank']
+def norm_racescore(data, value, md=cmake_mean()):
+    column_list = ['humidity', 'month', 'age', 'idx', 'rcno', 'budam', 'dbudam', 'jockey', 'trainer']
     for column in column_list:
         value /= md.mean_data[column][data[column]]
     value /= md.mean_data['hr_days'][int(data['hr_days']/100)*100]
     value /= md.mean_data['lastday'][int(data['lastday']/10)*10]
     return value
 
+from race_record import RaceRecord
+from mean_data3 import cmake_mean
+key_idx = {'humidity':0, 'month':23, 'age':10, 'hr_days':5, 'lastday':4, 'idx':6, 'rcno':22, 'budam':11, 'dbudam':2, 'jockey':12, 'trainer':13}
+def get_hr_racescore_norm(name, date, race_record, md):
+    hr_record = race_record.data[name]
+    value_list = []
+    for course in md['course'].keys():
+        for orig_record in hr_record[course]:
+            print(orig_record)
+            print(orig_record[24], date)
+            if orig_record[date] >= date:
+                continue
+            value = orig_record[17]
+            for key in md.keys():
+                if key in ['course', 'rank']:
+                    continue
+                if key in ['hr_days']:
+                    value /= md[key][int(orig_record[key_idx[key]]/100)]
+                elif key in ['lastday']:
+                    value /= md[key][int(orig_record[key_idx[key]]/10)]
+                else:
+                    value /= md[key][orig_record[key_idx[key]]]
+            value_list.append(value)
+    return np.mean(value_list)
 
-def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data()):
+
+def get_hr_racescore(meet, hrno, _date, data_dict, mode='File', md=mean_data(), md3=cmake_mean()):
     first_attend = True
     weight = 0
-    course = int(course)
+    course = int(data_dict['course'])
     result = [-1, -1, -1, -1, -1, -1, -1] # 주, 1000, 1200, 1300, 1400, 1700, 0
     default_res = map(lambda x: float(np.mean(np.array(x)[:,20])), [md.race_score[900], md.race_score[1000], md.race_score[1200], md.race_score[1300], md.race_score[1400], md.race_score[1700], md.race_score[0]])
     default_res.extend(map(lambda x: float(x), md.dist_rec[course][3:]))
@@ -390,7 +416,15 @@ def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data
             if record == 0:
                 continue
             #print("주, 일, %s" % racekind)
-            record = norm_racescore(distance, month_-1, humidity, record, md)
+            data_dict = {}
+            data_dict['humidity'] = humidity
+            data_dict['humidity'] = humidity
+            data_dict['humidity'] = humidity
+            data_dict['humidity'] = humidity
+            data_dict['humidity'] = humidity
+            data_dict['humidity'] = humidity
+
+            record = norm_racescore(data_dict, record, md3)
             if distance not in [900, 1000, 1200, 1300, 1400, 1700]:
                 continue
             if record < md.race_score[distance][month_-1][20]*0.8 or record > md.race_score[distance][month_-1][20]*1.2:

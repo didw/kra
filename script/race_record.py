@@ -17,6 +17,10 @@ import get_lineage as gl
 import glob
 import time
 import cPickle, gzip
+import multiprocessing as mp
+from multiprocessing import Value, Queue
+import get_weekly_clinic as wc
+
 
 NEXT = re.compile(r'마 체 중|단승식|복승식|매출액')
 WORD = re.compile(r"[^\s]+")
@@ -48,7 +52,7 @@ d4 = 0
 d5 = 0
 d11, d12, d13, d14 = 0,0,0,0
 
-def parse_txt_race(filename, race_record):
+def parse_txt_race(filename):
     global d1, d2, d3, d4, d5
     global d11, d12, d13, d14
     data = []
@@ -84,13 +88,13 @@ def parse_txt_race(filename, race_record):
             if re.search(unicode(r'경주조건', 'utf-8').encode('utf-8'), line) is not None:
                 if DEBUG: print("%s" % line)
                 if re.search(unicode(r'불량', 'utf-8').encode('utf-8'), line) is not None:
-                    humidity = 25
+                    humidity = 20
                 else:
                     humidity = re.search(unicode(r'\d+(?=%\))', 'utf-8').encode('utf-8'), line)
                     if humidity is None:
-                        humidity = '10'
+                        humidity = 10
                     else:
-                        humidity = humidity.group()
+                        humidity = int(humidity.group())
             if re.search(unicode(r'기수명|선수명', 'utf-8').encode('utf-8'), line) is not None:
                 break
         if read_done:
@@ -139,8 +143,15 @@ def parse_txt_race(filename, race_record):
             if len(words) < 10:
                 print("something wrong..", filename, words)
             adata = [course, humidity, kind, dbudam, drweight, lastday, hr_days]
-            for i in range(1, 10):
-                adata.append(words[i])
+            adata.append(int(words[1]))
+            adata.append(words[2])
+            adata.append(words[3])
+            adata.append(words[4])
+            adata.append(int(words[5]))
+            adata.append(float(words[6]))
+            adata.append(words[7])
+            adata.append(words[8])
+            adata.append(words[9])
             data.append(adata)
             cnt += 1
 
@@ -157,8 +168,8 @@ def parse_txt_race(filename, race_record):
             if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:5]) is None:
                 continue
             adata = []
-            adata.append(re.search(unicode(r'\d+(?=\()', 'utf-8').encode('utf-8'), line).group())
-            adata.append(re.search(unicode(r'[-\d]+(?=\))', 'utf-8').encode('utf-8'), line).group())
+            adata.append(int(re.search(unicode(r'\d+(?=\()', 'utf-8').encode('utf-8'), line).group()))
+            adata.append(int(re.search(unicode(r'[-\d]+(?=\))', 'utf-8').encode('utf-8'), line).group()))
             rctime = re.search(unicode(r'\d+:\d+\.\d', 'utf-8').encode('utf-8'), line).group()
             rctime = int(rctime[0])*600 + int(rctime[2:4])*10 + int(rctime[5])
             adata.append(rctime)
@@ -268,6 +279,7 @@ def parse_txt_race(filename, race_record):
             data[-cnt + i].extend([cnt])
             data[-cnt + i].extend([rcno])
             data[-cnt + i].extend([month])
+            data[-cnt + i].extend([date])
         t6 = time.time()
         d1 += t2-t1
         d2 += t3-t2
@@ -275,8 +287,24 @@ def parse_txt_race(filename, race_record):
         d4 += t5-t4
         d5 += t6-t5
         # columns:  course, humidity, kind, dbudam, drweight, lastday, hr_days, idx, hrname, cntry, 
-        #           gender, age, budam, kockey, trainer, owner, weight, dweight, rctime, s1f, 
-        #           g1f, g3f, cnt, rcno, month
+        #           gender, age, budam, jockey, trainer, owner, weight, dweight, rctime, s1f
+        #           g1f, g3f, cnt, rcno, month, date
+    return data
+
+
+def get_data(fname, data_queue=None):
+    data = parse_txt_race(fname)
+    date = int(re.search(r'\d{8}', fname).group())
+    jangu_clinic = wc.parse_hr_clinic(datetime.date(date/10000, date%10000/100, date%100))
+    for i in range(len(data)):
+        data[i].extend(wc.get_jangu_clinic(jangu_clinic, data[i][8]))
+    if data_queue is not None:
+        data_queue.put(data)
+    else:
+        return data
+
+
+def update_race_record(data, race_record):
     for line in data:
         name = line[8]
         course = int(line[0])
@@ -299,18 +327,21 @@ class RaceRecord:
         self.cur_file = 0
 
     def get_all_record(self):
+        proc_num = Value('i', 0)
+        data_queue = Queue()
         flist = glob.glob('../txt/1/rcresult/rcresult_1_2*.txt')
         for fname in sorted(flist):
             if int(fname[-12:-4]) < self.cur_file:
                 print("%s is already loaded, pass" % fname)
                 continue
             print("%s is processing.." % fname)
-            parse_txt_race(fname, self.data)
+
+            data = get_data(fname)
+            update_race_record(data, self.data)
             self.cur_file = int(fname[-12:-4])
             serialized = cPickle.dumps(self.__dict__)
             with gzip.open('../data/race_record.gz', 'wb') as f:
                 f.write(serialized)
-
 
 if __name__ == '__main__':
     race_record = RaceRecord()

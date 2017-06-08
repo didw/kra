@@ -6,6 +6,7 @@ import datetime
 import pandas as pd
 import os.path
 from mean_data import mean_data
+from mean_data3 import cmake_mean
 from sklearn.externals import joblib
 from get_race_detail import RaceDetail
 import multiprocessing as mp
@@ -14,10 +15,10 @@ import numpy as np
 
 PROCESS_NUM = 4
 
-def load_worker(worker_idx, filename_queue, output_queue, md=mean_data(), rd=RaceDetail()):
+def load_worker(worker_idx, filename_queue, output_queue, md=mean_data(), rd=RaceDetail(), md3=cmake_mean()):
     print("[W%d] Current File/Feature Queue Size = %d/%d" % (worker_idx, filename_queue.qsize(), output_queue.qsize()))
     afile = filename_queue.get(True, 10)
-    adata = pr.get_data(afile, md, rd)
+    adata = pr.get_data(afile, md, rd, md3)
     output_queue.put(adata, True)
 
 
@@ -28,11 +29,13 @@ def get_data(begin_date, end_date, fname_csv):
     data = pd.DataFrame()
     first = True
     date += datetime.timedelta(days=-1)
-    fname_md = fname_csv.replace('.csv', '_md3.pkl')
+    fname_md = fname_csv.replace('.csv', '_md.pkl')
     if os.path.isfile(fname_md):
         md = joblib.load(fname_md)
     else:
         md = mean_data()
+    fname_md = fname_csv.replace('.csv', '_md3.pkl')
+    md3 = joblib.load(fname_md)
     rd = RaceDetail()
     import glob
     for year in range(2007, 2018):
@@ -63,7 +66,7 @@ def get_data(begin_date, end_date, fname_csv):
     while True:
         print("current index: %d" % worker_num)
         if worker_num < filename_queue.qsize() + PROCESS_NUM and filename_queue.qsize() > 0:
-            proc = mp.Process(target=load_worker, args=(worker_num, filename_queue, data_queue, md, rd))
+            proc = mp.Process(target=load_worker, args=(worker_num, filename_queue, data_queue, md, rd, md3))
             proc.start()
         try:
             adata = data_queue.get(True, 10)

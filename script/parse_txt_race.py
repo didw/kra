@@ -8,6 +8,7 @@ from urllib2 import urlopen
 import get_detail_data as gdd
 from bs4 import BeautifulSoup
 from mean_data import mean_data
+from mean_data3 import cmake_mean
 from sklearn.externals import joblib
 from get_race_detail import RaceDetail
 import get_weekly_clinic as wc
@@ -19,7 +20,7 @@ NEXT = re.compile(r'마 체 중|단승식|복승식|매출액')
 WORD = re.compile(r"[^\s]+")
 DEBUG = False
 
-def parse_txt_race(filename, md=mean_data()):
+def parse_txt_race(filename, md=mean_data(), md3=cmake_mean()):
     data = []
     input_file = open(filename)
     while True:
@@ -87,6 +88,11 @@ def parse_txt_race(filename, md=mean_data()):
                 hr_num[0] = hr_num[1]
                 hr_num[1] = tmp
 
+            data_dict = {}
+            data_dict['course'] = course
+            data_dict['humidity'] = humidity
+            data_dict['month'] = month
+
             words = WORD.findall(line)
             hrname = words[2]
             dbudam = gdd.get_dbudam(1, date, int(rcno), hrname)
@@ -94,7 +100,7 @@ def parse_txt_race(filename, md=mean_data()):
             lastday = gdd.get_lastday(1, date, int(rcno), hrname)
             train_state = gdd.get_train_state(1, date, int(rcno), hrname)
             hr_no = gdd.get_hrno(1, date, int(rcno), hrname)
-            race_score, w_ = gdd.get_hr_racescore(1, hr_no, date, month, course, 'File', md)
+            race_score, w_ = gdd.get_hr_racescore(1, hr_no, date, data_dict, 'File', md, md3)
             lineage_info = gl.get_ligeane(1, hr_no, 'File')
 
             assert len(words) >= 10
@@ -548,16 +554,12 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
     return map(lambda x: float(x), md.tr_history_total[course] + md.tr_history_year[course])
 
 
-def get_one_hot(column, value, df):
-    unique_list = df[column].unique()
-    sorted(unique_list)
-    return unique_list.index(value)+1
 
-def get_data(filename, md=mean_data(), rd=RaceDetail()):
+def get_data(filename, md=mean_data(), rd=RaceDetail(), md3=cmake_mean()):
     print("race file: %s" % filename)
     date_i = re.search(unicode(r'\d{8}', 'utf-8').encode('utf-8'), filename).group()
     date = datetime.date(int(date_i[:4]), int(date_i[4:6]), int(date_i[6:]))
-    data = parse_txt_race(filename, md)
+    data = parse_txt_race(filename, md, md3)
     jangu_clinic = wc.parse_hr_clinic(date)
 
     for i in range(len(data)):
@@ -573,8 +575,7 @@ def get_data(filename, md=mean_data(), rd=RaceDetail()):
         data[i].extend([date_i])
     df = pd.DataFrame(data)
 
-    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
-                  'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10'] \
+    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6'] \
                   + ['lg%d'%i for i in range(1,63)] \
                   + ['rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 9
                   'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'month', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'samssang', # 18
@@ -582,6 +583,7 @@ def get_data(filename, md=mean_data(), rd=RaceDetail()):
                   'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
                   'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
                   'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2'] \
+                  'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10'] \
                   + ['rd%d'%i for i in range(1,19)] \
                   + ['jc%d'%i for i in range(1,82)] \
                   + ['date'] # 11
