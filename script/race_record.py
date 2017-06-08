@@ -288,13 +288,13 @@ def parse_txt_race(filename):
 def get_data(fname_queue, data_queue, filename_queue):
     fname = fname_queue.get(True, 10)
     print("%s is processing.."%fname)
-    filename_queue.put(fname)
     data = parse_txt_race(fname)
     date = int(re.search(r'\d{8}', fname).group())
     jangu_clinic = wc.parse_hr_clinic(datetime.date(date/10000, date%10000/100, date%100))
     for i in range(len(data)):
         data[i].extend(wc.get_jangu_clinic(jangu_clinic, data[i][8]))
     data_queue.put(data)
+    filename_queue.put(fname)
 
 
 def update_race_record(data, race_record):
@@ -320,7 +320,7 @@ class RaceRecord:
         self.cur_file = 0
 
     def get_all_record(self):
-        flist = glob.glob('../txt/1/rcresult/rcresult_1_2*.txt')
+        flist = glob.glob('../txt/1/rcresult/rcresult_1_2006*.txt')
         file_queue = mp.Queue()
         filename_queue = mp.Queue()
         data_queue = mp.Queue()
@@ -331,14 +331,13 @@ class RaceRecord:
             file_queue.put(fname)
 
         worker_num = file_queue.qsize()
-        PROCESS_NUM = 5
+        PROCESS_NUM = 12
         while True:
             print("Processing: %d/%d" % (file_queue.qsize(), worker_num))
             time.sleep(2)
             if worker_num < file_queue.qsize() + PROCESS_NUM and file_queue.qsize() > 0:
                 proc = mp.Process(target=get_data, args=(file_queue, data_queue, filename_queue))
                 proc.start()
-                time.sleep(2)
             try:
                 data = data_queue.get(True, 10)
                 update_race_record(data, self.data)
