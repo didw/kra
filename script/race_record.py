@@ -3,23 +3,16 @@ import re
 import pandas as pd
 import numpy as np
 import datetime
-import os.path
-from urllib2 import urlopen
+import os
 import get_detail_data as gdd
 from bs4 import BeautifulSoup
-from mean_data import mean_data
-from sklearn.externals import joblib
-from get_race_detail import RaceDetail
 import get_weekly_clinic as wc
-import get_jockey as gj
-import get_trainer as gt
 import get_lineage as gl
 import glob
 import time
 import cPickle, gzip
 import multiprocessing as mp
-from multiprocessing import Value, Queue
-import get_weekly_clinic as wc
+import Queue
 
 
 NEXT = re.compile(r'마 체 중|단승식|복승식|매출액')
@@ -292,16 +285,16 @@ def parse_txt_race(filename):
     return data
 
 
-def get_data(fname, data_queue=None):
+def get_data(fname_queue, data_queue, filename_queue):
+    fname = fname_queue.get(True, 10)
+    print("%s is processing.."%fname)
+    filename_queue.put(fname)
     data = parse_txt_race(fname)
     date = int(re.search(r'\d{8}', fname).group())
     jangu_clinic = wc.parse_hr_clinic(datetime.date(date/10000, date%10000/100, date%100))
     for i in range(len(data)):
         data[i].extend(wc.get_jangu_clinic(jangu_clinic, data[i][8]))
-    if data_queue is not None:
-        data_queue.put(data)
-    else:
-        return data
+    data_queue.put(data)
 
 
 def update_race_record(data, race_record):
@@ -327,21 +320,39 @@ class RaceRecord:
         self.cur_file = 0
 
     def get_all_record(self):
-        proc_num = Value('i', 0)
-        data_queue = Queue()
         flist = glob.glob('../txt/1/rcresult/rcresult_1_2*.txt')
+        file_queue = mp.Queue()
+        filename_queue = mp.Queue()
+        data_queue = mp.Queue()
         for fname in sorted(flist):
             if int(fname[-12:-4]) < self.cur_file:
                 print("%s is already loaded, pass" % fname)
                 continue
-            print("%s is processing.." % fname)
+            file_queue.put(fname)
 
-            data = get_data(fname)
-            update_race_record(data, self.data)
-            self.cur_file = int(fname[-12:-4])
-            serialized = cPickle.dumps(self.__dict__)
-            with gzip.open('../data/race_record.gz', 'wb') as f:
-                f.write(serialized)
+        worker_num = file_queue.qsize()
+        PROCESS_NUM = 5
+        while True:
+            print("Processing: %d/%d" % (file_queue.qsize(), worker_num))
+            time.sleep(2)
+            if worker_num < file_queue.qsize() + PROCESS_NUM and file_queue.qsize() > 0:
+                proc = mp.Process(target=get_data, args=(file_queue, data_queue, filename_queue))
+                proc.start()
+                time.sleep(2)
+            try:
+                data = data_queue.get(True, 10)
+                update_race_record(data, self.data)
+                worker_num -= 1
+                fname = filename_queue.get(True, 10)
+                self.cur_file = int(fname[-12:-4])
+                serialized = cPickle.dumps(self.__dict__)
+                with gzip.open('../data/race_record.gz', 'wb') as f:
+                    f.write(serialized)
+            except Queue.Empty:
+                print("queue empty.. nothing to get data %d" % filename_queue.qsize())
+            if worker_num == 0:
+                print("job is finished")
+                break
 
 if __name__ == '__main__':
     race_record = RaceRecord()
