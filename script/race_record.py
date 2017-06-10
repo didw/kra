@@ -337,7 +337,7 @@ class RaceRecord:
         saving_mode.value = 0
 
     def get_all_record(self):
-        flist = glob.glob('../txt/1/rcresult/rcresult_1_20*.txt')
+        flist = glob.glob('../txt/1/rcresult/rcresult_1_2*.txt')
         file_queue = mp.Queue()
         filename_queue = mp.Queue()
         data_queue = mp.Queue()
@@ -356,13 +356,14 @@ class RaceRecord:
                 proc = mp.Process(target=get_data, args=(file_queue, data_queue, filename_queue))
                 proc.start()
                 time.sleep(1)
-            try:
-                if saving_mode.value == 0:
-                    worker_num -= 1
+            time.sleep(1)
+            if saving_mode.value == 0 and data_queue.qsize() > 0:
+                try:
                     proc = mp.Process(target=self.save_data, args=(data_queue, filename_queue, worker_num, saving_mode))
                     proc.start()
-            except Queue.Empty:
-                print("queue empty.. nothing to get data %d" % filename_queue.qsize())
+                    worker_num -= 1
+                except Queue.Empty:
+                    print("queue empty.. nothing to get data %d" % filename_queue.qsize())
             if worker_num == 0:
                 print("job is finished")
                 break
