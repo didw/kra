@@ -12,6 +12,7 @@ import glob
 import time
 import cPickle, gzip
 import multiprocessing as mp
+from multiprocessing import Value
 import Queue
 
 
@@ -321,6 +322,20 @@ class RaceRecord:
         self.data = {}
         self.cur_file = 0
 
+    def save_data(self, data_queue, filename_queue, worker_num, saving_mode):
+        saving_mode.value = 1
+        data = data_queue.get(True, 10)
+        update_race_record(data, self.data)
+        fname = filename_queue.get(True, 10)
+        self.cur_file = int(fname[-12:-4])
+        if worker_num % 10 == 0:
+            print("Saving data...")
+            serialized = cPickle.dumps(self.__dict__)
+            with gzip.open('../data/race_record.gz', 'wb') as f:
+                f.write(serialized)
+            print("Done")
+        saving_mode.value = 0
+
     def get_all_record(self):
         flist = glob.glob('../txt/1/rcresult/rcresult_1_20*.txt')
         file_queue = mp.Queue()
@@ -334,6 +349,7 @@ class RaceRecord:
 
         worker_num = file_queue.qsize()
         PROCESS_NUM = 12
+        saving_mode = Value('i', 0)
         while True:
             print("Processing: %d/%d" % (file_queue.qsize(), worker_num))
             while worker_num < file_queue.qsize() + PROCESS_NUM and file_queue.qsize() > 0:
@@ -341,21 +357,10 @@ class RaceRecord:
                 proc.start()
                 time.sleep(1)
             try:
-                if saving_mode == 0:
+                if saving_mode.value == 0:
                     worker_num -= 1
                     proc = mp.Process(target=self.save_data, args=(data_queue, filename_queue, worker_num, saving_mode))
                     proc.start()
-                data = data_queue.get(True, 10)
-                update_race_record(data, self.data)
-                worker_num -= 1
-                fname = filename_queue.get(True, 10)
-                self.cur_file = int(fname[-12:-4])
-                if worker_num % 10 == 0:
-                    print("Saving data...")
-                    serialized = cPickle.dumps(self.__dict__)
-                    with gzip.open('../data/race_record.gz', 'wb') as f:
-                        f.write(serialized)
-                    print("Done")
             except Queue.Empty:
                 print("queue empty.. nothing to get data %d" % filename_queue.qsize())
             if worker_num == 0:
