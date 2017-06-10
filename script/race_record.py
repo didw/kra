@@ -135,6 +135,7 @@ def parse_txt_race(filename):
 
             if len(words) < 10:
                 print("something wrong..", filename, words)
+                continue
             adata = [course, humidity, kind, dbudam, drweight, lastday, hr_days]
             adata.append(int(words[1]))
             adata.append(words[2])
@@ -295,6 +296,7 @@ def get_data(fname_queue, data_queue, filename_queue):
         data[i].extend(wc.get_jangu_clinic(jangu_clinic, data[i][8]))
     data_queue.put(data)
     filename_queue.put(fname)
+    print("%s is finished.."%fname)
 
 
 def update_race_record(data, race_record):
@@ -309,9 +311,9 @@ def update_race_record(data, race_record):
             race_record[name][course].append(line)
         except KeyError:
             race_record[name][course] = [line]
-        print("name: %s, course: %d is added => len: %d" % (str(name), course, len(race_record[name][course])))
-    print("d1: %d, d2: %d, d3: %d, d4: %d, d5: %d" % (d1, d2, d3, d4, d5))
-    print("d11: %d, d12: %d, d13: %d, d14: %d" % (d11, d12, d13, d14))
+        #print("name: %s, course: %d is added => len: %d" % (str(name), course, len(race_record[name][course])))
+    #print("d1: %d, d2: %d, d3: %d, d4: %d, d5: %d" % (d1, d2, d3, d4, d5))
+    #print("d11: %d, d12: %d, d13: %d, d14: %d" % (d11, d12, d13, d14))
 
 
 class RaceRecord:
@@ -320,12 +322,12 @@ class RaceRecord:
         self.cur_file = 0
 
     def get_all_record(self):
-        flist = glob.glob('../txt/1/rcresult/rcresult_1_2006*.txt')
+        flist = glob.glob('../txt/1/rcresult/rcresult_1_20*.txt')
         file_queue = mp.Queue()
         filename_queue = mp.Queue()
         data_queue = mp.Queue()
         for fname in sorted(flist):
-            if int(fname[-12:-4]) < self.cur_file:
+            if int(fname[-12:-4]) <= self.cur_file:
                 print("%s is already loaded, pass" % fname)
                 continue
             file_queue.put(fname)
@@ -334,19 +336,26 @@ class RaceRecord:
         PROCESS_NUM = 12
         while True:
             print("Processing: %d/%d" % (file_queue.qsize(), worker_num))
-            time.sleep(2)
-            if worker_num < file_queue.qsize() + PROCESS_NUM and file_queue.qsize() > 0:
+            while worker_num < file_queue.qsize() + PROCESS_NUM and file_queue.qsize() > 0:
                 proc = mp.Process(target=get_data, args=(file_queue, data_queue, filename_queue))
                 proc.start()
+                time.sleep(1)
             try:
+                if saving_mode == 0:
+                    worker_num -= 1
+                    proc = mp.Process(target=self.save_data, args=(data_queue, filename_queue, worker_num, saving_mode))
+                    proc.start()
                 data = data_queue.get(True, 10)
                 update_race_record(data, self.data)
                 worker_num -= 1
                 fname = filename_queue.get(True, 10)
                 self.cur_file = int(fname[-12:-4])
-                serialized = cPickle.dumps(self.__dict__)
-                with gzip.open('../data/race_record.gz', 'wb') as f:
-                    f.write(serialized)
+                if worker_num % 10 == 0:
+                    print("Saving data...")
+                    serialized = cPickle.dumps(self.__dict__)
+                    with gzip.open('../data/race_record.gz', 'wb') as f:
+                        f.write(serialized)
+                    print("Done")
             except Queue.Empty:
                 print("queue empty.. nothing to get data %d" % filename_queue.qsize())
             if worker_num == 0:
