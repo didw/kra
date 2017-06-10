@@ -353,9 +353,10 @@ class RaceRecord:
         while True:
             print("Processing: %d/%d" % (file_queue.qsize(), worker_num))
             while worker_num < file_queue.qsize() + PROCESS_NUM and file_queue.qsize() > 0:
+                print("run process %d" % (worker_num - file_queue.qsize()))
                 proc = mp.Process(target=get_data, args=(file_queue, data_queue, filename_queue))
                 proc.start()
-                time.sleep(1)
+                time.sleep(5)
             time.sleep(1)
             if saving_mode.value == 0 and data_queue.qsize() > 0:
                 try:
