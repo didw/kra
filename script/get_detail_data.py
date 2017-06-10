@@ -304,14 +304,29 @@ def get_hrno(meet, date, rcno, name):
 def norm_racescore(data, value, md=cmake_mean()):
     column_list = ['humidity', 'month', 'age', 'idx', 'rcno', 'budam', 'dbudam', 'jockey', 'trainer']
     for column in column_list:
-        value /= md.mean_data[column][data[column]]
-    value /= md.mean_data['hr_days'][int(data['hr_days']/100)*100]
-    value /= md.mean_data['lastday'][int(data['lastday']/10)*10]
+        try:
+            value /= md.mean_data[column][data[column]]
+        except KeyError:
+            print("column %s, data: %s is not exists" % (str(column), data[column]))
+            pass
+    try:
+        value /= md.mean_data['hr_days'][int(data['hr_days']/100)*100]
+    except KeyError:
+        print("column %s, data: %d is not exists" % ("hr_days", int(data['hr_days']/100)*100))
+        pass
+    try:
+        value /= md.mean_data['lastday'][int(data['lastday']/10)*10]
+    except KeyError:
+        print("column %s, data: %d is not exists" % ("lastday", int(data['lastday']/10)*10))
+        pass
     return value
 
 from race_record import RaceRecord
 from mean_data3 import cmake_mean
 key_idx = {'humidity':0, 'month':23, 'age':10, 'hr_days':5, 'lastday':4, 'idx':6, 'rcno':22, 'budam':11, 'dbudam':2, 'jockey':12, 'trainer':13}
+for i in range(82):
+    key_idx["jc%d"%i] = i+24
+
 def get_hr_racescore_norm(name, date, race_record, md):
     hr_record = race_record.data[name]
     value_list = []
@@ -325,12 +340,16 @@ def get_hr_racescore_norm(name, date, race_record, md):
             for key in md.keys():
                 if key in ['course', 'rank']:
                     continue
-                if key in ['hr_days']:
-                    value /= md[key][int(orig_record[key_idx[key]]/100)]
-                elif key in ['lastday']:
-                    value /= md[key][int(orig_record[key_idx[key]]/10)]
-                else:
-                    value /= md[key][orig_record[key_idx[key]]]
+                try:
+                    if key in ['hr_days']:
+                        value /= md[key][int(orig_record[key_idx[key]]/100)]
+                    elif key in ['lastday']:
+                        value /= md[key][int(orig_record[key_idx[key]]/10)]
+                    else:
+                        value /= md[key][orig_record[key_idx[key]]]
+                except KeyError:
+                    print("key %s is not exists" % str(key))
+                    pass
             value_list.append(value)
     return np.mean(value_list)
 
