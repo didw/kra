@@ -39,30 +39,20 @@ def get_hr_days(name, date_i):
             birth = re.search(unicode(r'\d{4}/\d{2}/\d{2}', 'utf-8').encode('utf-8'), line).group()
             return (date - datetime.datetime(int(birth[:4]), int(birth[5:7]), int(birth[8:]))).days
 
-d1 = 0
-d2 = 0
-d3 = 0
-d4 = 0
-d5 = 0
-d11, d12, d13, d14 = 0,0,0,0
 
 def parse_txt_race(filename):
-    global d1, d2, d3, d4, d5
-    global d11, d12, d13, d14
     data = []
     input_file = open(filename)
     while True:
         # skip header
         humidity = 0
         read_done = False
-        hr_num = [0, 0]
         rcno = -1
         course = ''
         kind = ''
         hrname = ''
         date = int(re.search(r'\d{8}', filename).group())
         month = date/100%100
-        t1 = time.time()
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
@@ -94,7 +84,6 @@ def parse_txt_race(filename):
         if read_done:
             break
 
-        t2 = time.time()
         # 순위 마번    마    명      산지   성별 연령 부담중량 기수명 조교사   마주명           레이팅
         cnt = 0
         for _ in range(300):
@@ -106,33 +95,13 @@ def parse_txt_race(filename):
                 break
             if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:5]) is None:
                 continue
-            # 1위와 2위 번호 가져오기
-            if hr_num[0] == 0:
-                hr_num[0] = re.search(unicode(r'\s*\d\s+\d+', 'utf-8').encode('utf-8'), line[:10]).group().split()[1]
-            elif hr_num[1] == 0:
-                hr_num[1] = re.search(unicode(r'\s*\d\s+\d+', 'utf-8').encode('utf-8'), line[:10]).group().split()[1]
-            hr_num[0] = int(hr_num[0])
-            hr_num[1] = int(hr_num[1])
-            if hr_num[0] > hr_num[1]:
-                tmp = hr_num[0]
-                hr_num[0] = hr_num[1]
-                hr_num[1] = tmp
 
             words = WORD.findall(line)
             hrname = words[2]
-            t11 = time.time()
             dbudam = gdd.get_dbudam(1, date, int(rcno), hrname)
-            t12 = time.time()
             drweight = gdd.get_drweight(1, date, int(rcno), hrname)
-            t13 = time.time()
             lastday = gdd.get_lastday(1, date, int(rcno), hrname)
-            t14 = time.time()
             hr_days = get_hr_days(hrname, date)
-            t15 = time.time()
-            d11 += t12-t11
-            d12 += t13-t12
-            d13 += t14-t13
-            d14 += t15-t14
 
             if len(words) < 10:
                 print("something wrong..", filename, words)
@@ -150,7 +119,6 @@ def parse_txt_race(filename):
             data.append(adata)
             cnt += 1
 
-        t3 = time.time()
         # 순위 마번    마      명    마 체 중 기  록  위  차 S1F-1C-2C-3C-4C-G1F
         idx = 0
         for _ in range(300):
@@ -171,7 +139,6 @@ def parse_txt_race(filename):
             data[-cnt+idx].extend(adata)
             idx += 1
 
-        t4 = time.time()
         # 단승식, 연승식 데이터 가져오기
         # 순위 마번    G-3Ｆ   S-1F  １코너  ２코너  ３코너  ４코너    G-1F  단승식 연승식
         idx = 0
@@ -224,25 +191,15 @@ def parse_txt_race(filename):
             data[-cnt+idx].extend(adata)
             idx += 1
 
-        t5 = time.time()
         # 복승식 rating 가져오기
         #   1- 2   949.3  2- 9  1629.8  4- 5   282.5  5-15     0.0  8- 9   519.3 11-12    18.9
-        exp = "%d-%2d" % (hr_num[0], hr_num[1])
-        get_rate = False
         price = 0
-        rating = 0
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
             if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
                 continue
             if re.search(unicode(r'매출액', 'utf-8').encode('utf-8'), line) is not None:
-                break
-            parse_line = re.search(unicode(r'%s\s+\d+[.]\d' % exp, 'utf-8').encode('utf-8'), line)
-
-            if parse_line is not None:
-                rating = parse_line.group().split('-')[1].split()[1]
-                get_rate = True
                 break
 
         for _ in range(300):
@@ -275,16 +232,12 @@ def parse_txt_race(filename):
             data[-cnt + i].extend([rcno])
             data[-cnt + i].extend([month])
             data[-cnt + i].extend([date])
-        t6 = time.time()
-        d1 += t2-t1
-        d2 += t3-t2
-        d3 += t4-t3
-        d4 += t5-t4
-        d5 += t6-t5
         # columns:  course, humidity, kind, dbudam, drweight, lastday, hr_days, idx, hrname, cntry, 
         #           gender, age, budam, jockey, trainer, owner, weight, dweight, rctime, s1f
         #           g1f, g3f, cnt, rcno, month, date
     return data
+
+
 
 
 def get_data(fname_queue, data_queue, filename_queue):
