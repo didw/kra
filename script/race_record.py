@@ -450,9 +450,10 @@ class RaceRecord:
                     time.sleep(1)
             if saving_mode.value == 0 and data_queue.qsize() > 0:
                 try:
-                    proc = mp.Process(target=self.save_data, args=(data_queue, filename_queue, worker_num, saving_mode))
-                    proc.start()
-                    time.sleep(2)
+                    #proc = mp.Process(target=self.save_data, args=(data_queue, filename_queue, worker_num, saving_mode))
+                    #proc.start()
+                    self.save_data(data_queue, filename_queue, worker_num, saving_mode)
+                    #time.sleep(2)
                     worker_num -= 1
                 except Queue.Empty:
                     print("queue empty.. nothing to get data %d" % filename_queue.qsize())
@@ -484,7 +485,7 @@ class RaceRecord:
                 if file_queue.qsize() < 20:
                     time.sleep(5)
                 else:
-                    time.sleep(0.5)
+                    time.sleep(1)
             if saving_mode.value == 0 and data_queue.qsize() > 0:
                 try:
                     #proc = mp.Process(target=self.save_data, args=(data_queue, filename_queue, worker_num, saving_mode))
