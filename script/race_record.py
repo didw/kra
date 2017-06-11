@@ -367,6 +367,7 @@ def parse_ap_rslt(filename):
 def get_data(function_name, fname_queue, data_queue, filename_queue):
     fname = fname_queue.get(True, 10)
     filename_queue.put(fname)
+    print("%s is processing.."%fname)
     data = function_name(fname)
     date = int(re.search(r'\d{8}', fname).group())
     jangu_clinic = wc.parse_hr_clinic(datetime.date(date/10000, date%10000/100, date%100))
@@ -424,7 +425,7 @@ class RaceRecord:
         saving_mode.value = 0
 
     def get_race_record(self):
-        flist = sorted(glob.glob('../txt/1/rcresult/rcresult_1_2006*.txt'))
+        flist = sorted(glob.glob('../txt/1/rcresult/rcresult_1_20*.txt'))
         file_queue = mp.Queue()
         filename_queue = mp.Queue()
         data_queue = mp.Queue()
@@ -435,7 +436,7 @@ class RaceRecord:
             file_queue.put(fname)
 
         worker_num = file_queue.qsize()
-        PROCESS_NUM = 12
+        PROCESS_NUM = 5
         saving_mode = Value('i', 0)
         while True:
             print("Processing: %d/%d" % (file_queue.qsize(), worker_num))
@@ -447,7 +448,7 @@ class RaceRecord:
                 if file_queue.qsize() < 20:
                     time.sleep(5)
                 else:
-                    time.sleep(1)
+                    time.sleep(2)
             if saving_mode.value == 0 and data_queue.qsize() > 0:
                 try:
                     #proc = mp.Process(target=self.save_data, args=(data_queue, filename_queue, worker_num, saving_mode))
@@ -462,7 +463,7 @@ class RaceRecord:
                 break
 
     def get_ap_record(self):
-        flist = sorted(glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_2006*.txt'))
+        flist = sorted(glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_20*.txt'))
         file_queue = mp.Queue()
         filename_queue = mp.Queue()
         data_queue = mp.Queue()
@@ -473,7 +474,7 @@ class RaceRecord:
             file_queue.put(fname)
 
         worker_num = file_queue.qsize()
-        PROCESS_NUM = 12
+        PROCESS_NUM = 5
         saving_mode = Value('i', 0)
         while True:
             print("Processing: %d/%d" % (file_queue.qsize(), worker_num))
@@ -485,7 +486,7 @@ class RaceRecord:
                 if file_queue.qsize() < 20:
                     time.sleep(5)
                 else:
-                    time.sleep(1)
+                    time.sleep(2)
             if saving_mode.value == 0 and data_queue.qsize() > 0:
                 try:
                     #proc = mp.Process(target=self.save_data, args=(data_queue, filename_queue, worker_num, saving_mode))
