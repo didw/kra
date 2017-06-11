@@ -12,6 +12,7 @@ import glob
 import sys
 from sklearn.externals import joblib
 from etaprogress.progress import ProgressBar
+import cPickle, gzip
 
 DEBUG = False
 
@@ -40,11 +41,14 @@ def save_lineage_info(meet):
         add_lineage_info(meet, int(fname[-10:-4]), lineage)
         print("%s" % (bar,), end='\r')
         sys.stdout.flush()
-    joblib.dump(lineage, '../data/lineage_1.pkl')
+    serialized = cPickle.dumps(lineage)
+    with gzip.open('../data/lineage_1.gz', 'wb') as f:
+        f.write(serialized)
 
 
 def load_lineage_info(meet):
-    lineage = joblib.load('../data/lineage_1.pkl')
+    with gzip.open('../data/lineage_1.gz') as f:
+        lineage = cPickle.loads(f.read())
     for i in range(len(lineage)):
         print(i, len(lineage[i]))
 

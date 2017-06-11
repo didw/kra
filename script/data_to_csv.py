@@ -8,6 +8,8 @@ import os.path
 from mean_data import mean_data
 from sklearn.externals import joblib
 from get_race_detail import RaceDetail
+from mean_data3 import cmake_mean
+
 
 def get_data(begin_date, end_date, fname_csv):
     train_bd = begin_date
@@ -16,11 +18,16 @@ def get_data(begin_date, end_date, fname_csv):
     data = pd.DataFrame()
     first = True
     date += datetime.timedelta(days=-1)
-    fname_md = fname_csv.replace('.csv', '_md3.pkl')
+    fname_md = fname_csv.replace('.csv', '_md.pkl')
     if os.path.isfile(fname_md):
         md = joblib.load(fname_md)
     else:
         md = mean_data()
+    fname_md = fname_csv.replace('.csv', '_md3.pkl')
+    if os.path.isfile(fname_md):
+        md3 = joblib.load(fname_md)
+    else:
+        md3 = cmean_data()
     rd = RaceDetail()
     import glob
     for year in range(2007, 2018):
@@ -47,12 +54,12 @@ def get_data(begin_date, end_date, fname_csv):
             print("[%.0f %.0f %.0f]" % (md.race_detail[i][0], md.race_detail[i][1], md.race_detail[i][2]), end=', ')
         print()
         if first:
-            adata = pr.get_data(filename, md, rd)
+            adata = pr.get_data(filename, md, rd, md3)
             md.update_data(adata)
             data = adata
             first = False
         else:
-            adata = pr.get_data(filename, md, rd)
+            adata = pr.get_data(filename, md, rd, md3)
             md.update_data(adata)
             data = data.append(adata, ignore_index=True)
     data.to_csv(fname_csv, index=False)
@@ -114,6 +121,6 @@ if __name__ == '__main__':
     fname_csv = '../data/1_2007_2016_v1.csv'
     bdate = datetime.date(2007, 1, 1)
     edate = datetime.date(2016, 12, 31)
-    #get_data(bdate, edate, fname_csv)
-    update_data(datetime.date.today(), fname_csv)
+    get_data(bdate, edate, fname_csv)
+    #update_data(datetime.date.today(), fname_csv)
 

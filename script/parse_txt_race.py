@@ -100,13 +100,13 @@ def parse_txt_race(filename, md=mean_data(), md3=cmake_mean()):
             lastday = gdd.get_lastday(1, date, int(rcno), hrname)
             train_state = gdd.get_train_state(1, date, int(rcno), hrname)
             hr_no = gdd.get_hrno(1, date, int(rcno), hrname)
-            race_score, w_ = gdd.get_hr_racescore(1, hr_no, date, data_dict, 'File', md, md3)
-            lineage_info = gl.get_ligeane(1, hr_no, 'File')
+            #race_score, w_ = gdd.get_hr_racescore(1, hr_no, date, data_dict, 'File', md, md3)
+            lineage_info = gl.get_lineage(1, hr_no, 'File')
 
             assert len(words) >= 10
             adata = [course, humidity, kind, dbudam, drweight, lastday]
             adata.extend(train_state)
-            adata.extend(race_score)
+            #adata.extend(race_score)
             adata.extend(lineage_info)
             for i in range(10):
                 adata.append(words[i])
@@ -554,6 +554,13 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
     return map(lambda x: float(x), md.tr_history_total[course] + md.tr_history_year[course])
 
 
+def get_race_record():
+    race_record = RaceRecord()
+    with gzip.open('../data/race_record.gz', 'rb') as f:
+        tmp_dict = cPickle.loads(f.read())
+        race_record.__dict__.update(tmp_dict)
+    return race_record
+
 
 def get_data(filename, md=mean_data(), rd=RaceDetail(), md3=cmake_mean()):
     print("race file: %s" % filename)
@@ -561,6 +568,7 @@ def get_data(filename, md=mean_data(), rd=RaceDetail(), md3=cmake_mean()):
     date = datetime.date(int(date_i[:4]), int(date_i[4:6]), int(date_i[6:]))
     data = parse_txt_race(filename, md, md3)
     jangu_clinic = wc.parse_hr_clinic(date)
+    race_record = get_race_record()
 
     for i in range(len(data)):
         #print("race file: %s" % filename)
@@ -568,8 +576,9 @@ def get_data(filename, md=mean_data(), rd=RaceDetail(), md3=cmake_mean()):
         data[i].extend(parse_txt_horse(date, int(data[i][39]), data[i][24], data[i][0], md))
         data[i].extend(parse_txt_jockey(date, data[i][29], data[i][0], md))
         data[i].extend(parse_txt_trainer(date, data[i][30], data[i][0], md))
-        data[i].extend(rd.get_data(data[i][24], date_i, md))
         data[i].extend(wc.get_jangu_clinic(jangu_clinic, data[i][24]))
+        #data[i].extend(rd.get_data(data[i][24], date_i, md))
+        data[i].extend(gdd.get_hr_race_record(data[i][24], int(data[i][39], race_record, md3)))
         #data[i].extend(gj.get_jockey(data[i][29]))
         #data[i].extend(gt.get_trainer(data[i][30]))
         data[i].extend([date_i])
@@ -583,9 +592,8 @@ def get_data(filename, md=mean_data(), rd=RaceDetail(), md3=cmake_mean()):
                   'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
                   'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
                   'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2'] \
-                  'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10'] \
-                  + ['rd%d'%i for i in range(1,19)] \
                   + ['jc%d'%i for i in range(1,82)] \
+                  + ['rc%d'%i for i in range(1,29)] \
                   + ['date'] # 11
     return df
 

@@ -301,223 +301,88 @@ def get_hrno(meet, date, rcno, name):
     return -1
 
 
-def norm_racescore(data, value, md=cmake_mean()):
-    column_list = ['humidity', 'month', 'age', 'idx', 'rcno', 'budam', 'dbudam', 'jockey', 'trainer']
-    for column in column_list:
+def norm_racescore(value, md, hr_data):
+    key_idx = {'humidity':0, 'month':22, 'age':9, 'idx':6, 'rcno':21, 'budam':10, 'dbudam':2, 'jockey':11, 'trainer':12}
+    for i in range(1,82):
+        key_idx['jc%d'%i] = 23+i
+    for column in key_idx:
         try:
-            value /= md.mean_data[column][data[column]]
+            value /= md.mean_data[column][hr_data[key_idx[column]]]
         except KeyError:
-            print("column %s, data: %s is not exists" % (str(column), data[column]))
+            print("column %s, hr_data: %s is not exists" % (str(column), hr_data[key_idx[column]]))
             pass
     try:
-        value /= md.mean_data['hr_days'][int(data['hr_days']/100)*100]
+        value /= md.mean_data['hr_days'][int(hr_data[5]/100)*100]
     except KeyError:
-        print("column %s, data: %d is not exists" % ("hr_days", int(data['hr_days']/100)*100))
+        print("column %s, hr_data: %d is not exists" % ("hr_days", int(hr_data[5]/100)*100))
         pass
     try:
-        value /= md.mean_data['lastday'][int(data['lastday']/10)*10]
+        value /= md.mean_data['lastday'][int(hr_data[4]/10)*10]
     except KeyError:
-        print("column %s, data: %d is not exists" % ("lastday", int(data['lastday']/10)*10))
+        print("column %s, hr_data: %d is not exists" % ("lastday", int(hr_data[4]/10)*10))
         pass
     return value
 
-from race_record import RaceRecord
-from mean_data3 import cmake_mean
-key_idx = {'humidity':0, 'month':23, 'age':10, 'hr_days':5, 'lastday':4, 'idx':6, 'rcno':22, 'budam':11, 'dbudam':2, 'jockey':12, 'trainer':13}
-for i in range(82):
-    key_idx["jc%d"%i] = i+24
 
-def get_hr_racescore_norm(name, date, race_record, md):
-    hr_record = race_record.data[name]
-    value_list = []
-    for course in md['course'].keys():
-        for orig_record in hr_record[course]:
-            print(orig_record)
-            print(orig_record[24], date)
-            if orig_record[date] >= date:
+def make_mean_race_record(race_record):
+    i = 0
+    res_dict = {}
+    weight_list = []
+    for course in [900, 1000, 1200, 1300, 1400, 1700]:
+        res = [0]*4
+        res_list = [[] for _ in range(4)]
+        for name in race_record.data.keys():
+            if course not in race_record.data[name]:
                 continue
-            value = orig_record[17]
-            for key in md.keys():
-                if key in ['course', 'rank']:
-                    continue
-                try:
-                    if key in ['hr_days']:
-                        value /= md[key][int(orig_record[key_idx[key]]/100)]
-                    elif key in ['lastday']:
-                        value /= md[key][int(orig_record[key_idx[key]]/10)]
-                    else:
-                        value /= md[key][orig_record[key_idx[key]]]
-                except KeyError:
-                    print("key %s is not exists" % str(key))
-                    pass
-            value_list.append(value)
-    return np.mean(value_list)
+            for data in race_record.data[name][course]:
+                res_list[0].append(data[17])
+                res_list[1].append(data[18])
+                res_list[2].append(data[19])
+                res_list[3].append(data[16])
+                weight_list.append(data[14])
+        for _ in range(4):
+            res[i] = np.mean(res_list[0])
+            res_dict[course] = res
+            i += 1
+    return res_dict, np.mean(weight_list)
 
 
-def get_hr_racescore(meet, hrno, _date, data_dict, mode='File', md=mean_data(), md3=cmake_mean()):
-    first_attend = True
-    weight = 0
-    course = int(data_dict['course'])
-    result = [-1, -1, -1, -1, -1, -1, -1] # 주, 1000, 1200, 1300, 1400, 1700, 0
-    default_res = map(lambda x: float(np.mean(np.array(x)[:,20])), [md.race_score[900], md.race_score[1000], md.race_score[1200], md.race_score[1300], md.race_score[1400], md.race_score[1700], md.race_score[0]])
-    default_res.extend(map(lambda x: float(x), md.dist_rec[course][3:]))
-    race_sum = [[], [], [], [], [], [], []]
-    race_same_dist = []
-    if hrno == -1:
-        return default_res, weight
-    fname = '../txt/%d/racehorse/racehorse_%d_%06d.txt' % (meet, meet, hrno)
-    #print("racehorse: %s" % fname)
-    if os.path.exists(fname) and mode == 'File':
-        response_body = open(fname).read()
-    else:
-        #fname_mdate = time.localtime(os.stat(fname).st_mtime)
-        #fname_mdate_ = int("%d%02d%02d" % (fname_mdate.tm_year, fname_mdate.tm_mon, fname_mdate.tm_mday))
-        #print(fname_mdate_, _date)
-        #if os.path.exists(fname) and fname_mdate_ == _date:
-        #    response_body = open(fname).read()
-        #else:
-        base_url = "http://race.kra.co.kr/racehorse/profileRaceScore.do?Act=02&Sub=1&"
-        url = base_url + "meet=%d&hrNo=%06d" % (meet, hrno)
-        response_body = urlopen(url).read()
-        fout = open(fname, 'w')
-        fout.write(response_body)
-        fout.close()
-        if os.path.getsize(fname) < 31100:
-            os.remove(fname)
-        print("open url %d" % hrno)
+def get_hr_race_record(hrname, date, race_record, md=cmake_mean()):
+    mean_data, weight = make_mean_race_record(race_record)
+    res = []
+    weight_list = []
+    res_summary = [[] for _ in range(4)]
+    for course in [900, 1000, 1200, 1300, 1400, 1700]:
+        res.extend(mean_data[course])
+        for i in range(4):
+            res_summary[i].append(mean_data[course][i])
+    for i in range(4):
+        res.append(np.mean(res_summary[i]))  # default result
+
     try:
-        xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
-    except UnicodeDecodeError:
-        print("decode error: %s", fname)
-        return default_res, weight
-    for itemElm in xml_text.findAll('tbody'):
-        for itemElm2 in itemElm.findAll('tr')[2:]:
-            itemList = itemElm2.findAll('td')
-            #print(itemList)
-            try:
-                date = re.search(r'\d{4}/\d{2}/\d{2}', unicode(itemList[1])).group()
-            except:
-                print(fname)
-                print("regular expression error: %s" % itemList)
-                continue
-            date = int("%s%s%s" % (date[:4], date[5:7], date[8:]))
-            month_ = date/100%100
-            if date >= _date:
-                continue
-
-            if datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=365*1) < datetime.date(_date/10000, _date/100%100, _date%100):
-                continue
-            racekind = unicode(itemList[3].string).strip().encode('utf-8')
-            try:
-                distance = int(unicode(itemList[4].string).strip().encode('utf-8'))
-            except:
-                if racekind == '주':
-                    distance = 900
-                else:
-                    continue
-            try:
-                record = unicode(itemList[10].string).strip().encode('utf-8')
-                if weight == 0:
-                    weight = int(unicode(itemList[11].string).strip().encode('utf-8').split('(')[0])
-            except:
-                print("unicode error")
-                continue
-
-            #print(unicode(itemList[12].string).strip())
-            try:
-                humidity = int(re.search(r'\d+', unicode(itemList[12].string)).group())
-            except AttributeError:
-                humidity = 7
-            try:
-                record = float(record[0])*600 + float(record[2:4])*10 + float(record[5])
-            except:
-                continue
-            if record == 0:
-                continue
-            #print("주, 일, %s" % racekind)
-            data_dict = {}
-            data_dict['humidity'] = humidity
-            data_dict['humidity'] = humidity
-            data_dict['humidity'] = humidity
-            data_dict['humidity'] = humidity
-            data_dict['humidity'] = humidity
-            data_dict['humidity'] = humidity
-
-            record = norm_racescore(data_dict, record, md3)
-            if distance not in [900, 1000, 1200, 1300, 1400, 1700]:
-                continue
-            if record < md.race_score[distance][month_-1][20]*0.8 or record > md.race_score[distance][month_-1][20]*1.2:
-                continue
-            if racekind == '주' and len(race_sum[0]) == 0:
-                race_sum[0].append(record)
-                race_sum[6].append(record * md.race_score[0][month_-1][humidity] / md.race_score[900][month_-1][humidity])
-                if first_attend:
-                    md.update_race_score_qual(month_-1, humidity, record)
-                first_attend = False
-            elif racekind == '일':
-                if distance == 1000:
-                    race_sum[1].append(record)
-                    race_sum[6].append(record * md.race_score[0][month_-1][humidity] / md.race_score[1000][month_-1][humidity])
-                elif distance == 1200:
-                    race_sum[2].append(record)
-                    race_sum[6].append(record * md.race_score[0][month_-1][humidity] / md.race_score[1200][month_-1][humidity])
-                elif distance == 1300:
-                    race_sum[3].append(record)
-                    race_sum[6].append(record * md.race_score[0][month_-1][humidity] / md.race_score[1300][month_-1][humidity])
-                elif distance == 1400:
-                    race_sum[4].append(record)
-                    race_sum[6].append(record * md.race_score[0][month_-1][humidity] / md.race_score[1400][month_-1][humidity])
-                elif distance == 1700:
-                    race_sum[5].append(record)
-                    race_sum[6].append(record * md.race_score[0][month_-1][humidity] / md.race_score[1700][month_-1][humidity])
-                if course == distance:
-                    race_same_dist.append(record)
-            #print("%d, %s, %s, %d" % (date, racekind, distance, record))
-
-
-    course_score = [0,0,0,0,0,0,0]
-    course_score[0] = np.mean(md.race_score[900])
-    course_score[1] = np.mean(md.race_score[1000])
-    course_score[2] = np.mean(md.race_score[1200])
-    course_score[3] = np.mean(md.race_score[1300])
-    course_score[4] = np.mean(md.race_score[1400])
-    course_score[5] = np.mean(md.race_score[1700])
-    course_score[6] = np.mean(md.race_score[0])
-
-    if len(race_sum[6]) == 0:
-        result[6] = float(course_score[6])
-    else:
-        result[6] = np.mean(race_sum[6])
-        race_sum[6].reverse()
-        for r in race_sum[6]:
-            result[6] += 0.5 * (r - result[6])
-    for i in range(len(race_sum)-1):
-        if len(race_sum[i]) == 0:
-            #result[i] = -1
-            result[i] = float(result[6] * course_score[i] / course_score[6])
-        else:
-            result[i] = np.mean(race_sum[i])
-            race_sum[i].reverse()
-            for r in race_sum[i]:
-                result[i] += 0.5 * (r - result[i])
-            result[i] = float(result[i])
-    if len(race_same_dist) > 0:
-        result.append(float(np.min(race_same_dist)))
-        result.append(float(np.mean(race_same_dist)))
-        result.append(float(np.max(race_same_dist)))
-    elif course in [1000, 1200, 1300, 1400, 1700]:
-        #result.extend([-1, -1, -1])
-        delta1 = md.dist_rec[course][4] - md.dist_rec[course][3]
-        delta2 = md.dist_rec[course][5] - md.dist_rec[course][4]
-        result.append(float(md.race_score[course][month-1][20] - delta1))
-        result.append(float(md.race_score[course][month-1][20]))
-        result.append(float(md.race_score[course][month-1][20] + delta2))
-    else:
-        #result.extend([-1, -1, -1])
-        result.append(float(md.dist_rec[course][3]))
-        result.append(float(md.dist_rec[course][4]))
-        result.append(float(md.dist_rec[course][5]))
-    return result, weight
+        hr_data = race_record[name]
+    except KeyError:
+        return mean_data, weight
+    res_summary = [[] for _ in range(4)]
+    for ic, course in enumerate([900, 1000, 1200, 1300, 1400, 1700]):
+        res_list = [[] for _ in range(4)]
+        if course not in hr_data[course]:
+            continue
+        for hr_c_data in hr_data[course]:
+            res_list[0].append(norm_racescore(hr_c_data[17], md, race_record[name][course]))
+            res_list[1].append(norm_racescore(hr_c_data[18], md, race_record[name][course]))
+            res_list[2].append(norm_racescore(hr_c_data[19], md, race_record[name][course]))
+            res_list[3].append(norm_racescore(hr_c_data[16], md, race_record[name][course]))
+            res_summary[0].append(norm_racescore(hr_c_data[17], md, race_record[name][course])/mean_data[course][0])
+            res_summary[1].append(norm_racescore(hr_c_data[18], md, race_record[name][course])/mean_data[course][1])
+            res_summary[2].append(norm_racescore(hr_c_data[19], md, race_record[name][course])/mean_data[course][2])
+            res_summary[3].append(norm_racescore(hr_c_data[16], md, race_record[name][course])/mean_data[course][3])
+            weight_list.append(hr_c_data[14])
+        for i in range(4):
+            res[ic*4+i] = np.mean(res_list[i])
+    for i in range(4):
+        res[6*4+i] = np.mean(res_summary[i])
+    return res, np.mean(weight_list)
 
 
 if __name__ == '__main__':

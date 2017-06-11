@@ -21,22 +21,20 @@ DEBUG = False
 
 def get_csv():
     df = pd.read_csv('../data/1_2007_2016_v1.csv', index_col='date')
-    print(np.shape(df))
     m_c = {}
     for c in df['course'].unique():
         m = df.loc[df['course']==c, 'rctime'].mean()
         df = df.loc[(df['course']!=c) | (df['rctime'] < 1.05*m)] # remove outlier
-        print(c, m)
-    print(np.shape(df))
     return df
 
 
 class cmake_mean:
     def __init__(self):
-        self.df = get_csv()
+        pass
 
     def get_data(self):
         self.data = {}
+        self.df = get_csv()
         name_list = self.df['name'].unique()
 
         self.data = {}
