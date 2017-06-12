@@ -54,10 +54,15 @@ def load_lineage_info(meet):
 
 
 def get_lineage(meet, hrno, mode='File'):
-    lineage = []*62
-    md = joblib.load('../data/lineage_%d.pkl'%meet)
+    lineage = [-1]*62
+    if hrno == -1:
+        print("there's no  matching lineage")
+        return lineage
+    #md = joblib.load('../data/lineage_%d.pkl'%meet)
+    with gzip.open('../data/lineage_1.gz') as f:
+        md = cPickle.loads(f.read())
     fname = "../txt/%d/LineageInfo/LineageInfo_%d_%06d.txt" % (meet, meet, hrno)
-    print("processing %s" % fname)
+    #print("processing %s" % fname)
     if os.path.exists(fname) and mode == 'File':
         response_body = open(fname).read()
     else:
@@ -73,17 +78,24 @@ def get_lineage(meet, hrno, mode='File'):
 
     xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
     idx = 0
+    printed = False
     for i1, itemElm in enumerate(xml_text.findAll('tbody')[1:]):
         for i2, itemElm2 in enumerate(itemElm.findAll('tr')):
             itemList = itemElm2.findAll('td')
             for items in itemList:
                 item = items.findAll('span')
-                lineage[idx] = md[idx].index(item[0].string)
+                try:
+                    lineage[idx] = md[idx].index(item[0].string)
+                except ValueError:
+                    if not printed:
+                        print("ValueError in %s, Set to -1" % fname)
+                        printed = True
+                    lineage[idx] = -1
                 idx += 1
     return lineage
 
 
 if __name__ == '__main__':
-    save_lineage_info(1)
+    #save_lineage_info(1)
     load_lineage_info(1)
 

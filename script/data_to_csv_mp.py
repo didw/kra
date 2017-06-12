@@ -36,16 +36,16 @@ def get_data(begin_date, end_date, fname_csv):
         md = mean_data()
     fname_md = fname_csv.replace('.csv', '_md3.pkl')
     md3 = joblib.load(fname_md)
+    md3.mean_data['humidity'][20] = md3.mean_data['humidity'][25]
     rd = RaceDetail()
     import glob
     for year in range(2007, 2018):
         filelist1 = glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_%d*.txt' % year)
         filelist2 = glob.glob('../txt/1/rcresult/rcresult_1_%d*.txt' % year)
+        print("processed ap/rc in %d" % year)
         for fname in filelist1:
-            print("processed ap %s" % fname)
             rd.parse_ap_rslt(fname)
         for fname in filelist2:
-            print("processed rc in %s" % fname)
             rd.parse_race_detail(fname)
 
     filename_queue = mp.Queue()
@@ -77,7 +77,7 @@ def get_data(begin_date, end_date, fname_csv):
                 data = data.append(adata, ignore_index=True)
             worker_num -= 1
             print("data get: %d" % worker_num)
-            md.update_data(adata)
+            #md.update_data(adata)
             for i in [900, 1000, 1200, 1300, 1400, 1700, 0]:
                 print("%f" % np.mean(md.race_score[i]), end=' ')
             print()

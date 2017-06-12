@@ -15,6 +15,8 @@ import get_weekly_clinic as wc
 import get_jockey as gj
 import get_trainer as gt
 import get_lineage as gl
+from race_record import RaceRecord
+import gzip, cPickle
 
 NEXT = re.compile(r'마 체 중|단승식|복승식|매출액')
 WORD = re.compile(r"[^\s]+")
@@ -418,6 +420,7 @@ def get_fname_dist(date, rcno):
 # 킹메신저          한    수2014/03/08 2국6 18박대흥죽마조합            시에로골드          난초                    1    0    0    1    0    0    3000000                     0
 def parse_txt_horse(date, rcno, name, course, md=mean_data()):
     name = name.replace('★', '')
+    date = datetime.date(date/10000, date%10000/100, date%100)
     filename = get_fname(date, "horse")
     if DEBUG: print(filename)
     course = int(course)
@@ -472,7 +475,7 @@ def parse_txt_jockey(date, name, course, md=mean_data()):
     if len(str(name)) > 9:
         #print("name is changed %s -> %s" % (name, name[:6]))
         name = str(name)[:6]
-    filename = get_fname(date, "jockey")
+    filename = get_fname(datetime.date(date/10000, date%10000/100, date%100), "jockey")
     #print("find %s at %s" % (name, filename))
     f_input = open(filename)
     while True:
@@ -516,7 +519,7 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
         #print("name is changed %s -> %s" % (name, name[:6]))
         name = str(name)[:6]
     course = int(course)
-    filename = get_fname(date, "trainer")
+    filename = get_fname(datetime.date(date/10000, date%10000/100, date%100), "trainer")
     if DEBUG: print(filename)
     f_input = open(filename)
     while True:
@@ -567,21 +570,34 @@ def get_data(filename, md=mean_data(), rd=RaceDetail(), md3=cmake_mean()):
     date_i = re.search(unicode(r'\d{8}', 'utf-8').encode('utf-8'), filename).group()
     date = datetime.date(int(date_i[:4]), int(date_i[4:6]), int(date_i[6:]))
     data = parse_txt_race(filename, md, md3)
+    assert len(data[0]) == 101
     jangu_clinic = wc.parse_hr_clinic(date)
     race_record = get_race_record()
 
     for i in range(len(data)):
         #print("race file: %s" % filename)
         #print("%s %s %s" % (data[i][5], data[i][10], data[i][11]))
-        data[i].extend(parse_txt_horse(date, int(data[i][39]), data[i][24], data[i][0], md))
-        data[i].extend(parse_txt_jockey(date, data[i][29], data[i][0], md))
-        data[i].extend(parse_txt_trainer(date, data[i][30], data[i][0], md))
-        data[i].extend(wc.get_jangu_clinic(jangu_clinic, data[i][24]))
-        #data[i].extend(rd.get_data(data[i][24], date_i, md))
-        data[i].extend(gdd.get_hr_race_record(data[i][24], int(data[i][39], race_record, md3)))
-        #data[i].extend(gj.get_jockey(data[i][29]))
-        #data[i].extend(gt.get_trainer(data[i][30]))
+        rcno = int(data[i][91])
+        hrname = data[i][76]
+        #print("hrname:%s"%hrname)
+        jkname = data[i][81]
+        trname = data[i][82]
+        course = int(data[i][0])
+        date = int(date_i)
+        data[i].extend(parse_txt_horse(date, rcno, hrname, course, md))
+        assert len(data[i]) == 118
+        data[i].extend(parse_txt_jockey(date, jkname, course, md))
+        assert len(data[i]) == 128
+        data[i].extend(parse_txt_trainer(date, trname, course, md))
+        assert len(data[i]) == 138
+        data[i].extend(wc.get_jangu_clinic(jangu_clinic, hrname))
+        assert len(data[i]) == 219
+        race_records, _ = gdd.get_hr_race_record(hrname, date, race_record, md3)
+        #print("len(race_records):%d"%len(race_records))
+        data[i].extend(race_records)
+        assert len(data[i]) == 247
         data[i].extend([date_i])
+        assert len(data[i]) == 248
     df = pd.DataFrame(data)
 
     df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6'] \

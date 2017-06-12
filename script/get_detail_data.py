@@ -316,6 +316,9 @@ def norm_racescore(value, md, hr_data):
     except KeyError:
         print("column %s, hr_data: %d is not exists" % ("hr_days", int(hr_data[5]/100)*100))
         pass
+    except TypeError:
+        print("column %s, hr_data[hr_days] is NoneType" % ("hr_days",))
+        pass
     try:
         value /= md.mean_data['lastday'][int(hr_data[4]/10)*10]
     except KeyError:
@@ -325,7 +328,6 @@ def norm_racescore(value, md, hr_data):
 
 
 def make_mean_race_record(race_record):
-    i = 0
     res_dict = {}
     weight_list = []
     for course in [900, 1000, 1200, 1300, 1400, 1700]:
@@ -340,10 +342,9 @@ def make_mean_race_record(race_record):
                 res_list[2].append(data[19])
                 res_list[3].append(data[16])
                 weight_list.append(data[14])
-        for _ in range(4):
+        for i in range(4):
             res[i] = np.mean(res_list[0])
             res_dict[course] = res
-            i += 1
     return res_dict, np.mean(weight_list)
 
 
@@ -360,23 +361,24 @@ def get_hr_race_record(hrname, date, race_record, md=cmake_mean()):
         res.append(np.mean(res_summary[i]))  # default result
 
     try:
-        hr_data = race_record[name]
+        hr_data = race_record.data[hrname]
     except KeyError:
-        return mean_data, weight
+        print("No hrname:%s, return default"%hrname)
+        return res, weight
     res_summary = [[] for _ in range(4)]
     for ic, course in enumerate([900, 1000, 1200, 1300, 1400, 1700]):
         res_list = [[] for _ in range(4)]
-        if course not in hr_data[course]:
+        if course not in hr_data.keys():
             continue
         for hr_c_data in hr_data[course]:
-            res_list[0].append(norm_racescore(hr_c_data[17], md, race_record[name][course]))
-            res_list[1].append(norm_racescore(hr_c_data[18], md, race_record[name][course]))
-            res_list[2].append(norm_racescore(hr_c_data[19], md, race_record[name][course]))
-            res_list[3].append(norm_racescore(hr_c_data[16], md, race_record[name][course]))
-            res_summary[0].append(norm_racescore(hr_c_data[17], md, race_record[name][course])/mean_data[course][0])
-            res_summary[1].append(norm_racescore(hr_c_data[18], md, race_record[name][course])/mean_data[course][1])
-            res_summary[2].append(norm_racescore(hr_c_data[19], md, race_record[name][course])/mean_data[course][2])
-            res_summary[3].append(norm_racescore(hr_c_data[16], md, race_record[name][course])/mean_data[course][3])
+            res_list[0].append(norm_racescore(hr_c_data[17], md, hr_c_data))
+            res_list[1].append(norm_racescore(hr_c_data[18], md, hr_c_data))
+            res_list[2].append(norm_racescore(hr_c_data[19], md, hr_c_data))
+            res_list[3].append(norm_racescore(hr_c_data[16], md, hr_c_data))
+            res_summary[0].append(norm_racescore(hr_c_data[17], md, hr_c_data)/mean_data[course][0])
+            res_summary[1].append(norm_racescore(hr_c_data[18], md, hr_c_data)/mean_data[course][1])
+            res_summary[2].append(norm_racescore(hr_c_data[19], md, hr_c_data)/mean_data[course][2])
+            res_summary[3].append(norm_racescore(hr_c_data[16], md, hr_c_data)/mean_data[course][3])
             weight_list.append(hr_c_data[14])
         for i in range(4):
             res[ic*4+i] = np.mean(res_list[i])

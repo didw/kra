@@ -38,6 +38,7 @@ def get_hr_days(name, date_i):
         if name == hrname:
             birth = re.search(unicode(r'\d{4}/\d{2}/\d{2}', 'utf-8').encode('utf-8'), line).group()
             return (date - datetime.datetime(int(birth[:4]), int(birth[5:7]), int(birth[8:]))).days
+    return 1000
 
 
 def parse_txt_race(filename):
