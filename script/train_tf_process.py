@@ -38,11 +38,11 @@ def dense_with_onehot(input, n_in, n_out, p_keep=0.8):
     return tf.nn.dropout(tf.nn.elu(tf.matmul(h1, weights) + biases), p_keep)
 
 
-
-idx_input  = [ 1,  1, 1, 9] +    [1]*62 + [ 1,  1, 1, 1, 1,   1,   1,   1,  2,  1,  1,  1, 146]
-is_onehot  = [ 1,  1, 1, 0] +    [1]*62 + [ 1,  1, 1, 1, 0,   1,   1,   1,  0,  1,  1,  1,   0]
-len_onehot = [10, 20, 8, 0] + [1000]*62 + [16, 17, 3, 9, 0, 256, 130, 902,  0, 15, 15, 12,   0]
-len_h1s    = [ 2,  2, 2, 5] +    [2]*62 + [ 2,  2, 2, 2, 1,  50,  50,  50,  2,  3,  3,  3, 100]
+lg_oh = [5009, 1489, 602, 318, 191, 309, 572, 399, 552, 1373, 769, 396, 717, 1296, 744, 1232, 4450, 1815, 714, 367, 666, 1636, 833, 1505, 4032, 1777, 719, 1604, 3677, 1627, 3320, 18002, 5436, 1570, 619, 336, 592, 1438, 773, 1342, 4712, 1846, 726, 1644, 4187, 1737, 3756, 16473, 5077, 1531, 632, 1399, 4368, 1720, 3858, 14679, 4502, 1394, 3811, 12577, 3783, 10447]
+idx_input  = [ 1,  1, 1, 9] + [1]*62 + [ 1,  1, 1, 1, 1,   1,   1,   1,  2,  1,  1,  1, 146]
+is_onehot  = [ 1,  1, 1, 0] + [1]*62 + [ 1,  1, 1, 1, 0,   1,   1,   1,  0,  1,  1,  1,   0]
+len_onehot = [10, 20, 8, 0] +  lg_oh + [16, 17, 3, 9, 0, 256, 130, 902,  0, 15, 15, 12,   0]
+len_h1s    = [ 2,  2, 2, 5] + [2]*62 + [ 2,  2, 1, 2, 1,   2,   2,   2,  2,  2,  2,  2, 100]
 name_one_hot_columns = ['course', 'humidity', 'kind', 'idx', 'cntry', 'gender', 'age', 'jockey', 'trainer', 'owner', 'cnt', 'rcno', 'month']
 
 def build_model(input, p_keep):
@@ -79,19 +79,30 @@ class TensorflowRegressor():
         # Create two variables.
         self.scaler_y = None
         tf.reset_default_graph()
-        self.num_epoch = 80
-        self.lr = tf.placeholder(dtype=tf.float32)
+        optimizer_type = 'RMSPropOptimizer'
+        starter_learning_rate = 1e-5
+        global_step = tf.Variable(0, trainable=False)
+        learning_rate = tf.train.exponential_decay(starter_learning_rate, global_step, 100, 0.96)
+        beta = 0.001
 
-        self.Input =  tf.placeholder(shape=[None,171],dtype=tf.float32)
+        self.Input =  tf.placeholder(shape=[None,233],dtype=tf.float32)
         self.p_keep =  tf.placeholder(shape=None,dtype=tf.float32)
         self.output = tf.reshape(build_model(self.Input, self.p_keep), [-1])
         
         #Below we obtain the loss by taking the sum of squares difference between the target and prediction Q values.
         self.target = tf.placeholder(shape=[None],dtype=tf.float32)
+        trainable_weights = tf.trainable_variables()
+        regularizers = 0
+        for w in trainable_weights:
+            regularizers += tf.nn.l2_loss(w)
+
         self.loss = tf.losses.mean_squared_error(self.target, self.output)
-        self.updateModel = tf.train.AdamOptimizer(self.lr).minimize(self.loss)
+        if optimizer_type == 'RMSPropOptimizer':
+            self.updateModel = tf.train.RMSPropOptimizer(learning_rate, decay=0.9, momentum=0.9, use_locking=True, centered=True).minimize(self.loss, global_step=global_step)
+        elif optimizer_type == 'MomentumOptimizer':
+            self.updateModel = tf.train.MomentumOptimizer(learning_rate, momentum=0.9).minimize(self.loss, global_step=global_step)
         self.saver = tf.train.Saver()
-        self.model_dir = '../model/tf/l3_e40_d1_0/%s' % s_date
+        self.model_dir = '../model/tf/l3_e100_rms/%s' % s_date
 
         tf.summary.scalar('loss', self.loss)
         self.merged = tf.summary.merge_all()
@@ -110,7 +121,6 @@ class TensorflowRegressor():
     def fit(self, X_data, Y_data, X_val=None, Y_val=None, n_epoch=80):
         # Add an op to initialize the variables.
         batch_size = 512
-        lr = 1e-2
         with tf.Session(config=self.config) as sess:
             sess.run(self.init_op)
             bar = ProgressBar(len(X_data)/batch_size*n_epoch, max_width=80)
@@ -119,21 +129,19 @@ class TensorflowRegressor():
             smr_test = tf.summary.FileWriter('TB/%s/test'%self.dir)
             idx = 0
             for i in range(n_epoch):
-                lr *= 0.99
-                #print("\nEpoch %d/%d is started" % (i+1, self.num_epoch), end='\n')
                 idx_val = 0
                 for j in range(int(len(X_data)/batch_size)-1):
                     X_batch = X_data[batch_size*j:batch_size*(j+1)]
                     Y_batch = Y_data[batch_size*j:batch_size*(j+1)]
                     X_batch, Y_batch = shuffle(X_batch, Y_batch)
-                    _ = sess.run(self.updateModel, feed_dict={self.lr:lr, self.Input: X_batch, self.target: Y_batch, self.p_keep: 1.0})
+                    _ = sess.run(self.updateModel, feed_dict={self.Input: X_batch, self.target: Y_batch, self.p_keep: 1.0})
 
                     bar.numerator += 1
                     if j%50 == 0 and j > 0:
                         idx += 1
                         if idx_val == 0 and X_val is not None:
                             X_val, Y_val = shuffle(X_val, Y_val)
-                        summary, loss = sess.run([self.merged, self.loss], feed_dict={self.lr:lr, self.Input: X_batch, self.target: Y_batch, self.p_keep: 1.0})
+                        summary, loss = sess.run([self.merged, self.loss], feed_dict={self.Input: X_batch, self.target: Y_batch, self.p_keep: 1.0})
                         smr_train.add_summary(summary, idx)
                         if avg_loss == 0:
                             avg_loss = loss
@@ -145,7 +153,7 @@ class TensorflowRegressor():
                             idx_val += 1
                             if batch_size*(idx_val+1) > len(X_val):
                                 idx_val = 0
-                            summary, target, loss_val = sess.run([self.merged, self.output, self.loss], feed_dict={self.lr:lr, self.Input: X_val_batch, self.target: Y_val_batch, self.p_keep: 1.0})
+                            summary, target, loss_val = sess.run([self.merged, self.output, self.loss], feed_dict={self.Input: X_val_batch, self.target: Y_val_batch, self.p_keep: 1.0})
                             smr_test.add_summary(summary, idx)
                             if avg_loss_val == 0:
                                 avg_loss_val = loss_val
@@ -157,9 +165,9 @@ class TensorflowRegressor():
                         else:
                             t = y = 0
                         if X_val is None:
-                            print("%s | loss_train: %f" % (bar, avg_loss), end='\r')
+                            print("%s | loss_train: %f      " % (bar, avg_loss), end='\r')
                         else:
-                            print("%s | loss_train: %f, loss_val: %f, course: %d, target: %f, Y: %f" % (bar, avg_loss, avg_loss_val, self.column_unique['course'][int(X_val_batch[0][0])], t, y), end='\r')
+                            print("%s | loss_train: %f, loss_val: %f, course: %d, target: %f, Y: %.0f      " % (bar, avg_loss, avg_loss_val, self.column_unique['course'][int(X_val_batch[0][0])], t, y), end='\r')
                         sys.stdout.flush()
 
             if not os.path.exists(self.model_dir):
@@ -253,19 +261,6 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0, kind=0, nData=4
     Y_data = data['rctime']
     X_data = data.copy()
     X_data = X_data.drop(['name', 'rctime', 'rank', 'r3', 'r2', 'r1', 'date', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'ssang', 'samssang', 'index'], axis=1)
-    #X_data = X_data.drop(['jockey', 'trainer', 'owner'], axis=1)
-    #print(X_data.columns)
-    #X_data = X_data.drop(['jk%d'%i for i in range(1, 257)] + ['tr%d'%i for i in range(1, 130)], axis=1)
-    if nData == 47:
-        X_data = X_data.drop(['ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', 'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl'], axis=1)
-        X_data = X_data.drop(['rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
-                  'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',
-                  'jc31', 'jc32', 'jc33', 'jc34', 'jc35', 'jc36', 'jc37', 'jc38', 'jc39', 'jc40', 'jc41', 'jc42', 'jc43', 'jc44', 'jc45', 'jc46', 'jc47', 'jc48', 'jc49', 'jc50', 'jc51', 'jc52', 'jc53', 'jc54', 'jc55', 'jc56', 'jc57', 'jc58', 'jc59', 'jc60',
-                  'jc61', 'jc62', 'jc63', 'jc64', 'jc65', 'jc66', 'jc67', 'jc68', 'jc69', 'jc70', 'jc71', 'jc72', 'jc73', 'jc74', 'jc75', 'jc76', 'jc77', 'jc78', 'jc79', 'jc80', 'jc81'], axis=1)
-    if nData == 105:
-        X_data = X_data.drop(['jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',
-                  'jc31', 'jc32', 'jc33', 'jc34', 'jc35', 'jc36', 'jc37', 'jc38', 'jc39', 'jc40', 'jc41', 'jc42', 'jc43', 'jc44', 'jc45', 'jc46', 'jc47', 'jc48', 'jc49', 'jc50', 'jc51', 'jc52', 'jc53', 'jc54', 'jc55', 'jc56', 'jc57', 'jc58', 'jc59', 'jc60',
-                  'jc61', 'jc62', 'jc63', 'jc64', 'jc65', 'jc66', 'jc67', 'jc68', 'jc69', 'jc70', 'jc71', 'jc72', 'jc73', 'jc74', 'jc75', 'jc76', 'jc77', 'jc78', 'jc79', 'jc80', 'jc81'], axis=1)
     return X_data, Y_data, R_data, data
 
 def delete_lack_data(X_data, Y_data):
@@ -280,27 +275,29 @@ def delete_lack_data(X_data, Y_data):
 def training(train_bd, train_ed, course=0, nData=47, n_epoch=100):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/tf/l3_e40_d1_0/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/tf/l3_e100_rms/%d_%d" % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
     estimators = [0] * MODEL_NUM
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
     X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', 0, nData=nData)
-    scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_y = StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler()
+    scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y = StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler()
     X_train = np.array(X_train)
     Y_train = np.array(Y_train)
-    X_train[:,3:22] = scaler_x1.fit_transform(X_train[:,3:22])
-    X_train[:,26:27] = scaler_x2.fit_transform(X_train[:,26:27])
-    X_train[:,30:32] = scaler_x3.fit_transform(X_train[:,30:32])
-    X_train[:,35:171] = scaler_x4.fit_transform(X_train[:,35:171])
+    X_train[:,3:5] = scaler_x1.fit_transform(X_train[:,3:5])
+    X_train[:,6:12] = scaler_x2.fit_transform(X_train[:,6:12])
+    X_train[:,78:79] = scaler_x3.fit_transform(X_train[:,78:79])
+    X_train[:,82:84] = scaler_x4.fit_transform(X_train[:,82:84])
+    X_train[:,88:124] = scaler_x5.fit_transform(X_train[:,88:124])
+    X_train[:,204:233] = scaler_x6.fit_transform(X_train[:,204:233])
     Y_train = scaler_y.fit_transform(Y_train)
     seed = 7
     np.random.seed(seed)
     # evaluate model with standardized dataset
     for i in range(MODEL_NUM):
         print("model[%d] training.." % (i+1))
-        dir_name = '../model/tf/l3_e40_d1_0/%s_%s/%d' % (train_bd_i, train_ed_i, i)
+        dir_name = '../model/tf/l3_e100_rms/%s_%s/%d' % (train_bd_i, train_ed_i, i)
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
         tf.reset_default_graph()
@@ -312,7 +309,7 @@ def training(train_bd, train_ed, course=0, nData=47, n_epoch=100):
         else:
             estimators[i].fit(X_train, Y_train, n_epoch=n_epoch)
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
-    return estimators, md, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_y
+    return estimators, md, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y
 
 def print_log(data, pred, fname):
     flog = open(fname, 'w')
@@ -336,31 +333,33 @@ def print_log(data, pred, fname):
 def process_train(train_bd, train_ed, q):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/tf/l3_e40_d1_0/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/tf/l3_e100_rms/%d_%d" % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
     X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', 0, nData=nData)
-    scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_y = StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler()
+    scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y = StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler()
     X_train = np.array(X_train)
     Y_train = np.array(Y_train)
     X_train, Y_train = shuffle(X_train, Y_train)
     
-    X_train[:,3:22] = scaler_x1.fit_transform(X_train[:,3:22])
-    X_train[:,26:27] = scaler_x2.fit_transform(X_train[:,26:27])
-    X_train[:,30:32] = scaler_x3.fit_transform(X_train[:,30:32])
-    X_train[:,35:171] = scaler_x4.fit_transform(X_train[:,35:171])
+    X_train[:,3:5] = scaler_x1.fit_transform(X_train[:,3:5])
+    X_train[:,6:12] = scaler_x2.fit_transform(X_train[:,6:12])
+    X_train[:,78:79] = scaler_x3.fit_transform(X_train[:,78:79])
+    X_train[:,82:84] = scaler_x4.fit_transform(X_train[:,82:84])
+    X_train[:,88:124] = scaler_x5.fit_transform(X_train[:,88:124])
+    X_train[:,204:233] = scaler_x6.fit_transform(X_train[:,204:233])
     Y_train = scaler_y.fit_transform(Y_train)
     X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, random_state=0)
 
-    joblib.dump((scaler_x1, scaler_x2, scaler_x3, scaler_x4), "%s/scaler_x.pkl" % (model_dir,))
+    joblib.dump((scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6), "%s/scaler_x.pkl" % (model_dir,))
     joblib.dump(scaler_y, "%s/scaler_y.pkl" % (model_dir,))
 
     estimators = [0] * MODEL_NUM
     for i in range(MODEL_NUM):
         model_name = "%s/%d/model.ckpt.index" % (model_dir, i)
-        if os.path.exists("%s/%d/" % (model_dir, i)):
+        if os.path.exists(model_name):
             print("model[%d] exist. try to loading.. %s - %s" % (i, str(train_bd), str(train_ed)))
             estimators[i] = TensorflowRegressor('%s_%s/%d' % (train_bd_i, train_ed_i, i))
             estimators[i].load()
@@ -373,19 +372,21 @@ def process_train(train_bd, train_ed, q):
             tf.reset_default_graph()
             estimators[i] = TensorflowRegressor("%s_%s/%d"%(train_bd_i, train_ed_i, i))
             estimators[i].set_scaler(scaler_y)
-            estimators[i].fit(X_train, Y_train, X_val, Y_val, n_epoch=40)
+            estimators[i].fit(X_train, Y_train, X_val, Y_val, n_epoch=100)
     print("Finish train model")
     q.put(scaler_x1)
     q.put(scaler_x2)
     q.put(scaler_x3)
     q.put(scaler_x4)
+    q.put(scaler_x5)
+    q.put(scaler_x6)
     q.put(scaler_y)
 
 
 
 def process_test(train_bd, train_ed, scaler, q):
 
-    scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_y = scaler
+    scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y = scaler
     sr, sscore = q.get()
 
     test_bd = train_ed + datetime.timedelta(days=1)
@@ -395,21 +396,23 @@ def process_test(train_bd, train_ed, scaler, q):
     
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/tf/l3_e40_d1_0/%d_%d" % (train_bd_i, train_ed_i)
-    data_dir = "../data/tf/l3_e40_d1_0"
+    model_dir = "../model/tf/l3_e100_rms/%d_%d" % (train_bd_i, train_ed_i)
+    data_dir = "../data/tf/l3_e100_rms"
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
 
-    if not os.path.exists('../data/tf/l3_e40_d1_0'):
-        os.makedirs('../data/tf/l3_e40_d1_0')
-    fname_result = '../data/tf/l3_e40_d1_0/tf_nd%d_y%d.txt' % (nData, delta_year)
+    if not os.path.exists('../data/tf/l3_e100_rms'):
+        os.makedirs('../data/tf/l3_e100_rms')
+    fname_result = '../data/tf/l3_e100_rms/tf_nd%d_y%d.txt' % (nData, delta_year)
     print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
     X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.csv', nData=nData)
     X_test = np.array(X_test)
-    X_test[:,3:22] = scaler_x1.transform(X_test[:,3:22])
-    X_test[:,26:27] = scaler_x2.transform(X_test[:,26:27])
-    X_test[:,30:32] = scaler_x3.transform(X_test[:,30:32])
-    X_test[:,35:171] = scaler_x4.transform(X_test[:,35:171])
+    X_test[:,3:5] = scaler_x1.transform(X_test[:,3:5])
+    X_test[:,6:12] = scaler_x2.transform(X_test[:,6:12])
+    X_test[:,78:79] = scaler_x3.transform(X_test[:,78:79])
+    X_test[:,82:84] = scaler_x4.transform(X_test[:,82:84])
+    X_test[:,88:124] = scaler_x5.transform(X_test[:,88:124])
+    X_test[:,204:233] = scaler_x6.transform(X_test[:,204:233])
     """
     X_test = scaler_x1.transform(X_test)
     """
@@ -619,9 +622,11 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         scaler_x2 = q.get()
         scaler_x3 = q.get()
         scaler_x4 = q.get()
+        scaler_x5 = q.get()
+        scaler_x6 = q.get()
         scaler_y = q.get()
         q.put((sr, sscore))
-        p = Process(target=process_test, args=(train_bd, train_ed, (scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_y), q))
+        p = Process(target=process_test, args=(train_bd, train_ed, (scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y), q))
         p.start()
         p.join()
         sr, sscore = q.get()

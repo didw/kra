@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 from sklearn.externals import joblib
 from etaprogress.progress import ProgressBar
+import cPickle, gzip
 
 DEBUG = False
 
@@ -217,7 +218,8 @@ class cmake_mean:
 
 class mean_data2:
     def __init__(self):
-        self.mean_pkl = joblib.load('../data/1_2007_2016_v1_md3.pkl')
+        with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
+            self.mean_pkl = cPickle.loads(f.read())
         md = self.mean_pkl.mean_data
         fout = open('../data/1_2007_2016_v1_md3.csv', 'wt')
         fout.write("write to csv\n")
@@ -238,6 +240,8 @@ if __name__ == '__main__':
     DEBUG = True
     m = cmake_mean()
     m.get_data()
-    joblib.dump(m, '../data/1_2007_2016_v1_md3.pkl')
+    serialized = cPickle.dumps(m)
+    with gzip.open('../data/1_2007_2016_v1_md3.gz', 'wb') as f:
+        f.write(serialized)
     md = mean_data2()
 

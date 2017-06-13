@@ -90,7 +90,6 @@ def get_data(begin_date, end_date, fname_csv):
             print("feature extraction finished")
             break
     data.to_csv(fname_csv, index=False)
-    joblib.dump(md, fname_csv.replace('.csv', '_md3.pkl'))
     return data
 
 
