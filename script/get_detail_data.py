@@ -373,6 +373,8 @@ def get_hr_race_record(hrname, date, race_record, md):
         if course not in hr_data.keys():
             continue
         for hr_c_data in hr_data[course]:
+            if hr_c_data[23] >= date:
+                continue
             res_list[0].append(norm_racescore(hr_c_data[17], md, hr_c_data, hrname, course))
             res_list[1].append(norm_racescore(hr_c_data[18], md, hr_c_data, hrname, course))
             res_list[2].append(norm_racescore(hr_c_data[19], md, hr_c_data, hrname, course))

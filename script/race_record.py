@@ -507,7 +507,7 @@ if __name__ == '__main__':
         with gzip.open('../data/race_record.gz', 'rb') as f:
             tmp_dict = cPickle.loads(f.read())
             race_record.__dict__.update(tmp_dict)
-    race_record.get_ap_record()
     race_record.get_race_record()
+    race_record.get_ap_record()
     print(race_record)
 
