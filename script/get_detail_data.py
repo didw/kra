@@ -7,7 +7,6 @@ import datetime
 import re
 import numpy as np
 from mean_data import mean_data
-from mean_data3 import cmake_mean
 import time
 
 DEBUG = False
@@ -34,7 +33,7 @@ def get_budam(meet, date, rcno, name):
                 continue
             if name in unicode(itemList[1].string).encode('utf-8'):
                 return unicode(itemList[ret_idx].string)
-    print("can not find budam of %s in %s" % (name, fname))
+    #print("can not find budam of %s in %s" % (name, fname))
     return 54
 
 
@@ -60,7 +59,7 @@ def get_dbudam(meet, date, rcno, name):
             if len(itemList) >= 10 and name in unicode(itemList[1].string).encode('utf-8'):
                 value = int(re.search(r'[-\d]+', unicode(itemList[ret_idx].string)).group())
                 return value
-    print("can not find dbudam of %s in %s" % (name, fname))
+    #print("can not find dbudam of %s in %s" % (name, fname))
     return 0
 
 
@@ -106,7 +105,7 @@ def get_dweight(meet, date, rcno, name):
                 except ValueError:
                     print("could not convert string to float %s, %s" % (name, unicode(itemList[2].string)))
                     continue
-    print("can not find dweight %s in %s" % (name, fname))
+    #print("can not find dweight %s in %s" % (name, fname))
     return 0
 
 
@@ -135,7 +134,7 @@ def get_drweight(meet, date, rcno, name):
                     if "-R" not in last_date:
                         print("can not parsing get_drweight %s" % fname)
                     return 0
-    print("can not find drweight %s in %s" % (name, fname))
+    #print("can not find drweight %s in %s" % (name, fname))
     return 0
 
 
@@ -167,7 +166,7 @@ def get_lastday(meet, date, rcno, name):
                         return 43
                     else:
                         return 100  # first attending
-    print("can not find last day %s in %s" % (name, fname))
+    #print("can not find last day %s in %s" % (name, fname))
     return 43
 
 
@@ -202,7 +201,7 @@ def get_train_state(meet, date, rcno, name):
                     res[who] += train_time
                     res[5] += train_time
                 return res
-    print("can not find train state %s in %s" % (name, fname))
+    #print("can not find train state %s in %s" % (name, fname))
     return [2, 7, 1, 27, 125, 162]
 
 
@@ -228,7 +227,6 @@ def get_distance_record(meet, name, rcno, date, course, md=mean_data()):
     date_i = int("%d%02d%02d" % (date.year, date.month, date.day))
     fname = '../txt/%d/dist_rec/dist_rec_%d_%d_%d.txt' % (meet, meet, date_i, rcno)
     res = []
-    cand = "조보후승기"
     if os.path.exists(fname):
         response_body = open(fname).read()
     else:
@@ -268,7 +266,7 @@ def get_distance_record(meet, name, rcno, date, course, md=mean_data()):
     if len(res) == 6:
         return res
     else:
-        print("can not find %s in %s" % (unicode(name, 'utf-8'), fname))
+        #print("can not find %s in %s" % (unicode(name, 'utf-8'), fname))
         try:
             return map(float, md.dist_rec[course])
         except KeyError:
@@ -297,30 +295,34 @@ def get_hrno(meet, date, rcno, name):
             if name == hrname:
                 #print("hrname: %s, %d" % (name, int(re.search(r'\d{6}', unicode(itemList[1])).group())))
                 return int(re.search(r'\d{6}', unicode(itemList[1])).group())
-    print("can not find %s in fname %s" % (name, fname))
+    #print("can not find %s in fname %s" % (name, fname))
     return -1
 
 
-def norm_racescore(value, md, hr_data):
+def norm_racescore(value, md, hr_data, name, course):
     key_idx = {'humidity':0, 'month':22, 'age':9, 'idx':6, 'rcno':21, 'budam':10, 'dbudam':2, 'jockey':11, 'trainer':12}
     for i in range(1,82):
         key_idx['jc%d'%i] = 23+i
+    printed = False
     for column in key_idx:
         try:
-            value /= md.mean_data[column][hr_data[key_idx[column]]]
+            if md[column][hr_data[key_idx[column]]] > 1.1 or md[column][hr_data[key_idx[column]]] < 0.9:
+                print("mean data should be in between 0.9 and 1.1")
+            value /= md[column][hr_data[key_idx[column]]]
         except KeyError:
-            print("column %s, hr_data: %s is not exists" % (str(column), hr_data[key_idx[column]]))
+            if not printed: print("name: %s, course: %d, column %s, hr_data: %s is not exists" % (name, course, str(column), hr_data[key_idx[column]]))
+            printed = True
             pass
     try:
-        value /= md.mean_data['hr_days'][int(hr_data[5]/100)*100]
+        value /= md['hr_days'][int(hr_data[5]/100)*100]
     except KeyError:
-        print("column %s, hr_data: %d is not exists" % ("hr_days", int(hr_data[5]/100)*100))
+        print("name: %s, course: %d, column %s, hr_data: %d is not exists" % (name, course, "hr_days", int(hr_data[5]/100)*100))
         pass
     except TypeError:
-        print("column %s, hr_data[hr_days] is NoneType" % ("hr_days",))
+        print("name: %s, course: %d, column %s, hr_data[hr_days] is NoneType" % (name, course, "hr_days",))
         pass
     try:
-        value /= md.mean_data['lastday'][int(hr_data[4]/10)*10]
+        value /= md['lastday'][int(hr_data[4]/10)*10]
     except KeyError:
         print("column %s, hr_data: %d is not exists" % ("lastday", int(hr_data[4]/10)*10))
         pass
@@ -348,7 +350,7 @@ def make_mean_race_record(race_record):
     return res_dict, np.mean(weight_list)
 
 
-def get_hr_race_record(hrname, date, race_record, md=cmake_mean()):
+def get_hr_race_record(hrname, date, race_record, md):
     mean_data, weight = make_mean_race_record(race_record)
     res = []
     weight_list = []
@@ -371,14 +373,14 @@ def get_hr_race_record(hrname, date, race_record, md=cmake_mean()):
         if course not in hr_data.keys():
             continue
         for hr_c_data in hr_data[course]:
-            res_list[0].append(norm_racescore(hr_c_data[17], md, hr_c_data))
-            res_list[1].append(norm_racescore(hr_c_data[18], md, hr_c_data))
-            res_list[2].append(norm_racescore(hr_c_data[19], md, hr_c_data))
-            res_list[3].append(norm_racescore(hr_c_data[16], md, hr_c_data))
-            res_summary[0].append(norm_racescore(hr_c_data[17], md, hr_c_data)/mean_data[course][0])
-            res_summary[1].append(norm_racescore(hr_c_data[18], md, hr_c_data)/mean_data[course][1])
-            res_summary[2].append(norm_racescore(hr_c_data[19], md, hr_c_data)/mean_data[course][2])
-            res_summary[3].append(norm_racescore(hr_c_data[16], md, hr_c_data)/mean_data[course][3])
+            res_list[0].append(norm_racescore(hr_c_data[17], md, hr_c_data, hrname, course))
+            res_list[1].append(norm_racescore(hr_c_data[18], md, hr_c_data, hrname, course))
+            res_list[2].append(norm_racescore(hr_c_data[19], md, hr_c_data, hrname, course))
+            res_list[3].append(norm_racescore(hr_c_data[16], md, hr_c_data, hrname, course))
+            res_summary[0].append(norm_racescore(hr_c_data[17], md, hr_c_data, hrname, course)/mean_data[course][0])
+            res_summary[1].append(norm_racescore(hr_c_data[18], md, hr_c_data, hrname, course)/mean_data[course][1])
+            res_summary[2].append(norm_racescore(hr_c_data[19], md, hr_c_data, hrname, course)/mean_data[course][2])
+            res_summary[3].append(norm_racescore(hr_c_data[16], md, hr_c_data, hrname, course)/mean_data[course][3])
             weight_list.append(hr_c_data[14])
         for i in range(4):
             res[ic*4+i] = np.mean(res_list[i])

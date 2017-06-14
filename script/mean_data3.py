@@ -219,8 +219,7 @@ class cmake_mean:
 class mean_data2:
     def __init__(self):
         with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
-            self.mean_pkl = cPickle.loads(f.read())
-        md = self.mean_pkl.mean_data
+            md = cPickle.loads(f.read())
         fout = open('../data/1_2007_2016_v1_md3.csv', 'wt')
         fout.write("write to csv\n")
         for k1 in md.keys():
@@ -240,7 +239,7 @@ if __name__ == '__main__':
     DEBUG = True
     m = cmake_mean()
     m.get_data()
-    serialized = cPickle.dumps(m)
+    serialized = cPickle.dumps(m.mean_data)
     with gzip.open('../data/1_2007_2016_v1_md3.gz', 'wb') as f:
         f.write(serialized)
     md = mean_data2()

@@ -565,7 +565,7 @@ def get_race_record():
     return race_record
 
 
-def get_data(filename, md=mean_data(), rd=RaceDetail(), md3=cmake_mean()):
+def get_data(filename, md=mean_data(), md3=cmake_mean()):
     print("race file: %s" % filename)
     date_i = re.search(unicode(r'\d{8}', 'utf-8').encode('utf-8'), filename).group()
     date = datetime.date(int(date_i[:4]), int(date_i[4:6]), int(date_i[6:]))
