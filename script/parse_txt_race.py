@@ -22,7 +22,7 @@ NEXT = re.compile(r'마 체 중|단승식|복승식|매출액')
 WORD = re.compile(r"[^\s]+")
 DEBUG = False
 
-def parse_txt_race(filename, md=mean_data(), md3=cmake_mean()):
+def parse_txt_race(filename, md):
     data = []
     input_file = open(filename)
     while True:
@@ -102,7 +102,6 @@ def parse_txt_race(filename, md=mean_data(), md3=cmake_mean()):
             lastday = gdd.get_lastday(1, date, int(rcno), hrname)
             train_state = gdd.get_train_state(1, date, int(rcno), hrname)
             hr_no = gdd.get_hrno(1, date, int(rcno), hrname)
-            #race_score, w_ = gdd.get_hr_racescore(1, hr_no, date, data_dict, 'File', md, md3)
             lineage_info = gl.get_lineage(1, hr_no, 'File')
 
             assert len(words) >= 10
@@ -565,11 +564,11 @@ def get_race_record():
     return race_record
 
 
-def get_data(filename, md=mean_data(), md3=cmake_mean()):
+def get_data(filename, md, md3):
     print("race file: %s" % filename)
     date_i = re.search(unicode(r'\d{8}', 'utf-8').encode('utf-8'), filename).group()
     date = datetime.date(int(date_i[:4]), int(date_i[4:6]), int(date_i[6:]))
-    data = parse_txt_race(filename, md, md3)
+    data = parse_txt_race(filename, md)
     assert len(data[0]) == 101
     jangu_clinic = wc.parse_hr_clinic(date)
     race_record = get_race_record()
@@ -637,21 +636,13 @@ def get_data2(filename, _date, _rcno):
 if __name__ == '__main__':
     DEBUG = True
     filename = '../txt/1/rcresult/rcresult_1_20170408.txt'
-    rd = RaceDetail() 
     import glob
     year_ = int(re.search(r'\d{8}', filename).group())/10000
-    for year in range(year_-3, year_+1):
-        filelist1 = glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_%d*.txt' % year)
-        filelist2 = glob.glob('../txt/1/rcresult/rcresult_1_%d*.txt' % year)
-        print("processed ap in %d" % year)
-        for fname in filelist1:
-            rd.parse_ap_rslt(fname)
-        print("processed rc in %d" % year)
-        for fname in filelist2:
-            rd.parse_race_detail(fname)
-    #md = mean_data()
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
-    data = get_data(filename, md, rd)
+    with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
+        md3 = cPickle.loads(f.read())
+    md3['humidity'][20] = md3['humidity'][25]
+    data = get_data(filename, md, md3)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)
     del data['name']
     del data['jockey']

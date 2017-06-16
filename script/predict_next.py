@@ -13,7 +13,7 @@ import train_tf_ensenble as tfn
 import train_tf_process as tfp
 from get_race_detail import RaceDetail
 import numpy as np
-import os
+import os, gzip, cPickle
 
 def normalize_data(org_data, nData=47):
     name_one_hot_columns = ['course', 'humidity', 'kind', 'idx', 'cntry', 'gender', 'age', 'jockey', 'trainer', 'owner', 'cnt', 'rcno', 'month']
@@ -407,19 +407,20 @@ if __name__ == '__main__':
     #for rcno in range(11, len(courses)):
     course = courses[rcno]
     test_course = course
-    init_date = 20170603
-    rd = get_race_detail(init_date)
+    init_date = 20170617
     from sklearn.externals import joblib
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
-    data_pre1 = xe.parse_xml_entry(meet, init_date+0, rcno, md, rd)
-    data_pre2 = xe.parse_xml_entry(meet, init_date+1, rcno, md, rd)
+    with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
+        md3 = cPickle.loads(f.read())
+    md3['humidity'][20] = md3['humidity'][25]
+
+    data_pre1 = xe.parse_xml_entry(meet, init_date+0, rcno, md, md3)
+    data_pre2 = xe.parse_xml_entry(meet, init_date+1, rcno, md, md3)
     for idx in range(1,2):
-        nData, year, train_course, epoch = [300,151,201,201][idx-1], [6,6,8,6][idx-1], [0,0,0,0][idx-1], [80,200,200,800][idx-1]
+        nData, year, train_course, epoch = [300,151,201,201][idx-1], [6,6,8,6][idx-1], [0,0,0,0][idx-1], [200,200,200,800][idx-1]
         date = init_date
         if train_course == 1: train_course = course
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
-        #estimator, md = tk.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData)
-        #predict_next(estimator, md, rd, meet, date, rcno, test_course, nData, year, train_course)
 
         estimators, md, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_y = tfp.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData, n_epoch=epoch)
 
