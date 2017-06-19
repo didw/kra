@@ -16,7 +16,7 @@ import gzip, cPickle
 
 PROCESS_NUM = 4
 
-def load_worker(worker_idx, filename_queue, output_queue, md=mean_data(), md3=cmake_mean()):
+def load_worker(worker_idx, filename_queue, output_queue, md, md3):
     print("[W%d] Current File/Feature Queue Size = %d/%d" % (worker_idx, filename_queue.qsize(), output_queue.qsize()))
     afile = filename_queue.get(True, 10)
     adata = pr.get_data(afile, md, md3)

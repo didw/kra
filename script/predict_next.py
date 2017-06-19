@@ -15,25 +15,35 @@ from get_race_detail import RaceDetail
 import numpy as np
 import os, gzip, cPickle
 
-def normalize_data(org_data, nData=47):
-    name_one_hot_columns = ['course', 'humidity', 'kind', 'idx', 'cntry', 'gender', 'age', 'jockey', 'trainer', 'owner', 'cnt', 'rcno', 'month']
+
+name_one_hot_columns = ['course', 'humidity', 'kind', 'idx', 'cntry', 'gender', 'age', 'jockey', 'trainer', 'owner', 'cnt', 'rcno', 'month']
+def normalize_data(org_data):
     data = org_data.dropna()
     data = data.reset_index()
 
     column_unique = joblib.load('../data/column_unique.pkl')
     for column in name_one_hot_columns:
-        for idx, value in enumerate(column_unique[column]):
+        for idx, value in enumerate(sorted(column_unique[column])):
             try:
                 data.loc[data[column]==value, column] = idx
             except TypeError:
                 print(column, idx, value)
                 raise
-
-    for column in name_one_hot_columns:
-        for i in range(len(data)):
-            if not np.isreal(data[column][i]):
-                print("data[%s]"%column, data[column][i], "is not real number")
-                data[column][i] = -1
+    i = 0
+    for row in data.iterrows():
+        try:
+            int(data.loc[i,'jockey'])
+        except ValueError:
+            data.loc[i,'jockey'] = -1
+        try:
+            int(data.loc[i,'trainer'])
+        except ValueError:
+            data.loc[i,'trainer'] = -1
+        try:
+            int(data.loc[i,'owner'])
+        except ValueError:
+            data.loc[i,'owner'] = -1
+        i += 1
     return data
 
 
@@ -188,9 +198,9 @@ def print_detail(players, cand, fresult, mode):
         fresult.write("\n%s,%s,{%s,%s,%s}" % (players[7], players[6], players[3], players[4], players[5]))
     elif cand == [[1],[2],[3]]:
         print("bet: 10000")  # 14200
-        print("%s,%s,%s" % (players[0], players[1], players[2]))
+        print("%s,%s,%s" % (players[0]+1, players[1]+1, players[2]+1))
         fresult.write("\n\nbet: 1000")  # 14200
-        fresult.write("\n%s,%s,%s, %s: 1000" % (players[0], players[1], players[2], mode))
+        fresult.write("\n%s,%s,%s, %s: 1000" % (players[0]+1, players[1]+1, players[2]+1, mode))
     elif cand == [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]]:
         print("bet: 100") # 14200 / 55 = 258
         print("%s,%s,{%s,%s,%s,%s}" % (players[0], players[1], players[2], players[3], players[4], players[5]))
@@ -266,9 +276,8 @@ def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
     fresult.close()
 
 
-def predict_next(estimators, data_pre, md, rd, meet, date, rcno, course=0, nData=47, year=4, train_course=0, scaler_x1=None, scaler_x2=None, scaler_x3=None, scaler_x4=None, scaler_y=None):
-    #data_pre = xe.parse_xml_entry(meet, date, rcno, md, rd)
-    data = normalize_data(data_pre, nData=nData)
+def predict_next(estimators, data_pre, meet, date, rcno, course=0, nData=47, year=4, train_course=0, scaler_x1=None, scaler_x2=None, scaler_x3=None, scaler_x4=None, scaler_x5=None, scaler_x6=None, scaler_y=None):
+    data = normalize_data(data_pre)
     print(len(data.columns))
     X_data = data.copy()
     print(len(X_data.columns))
@@ -281,10 +290,12 @@ def predict_next(estimators, data_pre, md, rd, meet, date, rcno, course=0, nData
         X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
     print(len(X_data.columns))
     X_array = np.array(X_data)
-    X_array[:,3:22] = scaler_x1.transform(X_array[:,3:22])
-    X_array[:,26:27] = scaler_x2.transform(X_array[:,26:27])
-    X_array[:,30:32] = scaler_x3.transform(X_array[:,30:32])
-    X_array[:,35:171] = scaler_x4.transform(X_array[:,35:171])
+    X_array[:,3:5] = scaler_x1.transform(X_array[:,3:5])
+    X_array[:,6:12] = scaler_x2.transform(X_array[:,6:12])
+    X_array[:,78:79] = scaler_x3.transform(X_array[:,78:79])
+    X_array[:,82:84] = scaler_x4.transform(X_array[:,82:84])
+    X_array[:,88:124] = scaler_x5.transform(X_array[:,88:124])
+    X_array[:,204:233] = scaler_x6.transform(X_array[:,204:233])
 
     __DEBUG__ = False
     for estimator in estimators:
@@ -311,7 +322,7 @@ def predict_next(estimators, data_pre, md, rd, meet, date, rcno, course=0, nData
                 print("=========== %s ==========" % prev_rc)
                 print(rcdata)
                 fresult = open(fname, 'a')
-                fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d ===\n" % (int(prev_rc), nData, year, train_course))
+                fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d ===\n" % (int(prev_rc)+1, nData, year, train_course))
                 fresult.close()
                 print_bet(rcdata, course, nData=nData, year=year, train_course=train_course)
                 rcdata = []
@@ -323,9 +334,8 @@ def predict_next(estimators, data_pre, md, rd, meet, date, rcno, course=0, nData
         #print(X_data.columns)
         #print(estimator.feature_importances_)
 
-def predict_next_ens(estimators_, data_pre, md, rd, meet, date, rcno, course=0, nData=47, year=4, train_course=0):
-    #data_pre = xe.parse_xml_entry(meet, date, rcno, md, rd)
-    data = normalize_data(data_pre, nData=nData)
+def predict_next_ens(estimators_, data_pre, meet, date, rcno, course=0, nData=47, year=4, train_course=0, scaler_x1=None, scaler_x2=None, scaler_x3=None, scaler_x4=None, scaler_x5=None, scaler_x6=None, scaler_y=None):
+    data = normalize_data(data_pre)
     print(len(data.columns))
     X_data = data.copy()
     print(len(X_data.columns))
@@ -339,6 +349,12 @@ def predict_next_ens(estimators_, data_pre, md, rd, meet, date, rcno, course=0, 
         X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
     print(len(X_data.columns))
     X_array = np.array(X_data)
+    X_array[:,3:5] = scaler_x1.transform(X_array[:,3:5])
+    X_array[:,6:12] = scaler_x2.transform(X_array[:,6:12])
+    X_array[:,78:79] = scaler_x3.transform(X_array[:,78:79])
+    X_array[:,82:84] = scaler_x4.transform(X_array[:,82:84])
+    X_array[:,88:124] = scaler_x5.transform(X_array[:,88:124])
+    X_array[:,204:233] = scaler_x6.transform(X_array[:,204:233])
 
     for e in range(5):
         estimators = estimators_[e*6:(e+1)*6]
@@ -374,7 +390,7 @@ def predict_next_ens(estimators_, data_pre, md, rd, meet, date, rcno, course=0, 
                     print("=========== %s ==========" % prev_rc)
                     print(rcdata)
                     fresult = open(fname, 'a')
-                    fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d, model: %d ===\n" % (int(prev_rc), nData, year, train_course, i))
+                    fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d, model: %d ===\n" % (int(prev_rc)+1, nData, year, train_course, i))
                     fresult.close()
                     print_bet(rcdata, course, nData=nData, year=year, train_course=train_course)
                     rcdata = []
@@ -417,29 +433,29 @@ if __name__ == '__main__':
     data_pre1 = xe.parse_xml_entry(meet, init_date+0, rcno, md, md3)
     data_pre2 = xe.parse_xml_entry(meet, init_date+1, rcno, md, md3)
     for idx in range(1,2):
-        nData, year, train_course, epoch = [300,151,201,201][idx-1], [6,6,8,6][idx-1], [0,0,0,0][idx-1], [200,200,200,800][idx-1]
+        nData, year, train_course, epoch = [300,151,201,201][idx-1], [6,6,8,6][idx-1], [0,0,0,0][idx-1], [400,200,200,800][idx-1]
         date = init_date
         if train_course == 1: train_course = course
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
 
-        estimators, md, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_y = tfp.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData, n_epoch=epoch)
+        estimators, md, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y = tfp.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData, n_epoch=epoch)
 
         if idx == 5:
             fname = '../result/1706/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            predict_next_ens(estimators, data_pre1, md, rd, meet, date, rcno, test_course, nData, year, train_course)
+            predict_next_ens(estimators, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
             date += 1
             fname = '../result/1706/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            predict_next_ens(estimators, data_pre2, md, rd, meet, date, rcno, test_course, nData, year, train_course)
+            predict_next_ens(estimators, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
         else:
             fname = '../result/1706/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            predict_next(estimators, data_pre1, md, rd, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_y)
+            predict_next(estimators, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
             date += 1
             fname = '../result/1706/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            predict_next(estimators, data_pre2, md, rd, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_y)
+            predict_next(estimators, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
         idx += 1
 
 # Strategy

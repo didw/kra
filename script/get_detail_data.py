@@ -240,6 +240,10 @@ def get_distance_record(meet, name, rcno, date, course, md=mean_data()):
             #print("name: %s, %s" % (name, itemList[1].string.encode('utf-8')))
             if name in unicode(itemList[1].string).encode('utf-8'):
                 #print("find name: %s, %s" % (name, itemList[1].string.encode('utf-8')))
+                try:
+                    int(unicode(itemList[2].string)[0])
+                except ValueError:
+                    print("ValueError: ", unicode(itemList[2].string))
                 if int(unicode(itemList[2].string)[0]) == 0:
                     try:
                         return [0, 0, 0] + map(float, md.dist_rec[course][3:])

@@ -389,9 +389,6 @@ def update_race_record(data, race_record):
             race_record[name][course].append(line)
         except KeyError:
             race_record[name][course] = [line]
-        #print("name: %s, course: %d is added => len: %d" % (str(name), course, len(race_record[name][course])))
-    #print("d1: %d, d2: %d, d3: %d, d4: %d, d5: %d" % (d1, d2, d3, d4, d5))
-    #print("d11: %d, d12: %d, d13: %d, d14: %d" % (d11, d12, d13, d14))
     # idx:  humidity, kind, dbudam, drweight, lastday, hr_days, idx, cntry, gender, age, 
     #       budam, jockey, trainer, owner, weight, dweight, rctime, s1f, g1f, g3f, 
     #       cnt, rcno, month, date, jc1 ~ jc81
@@ -452,10 +449,7 @@ class RaceRecord:
                     time.sleep(2)
             if saving_mode.value == 0 and data_queue.qsize() > 0:
                 try:
-                    #proc = mp.Process(target=self.save_data, args=(data_queue, filename_queue, worker_num, saving_mode))
-                    #proc.start()
                     self.save_data(data_queue, filename_queue, worker_num, saving_mode)
-                    #time.sleep(2)
                     worker_num -= 1
                 except Queue.Empty:
                     print("queue empty.. nothing to get data %d" % filename_queue.qsize())
@@ -490,16 +484,24 @@ class RaceRecord:
                     time.sleep(2)
             if saving_mode.value == 0 and data_queue.qsize() > 0:
                 try:
-                    #proc = mp.Process(target=self.save_data, args=(data_queue, filename_queue, worker_num, saving_mode))
-                    #proc.start()
                     self.save_data(data_queue, filename_queue, worker_num, saving_mode)
-                    #time.sleep(1)
                     worker_num -= 1
                 except Queue.Empty:
                     print("queue empty.. nothing to get data %d" % filename_queue.qsize())
             if worker_num == 0:
                 print("job is finished")
                 break
+
+    def load_model(self):
+        with gzip.open('../data/race_record.gz', 'rb') as f:
+            tmp_dict = cPickle.loads(f.read())
+            self.__dict__.update(tmp_dict)
+
+    def update_model(self):
+        if self.cur_rc_file == 0:
+            self.load_model()
+        self.get_race_record()
+        self.get_ap_record()
 
 if __name__ == '__main__':
     race_record = RaceRecord()

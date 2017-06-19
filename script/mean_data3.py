@@ -212,9 +212,12 @@ class cmake_mean:
         make_mean('rank')
         for j in range(1,82):
             make_mean('jc%d'%j)
-
         print(self.mean_data)
 
+    def save_model(self):
+        serialized = cPickle.dumps(self.__dict__.mean_data)
+        with gzip.open('../data/1_2007_2016_v1_md3.gz', 'wb') as f:
+            f.write(serialized)
 
 class mean_data2:
     def __init__(self):
