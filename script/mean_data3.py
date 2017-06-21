@@ -214,10 +214,6 @@ class cmake_mean:
             make_mean('jc%d'%j)
         print(self.mean_data)
 
-    def save_model(self):
-        serialized = cPickle.dumps(self.__dict__.mean_data)
-        with gzip.open('../data/1_2007_2016_v1_md3.gz', 'wb') as f:
-            f.write(serialized)
 
 class mean_data2:
     def __init__(self):
@@ -237,6 +233,13 @@ class mean_data2:
     def make_data(self):
         pass
 
+
+def save_mean_data():
+    m = cmake_mean()
+    m.get_data()
+    serialized = cPickle.dumps(m.mean_data)
+    with gzip.open('../data/1_2007_2016_v1_md3.gz', 'wb') as f:
+        f.write(serialized)
 
 if __name__ == '__main__':
     DEBUG = True

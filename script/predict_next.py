@@ -423,15 +423,16 @@ if __name__ == '__main__':
     #for rcno in range(11, len(courses)):
     course = courses[rcno]
     test_course = course
-    init_date = 20170617
+    init_date = 20170624
     from sklearn.externals import joblib
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
     with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
         md3 = cPickle.loads(f.read())
     md3['humidity'][20] = md3['humidity'][25]
 
-    data_pre1 = xe.parse_xml_entry(meet, init_date+0, rcno, md, md3)
-    data_pre2 = xe.parse_xml_entry(meet, init_date+1, rcno, md, md3)
+    data_pre1, data_pre2 = None, None
+    #data_pre1 = xe.parse_xml_entry(meet, init_date+0, rcno, md, md3)
+    #data_pre2 = xe.parse_xml_entry(meet, init_date+1, rcno, md, md3)
     for idx in range(1,2):
         nData, year, train_course, epoch = [300,151,201,201][idx-1], [6,6,8,6][idx-1], [0,0,0,0][idx-1], [400,200,200,800][idx-1]
         date = init_date

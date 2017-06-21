@@ -96,6 +96,6 @@ def get_lineage(meet, hrno, mode='File'):
 
 
 if __name__ == '__main__':
-    #save_lineage_info(1)
-    load_lineage_info(1)
+    save_lineage_info(1)
+    #load_lineage_info(1)
 

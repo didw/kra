@@ -14,7 +14,7 @@ import Queue
 import numpy as np
 import gzip, cPickle
 
-PROCESS_NUM = 4
+PROCESS_NUM = 8
 
 def load_worker(worker_idx, filename_queue, output_queue, md, md3):
     print("[W%d] Current File/Feature Queue Size = %d/%d" % (worker_idx, filename_queue.qsize(), output_queue.qsize()))
@@ -72,7 +72,7 @@ def get_data(begin_date, end_date, fname_csv):
         if worker_num == 0:
             print("feature extraction finished")
             break
-    data.to_csv(fname_csv, index=False)
+    data.to_csv(fname_csv.replace('v1', 'v2'), index=False)
     return data
 
 
@@ -113,7 +113,7 @@ def update_data(end_date, fname_csv):
     #os.system("rename \"%s\" \"%s\"" % (fname_md, fname_md.replace('.pkl', '_%s.pkl'%train_bd)))
     os.system("mv \"%s\" \"%s\"" % (fname_csv, fname_csv.replace('.csv', '_%s.csv'%train_bd)))
     #os.system("mv \"%s\" \"%s\"" % (fname_md, fname_md.replace('.pkl', '_%s.pkl'%train_bd)))
-    data.to_csv(fname_csv, index=False)
+    data.to_csv(fname_csv.replace('v1', 'v2'), index=False)
     
     return data
 
@@ -121,8 +121,8 @@ def update_data(end_date, fname_csv):
 if __name__ == '__main__':
     DEBUG = True
     fname_csv = '../data/1_2007_2016_v1.csv'
-    bdate = datetime.date(2007, 1, 1)
-    edate = datetime.date(2017, 4, 7)
+    bdate = datetime.date(2006, 1, 1)
+    edate = datetime.date(2017, 5, 30)
     get_data(bdate, edate, fname_csv)
     #update_data(datetime.date.today(), fname_csv)
 

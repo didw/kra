@@ -320,7 +320,8 @@ def norm_racescore(value, md, hr_data, name, course):
     try:
         value /= md['hr_days'][int(hr_data[5]/100)*100]
     except KeyError:
-        print("name: %s, course: %d, column %s, hr_data: %d is not exists" % (name, course, "hr_days", int(hr_data[5]/100)*100))
+        if not printed: print("name: %s, course: %d, column %s, hr_data: %d is not exists" % (name, course, "hr_days", int(hr_data[5]/100)*100))
+        printed = True
         pass
     except TypeError:
         print("name: %s, course: %d, column %s, hr_data[hr_days] is NoneType" % (name, course, "hr_days",))
@@ -328,7 +329,8 @@ def norm_racescore(value, md, hr_data, name, course):
     try:
         value /= md['lastday'][int(hr_data[4]/10)*10]
     except KeyError:
-        print("column %s, hr_data: %d is not exists" % ("lastday", int(hr_data[4]/10)*10))
+        if not printed: print("column %s, hr_data: %d is not exists" % ("lastday", int(hr_data[4]/10)*10))
+        printed = True
         pass
     return value
 
@@ -389,8 +391,12 @@ def get_hr_race_record(hrname, date, race_record, md):
             res_summary[3].append(norm_racescore(hr_c_data[16], md, hr_c_data, hrname, course)/mean_data[course][3])
             weight_list.append(hr_c_data[14])
         for i in range(4):
+            if len(res_list[i]) == 0:
+                continue
             res[ic*4+i] = np.mean(res_list[i])
     for i in range(4):
+        if len(res_summary[i]) == 0:
+            continue
         res[6*4+i] = np.mean(res_summary[i])
     return res, np.mean(weight_list)
 
