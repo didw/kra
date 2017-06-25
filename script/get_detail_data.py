@@ -428,6 +428,10 @@ def get_hr_race_record_v2(hrname, date, race_record, md):
             res_summary[2].append(norm_racescore(hr_c_data[19], md, hr_c_data, hrname, course)/mean_data[course][2])
             res_summary[3].append(norm_racescore(hr_c_data[16], md, hr_c_data, hrname, course)/mean_data[course][3])
 
+    for i in range(4):
+        if len(res_summary[i]) == 0:
+            continue
+        res[6*4+i] = np.mean(res_summary[i])
     for ic, course in enumerate([900, 1000, 1200, 1300, 1400, 1700]):
         res_list = [[] for _ in range(4)]
         if course not in hr_data.keys():
@@ -445,10 +449,6 @@ def get_hr_race_record_v2(hrname, date, race_record, md):
                 res[ic*4+i] = res_summary[i] * res[ic*4+i] / res[6*4+i]
                 continue
             res[ic*4+i] = np.mean(res_list[i])
-    for i in range(4):
-        if len(res_summary[i]) == 0:
-            continue
-        res[6*4+i] = np.mean(res_summary[i])
     return res, np.mean(weight_list)
 
 
