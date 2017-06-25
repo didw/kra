@@ -420,6 +420,8 @@ def get_hr_race_record_v2(hrname, date, race_record, md):
         return res, weight
     res_summary = [[] for _ in range(4)]
     for ic, course in enumerate([900, 1000, 1200, 1300, 1400, 1700]):
+        if course not in hr_data.keys():
+            continue
         for hr_c_data in hr_data[course]:
             if hr_c_data[23] >= date:
                 continue
