@@ -401,6 +401,57 @@ def get_hr_race_record(hrname, date, race_record, md):
     return res, np.mean(weight_list)
 
 
+def get_hr_race_record_v2(hrname, date, race_record, md):
+    mean_data, weight = make_mean_race_record(race_record)
+    res = []
+    weight_list = []
+    res_summary = [[] for _ in range(4)]
+    for course in [900, 1000, 1200, 1300, 1400, 1700]:
+        res.extend(mean_data[course])
+        for i in range(4):
+            res_summary[i].append(mean_data[course][i])
+    for i in range(4):
+        res.append(np.mean(res_summary[i]))  # default result
+
+    try:
+        hr_data = race_record.data[hrname]
+    except KeyError:
+        print("No hrname:%s, return default"%hrname)
+        return res, weight
+    res_summary = [[] for _ in range(4)]
+    for ic, course in enumerate([900, 1000, 1200, 1300, 1400, 1700]):
+        for hr_c_data in hr_data[course]:
+            if hr_c_data[23] >= date:
+                continue
+            res_summary[0].append(norm_racescore(hr_c_data[17], md, hr_c_data, hrname, course)/mean_data[course][0])
+            res_summary[1].append(norm_racescore(hr_c_data[18], md, hr_c_data, hrname, course)/mean_data[course][1])
+            res_summary[2].append(norm_racescore(hr_c_data[19], md, hr_c_data, hrname, course)/mean_data[course][2])
+            res_summary[3].append(norm_racescore(hr_c_data[16], md, hr_c_data, hrname, course)/mean_data[course][3])
+
+    for ic, course in enumerate([900, 1000, 1200, 1300, 1400, 1700]):
+        res_list = [[] for _ in range(4)]
+        if course not in hr_data.keys():
+            continue
+        for hr_c_data in hr_data[course]:
+            if hr_c_data[23] >= date:
+                continue
+            res_list[0].append(norm_racescore(hr_c_data[17], md, hr_c_data, hrname, course))
+            res_list[1].append(norm_racescore(hr_c_data[18], md, hr_c_data, hrname, course))
+            res_list[2].append(norm_racescore(hr_c_data[19], md, hr_c_data, hrname, course))
+            res_list[3].append(norm_racescore(hr_c_data[16], md, hr_c_data, hrname, course))
+            weight_list.append(hr_c_data[14])
+        for i in range(4):
+            if len(res_list[i]) == 0:
+                res[ic*4+i] = res_summary[i] * res[ic*4+i] / res[6*4+i]
+                continue
+            res[ic*4+i] = np.mean(res_list[i])
+    for i in range(4):
+        if len(res_summary[i]) == 0:
+            continue
+        res[6*4+i] = np.mean(res_summary[i])
+    return res, np.mean(weight_list)
+
+
 if __name__ == '__main__':
     DEBUG = True
     print(get_lastday(1, 20070114, 1, "다시한번"))
