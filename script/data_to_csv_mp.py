@@ -53,6 +53,7 @@ def get_data(begin_date, end_date, fname_csv):
 
     worker_num = filename_queue.qsize()
 
+    iter_save = 0
     while True:
         print("current index: %d" % worker_num)
         if worker_num < filename_queue.qsize() + PROCESS_NUM and filename_queue.qsize() > 0:
@@ -65,6 +66,9 @@ def get_data(begin_date, end_date, fname_csv):
                 first = False
             else:
                 data = data.append(adata, ignore_index=True)
+                iter_save += 1
+                if iter_save % 10 == 0:
+                    data.to_csv(fname_csv.replace('v1', 'v2'), index=False)
             worker_num -= 1
             print("data get: %d" % worker_num)
         except Queue.Empty:
@@ -96,6 +100,7 @@ def update_data(end_date, fname_csv):
         for fname in filelist2:
             rd.parse_race_detail(fname)
     joblib.dump(rd, fname_csv.replace('.csv', '_rd.pkl'))
+    iter_save = 0
     while date <= train_ed:
         date += datetime.timedelta(days=1)
         if date.weekday() != 5 and date.weekday() != 6:
@@ -109,6 +114,9 @@ def update_data(end_date, fname_csv):
         adata = pr.get_data(filename, md, rd)
         md.update_data(adata)
         data = data.append(adata, ignore_index=True)
+        iter_save += 1
+        if iter_save % 10 == 0:
+            data.to_csv(fname_csv.replace('v1', 'v2'), index=False)
     #os.system("rename \"%s\" \"%s\"" % (fname_csv, fname_csv.replace('.csv', '_%s.csv'%train_bd)))
     #os.system("rename \"%s\" \"%s\"" % (fname_md, fname_md.replace('.pkl', '_%s.pkl'%train_bd)))
     os.system("mv \"%s\" \"%s\"" % (fname_csv, fname_csv.replace('.csv', '_%s.csv'%train_bd)))
