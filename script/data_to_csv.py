@@ -103,3 +103,6 @@ if __name__ == '__main__':
     lg.save_lineage_info(1)
 
     make_unique_columns()
+
+    print("\n\nAll Finished")
+    

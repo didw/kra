@@ -98,7 +98,7 @@ class TensorflowRegressor():
         elif optimizer_type == 'MomentumOptimizer':
             self.updateModel = tf.train.MomentumOptimizer(learning_rate, momentum=0.9).minimize(self.loss, global_step=global_step)
         self.saver = tf.train.Saver()
-        self.model_dir = '../model/tf/l1_e200_rms/%s' % s_date
+        self.model_dir = '../model/tf/l1_e150_rms/%s' % s_date
 
         tf.summary.scalar('loss', self.loss)
         self.merged = tf.summary.merge_all()
@@ -294,7 +294,7 @@ def delete_lack_data(X_data, Y_data):
 def training(train_bd, train_ed, course=0, nData=47, n_epoch=100):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/tf/l1_e200_rms/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/tf/l1_e150_rms/%d_%d" % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
@@ -316,12 +316,12 @@ def training(train_bd, train_ed, course=0, nData=47, n_epoch=100):
     # evaluate model with standardized dataset
     for i in range(MODEL_NUM):
         print("model[%d] training.." % (i+1))
-        if i < 18:
+        if i >= 12:
             X_train, X_val, Y_train, Y_val = train_test_split(X_data, Y_data, random_state=0)
         else:
             X_train, Y_train = X_data, Y_data
             X_val, Y_val = None, None
-        dir_name = '../model/tf/l1_e200_rms/%s_%s/%d' % (train_bd_i, train_ed_i, i)
+        dir_name = '../model/tf/l1_e150_rms/%s_%s/%d' % (train_bd_i, train_ed_i, i)
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
         tf.reset_default_graph()
@@ -358,7 +358,7 @@ def print_log(data, pred, fname):
 def process_train(train_bd, train_ed, q):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/tf/l1_e200_rms/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/tf/l1_e150_rms/%d_%d" % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
@@ -402,7 +402,7 @@ def process_train(train_bd, train_ed, q):
             tf.reset_default_graph()
             estimators[i] = TensorflowRegressor("%s_%s/%d"%(train_bd_i, train_ed_i, i))
             estimators[i].set_scaler(scaler_y)
-            estimators[i].fit(X_train, Y_train, X_val, Y_val, n_epoch=200)
+            estimators[i].fit(X_train, Y_train, X_val, Y_val, n_epoch=150)
     print("Finish train model")
     q.put(scaler_x1)
     q.put(scaler_x2)
@@ -426,14 +426,14 @@ def process_test(train_bd, train_ed, scaler, q):
     
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/tf/l1_e200_rms/%d_%d" % (train_bd_i, train_ed_i)
-    data_dir = "../data/tf/l1_e200_rms"
+    model_dir = "../model/tf/l1_e150_rms/%d_%d" % (train_bd_i, train_ed_i)
+    data_dir = "../data/tf/l1_e150_rms"
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
 
-    if not os.path.exists('../data/tf/l1_e200_rms'):
-        os.makedirs('../data/tf/l1_e200_rms')
-    fname_result = '../data/tf/l1_e200_rms/tf_nd%d_y%d.txt' % (nData, delta_year)
+    if not os.path.exists('../data/tf/l1_e150_rms'):
+        os.makedirs('../data/tf/l1_e150_rms')
+    fname_result = '../data/tf/l1_e150_rms/tf_nd%d_y%d.txt' % (nData, delta_year)
     print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
     X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.csv', nData=nData)
     X_test = np.array(X_test)

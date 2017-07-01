@@ -199,8 +199,8 @@ def print_detail(players, cand, fresult, mode):
     elif cand == [[1],[2],[3]]:
         print("bet: 10000")  # 14200
         print("%s,%s,%s" % (players[0]+1, players[1]+1, players[2]+1))
-        fresult.write("\n\nbet: 1000")  # 14200
-        fresult.write("\n%s,%s,%s, %s: 1000" % (players[0]+1, players[1]+1, players[2]+1, mode))
+        fresult.write("\n\nbet: 10000")  # 14200
+        fresult.write("\n%s,%s,%s, %s: 10000" % (players[0]+1, players[1]+1, players[2]+1, mode))
     elif cand == [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]]:
         print("bet: 100") # 14200 / 55 = 258
         print("%s,%s,{%s,%s,%s,%s}" % (players[0], players[1], players[2], players[3], players[4], players[5]))
@@ -282,7 +282,6 @@ def predict_next(estimators, data_pre, meet, date, rcno, course=0, nData=47, yea
     X_data = data.copy()
     print(len(X_data.columns))
     X_data = X_data.drop(['name', 'index'], axis=1)
-    #X_data = X_data.drop(['jockey', 'trainer', 'owner'], axis=1)
     if nData in [118, 151]:
         del X_data['rcno']
     __DEBUG__ = True
@@ -339,11 +338,7 @@ def predict_next_ens(estimators_, data_pre, meet, date, rcno, course=0, nData=47
     print(len(data.columns))
     X_data = data.copy()
     print(len(X_data.columns))
-    del X_data['name']
-    del X_data['jockey']
-    del X_data['trainer']
-    del X_data['owner']
-    del X_data['index']
+    X_data = X_data.drop(['name', 'index'], axis=1)
     __DEBUG__ = True
     if __DEBUG__:
         X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
@@ -423,7 +418,7 @@ if __name__ == '__main__':
     #for rcno in range(11, len(courses)):
     course = courses[rcno]
     test_course = course
-    init_date = 20170624
+    init_date = 20170701
     from sklearn.externals import joblib
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
     with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
@@ -434,27 +429,27 @@ if __name__ == '__main__':
     data_pre1 = xe.parse_xml_entry(meet, init_date+0, rcno, md, md3)
     data_pre2 = xe.parse_xml_entry(meet, init_date+1, rcno, md, md3)
     for idx in range(1,2):
-        nData, year, train_course, epoch = [300,151,201,201][idx-1], [6,6,8,6][idx-1], [0,0,0,0][idx-1], [300,200,200,800][idx-1]
+        nData, year, train_course, epoch = [300,151,201,201][idx-1], [6,6,8,6][idx-1], [0,0,0,0][idx-1], [150,200,200,800][idx-1]
         date = init_date
         if train_course == 1: train_course = course
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
 
         estimators, md, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y = tfp.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData, n_epoch=epoch)
 
-        if idx == 5:
-            fname = '../result/1706/%d_%d.txt' % (date%100, idx)
+        if idx == 1:
+            fname = '../result/1707/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
             predict_next_ens(estimators, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
             date += 1
-            fname = '../result/1706/%d_%d.txt' % (date%100, idx)
+            fname = '../result/1707/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
             predict_next_ens(estimators, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
         else:
-            fname = '../result/1706/%d_%d.txt' % (date%100, idx)
+            fname = '../result/1707/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
             predict_next(estimators, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
             date += 1
-            fname = '../result/1706/%d_%d.txt' % (date%100, idx)
+            fname = '../result/1707/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
             predict_next(estimators, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
         idx += 1
