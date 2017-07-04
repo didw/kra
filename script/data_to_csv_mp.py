@@ -68,7 +68,7 @@ def get_data(begin_date, end_date, fname_csv):
                 data = data.append(adata, ignore_index=True)
                 iter_save += 1
                 if iter_save % 10 == 0:
-                    data.to_csv(fname_csv.replace('v1', 'v2'), index=False)
+                    data.to_csv(fname_csv, index=False)
             worker_num -= 1
             print("data get: %d" % worker_num)
         except Queue.Empty:
@@ -76,7 +76,7 @@ def get_data(begin_date, end_date, fname_csv):
         if worker_num == 0:
             print("feature extraction finished")
             break
-    data.to_csv(fname_csv.replace('v1', 'v2'), index=False)
+    data.to_csv(fname_csv, index=False)
     return data
 
 

@@ -156,6 +156,8 @@ def get_lastday(meet, date, rcno, name):
                 continue
             if name in unicode(itemList[1].string).encode('utf-8'):
                 last_date = itemList[4].string
+                if last_date is None:
+                    return 43
                 if len(last_date) >= 10:
                     last_date = datetime.date(int(last_date[:4]), int(last_date[5:7]), int(last_date[8:10]))
                     delta_day = datetime.date(date/10000, date/100%100, date%100) - last_date
@@ -244,6 +246,7 @@ def get_distance_record(meet, name, rcno, date, course, md=mean_data()):
                     int(unicode(itemList[2].string)[0])
                 except ValueError:
                     print("ValueError: ", unicode(itemList[2].string))
+                    return [0, 0, 0] + map(float, md.dist_rec[course][3:])
                 if int(unicode(itemList[2].string)[0]) == 0:
                     try:
                         return [0, 0, 0] + map(float, md.dist_rec[course][3:])
@@ -275,7 +278,7 @@ def get_distance_record(meet, name, rcno, date, course, md=mean_data()):
             return map(float, md.dist_rec[course])
         except KeyError:
             print("there is no course %d" % course)
-            return [-1, -1, -1, -1, -1, -1]
+            return [0, 0, 0] + map(float, md.dist_rec[course][3:])
 
 
 def get_hrno(meet, date, rcno, name):
@@ -351,12 +354,12 @@ def make_mean_race_record(race_record):
                 res_list[3].append(data[16])
                 weight_list.append(data[14])
         for i in range(4):
-            res[i] = np.mean(res_list[0])
-            res_dict[course] = res
+            res[i] = np.mean(res_list[i])
+        res_dict[course] = res
     return res_dict, np.mean(weight_list)
 
 
-def get_hr_race_record(hrname, date, race_record, md):
+def get_hr_race_record_mean(hrname, date, race_record, md):
     mean_data, weight = make_mean_race_record(race_record)
     res = []
     weight_list = []
@@ -401,23 +404,23 @@ def get_hr_race_record(hrname, date, race_record, md):
     return res, np.mean(weight_list)
 
 
-def get_hr_race_record_v2(hrname, date, race_record, md):
+def get_hr_race_record(hrname, date, race_record, md):
     mean_data, weight = make_mean_race_record(race_record)
-    res = []
+    default_res = []
     weight_list = []
     res_summary = [[] for _ in range(4)]
     for course in [900, 1000, 1200, 1300, 1400, 1700]:
-        res.extend(mean_data[course])
+        default_res.extend(mean_data[course])
         for i in range(4):
             res_summary[i].append(mean_data[course][i])
     for i in range(4):
-        res.append(np.mean(res_summary[i]))  # default result
+        default_res.append(np.mean(res_summary[i]))  # default result
 
     try:
         hr_data = race_record.data[hrname]
     except KeyError:
         print("No hrname:%s, return default"%hrname)
-        return res, weight
+        return default_res, weight
     res_summary = [[] for _ in range(4)]
     for ic, course in enumerate([900, 1000, 1200, 1300, 1400, 1700]):
         if course not in hr_data.keys():
@@ -430,13 +433,17 @@ def get_hr_race_record_v2(hrname, date, race_record, md):
             res_summary[2].append(norm_racescore(hr_c_data[19], md, hr_c_data, hrname, course)/mean_data[course][2])
             res_summary[3].append(norm_racescore(hr_c_data[16], md, hr_c_data, hrname, course)/mean_data[course][3])
 
+    res = [0]*28
     for i in range(4):
         if len(res_summary[i]) == 0:
-            continue
-        res[6*4+i] = np.mean(res_summary[i])
+            res[6*4+i] = default_res[6*4+i]
+        else:
+            res[6*4+i] = np.mean(res_summary[i])
     for ic, course in enumerate([900, 1000, 1200, 1300, 1400, 1700]):
         res_list = [[] for _ in range(4)]
         if course not in hr_data.keys():
+            for i in range(4):
+                res[ic*4+i] = res[6*4+i] * default_res[ic*4+i] / default_res[6*4+i]
             continue
         for hr_c_data in hr_data[course]:
             if hr_c_data[23] >= date:
@@ -448,7 +455,7 @@ def get_hr_race_record_v2(hrname, date, race_record, md):
             weight_list.append(hr_c_data[14])
         for i in range(4):
             if len(res_list[i]) == 0:
-                res[ic*4+i] = res_summary[i] * res[ic*4+i] / res[6*4+i]
+                res[ic*4+i] = res[6*4+i] * default_res[ic*4+i] / default_res[6*4+i]
                 continue
             res[ic*4+i] = np.mean(res_list[i])
     return res, np.mean(weight_list)

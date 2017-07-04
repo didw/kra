@@ -199,8 +199,8 @@ def print_detail(players, cand, fresult, mode):
     elif cand == [[1],[2],[3]]:
         print("bet: 10000")  # 14200
         print("%s,%s,%s" % (players[0]+1, players[1]+1, players[2]+1))
-        fresult.write("\n\nbet: 10000")  # 14200
-        fresult.write("\n%s,%s,%s, %s: 10000" % (players[0]+1, players[1]+1, players[2]+1, mode))
+        fresult.write("\n\nbet: 2000")  # 14200
+        fresult.write("\n%s,%s,%s, %s: 2000" % (players[0]+1, players[1]+1, players[2]+1, mode))
     elif cand == [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]]:
         print("bet: 100") # 14200 / 55 = 258
         print("%s,%s,{%s,%s,%s,%s}" % (players[0], players[1], players[2], players[3], players[4], players[5]))
@@ -429,14 +429,14 @@ if __name__ == '__main__':
     data_pre1 = xe.parse_xml_entry(meet, init_date+0, rcno, md, md3)
     data_pre2 = xe.parse_xml_entry(meet, init_date+1, rcno, md, md3)
     for idx in range(1,2):
-        nData, year, train_course, epoch = [300,151,201,201][idx-1], [6,6,8,6][idx-1], [0,0,0,0][idx-1], [150,200,200,800][idx-1]
+        nData, year, train_course, epoch = [300,151,201,201][idx-1], [6,6,8,6][idx-1], [0,0,0,0][idx-1], [200,200,200,800][idx-1]
         date = init_date
         if train_course == 1: train_course = course
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
 
         estimators, md, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y = tfp.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData, n_epoch=epoch)
 
-        if idx == 1:
+        if idx == 5:
             fname = '../result/1707/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
             predict_next_ens(estimators, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
