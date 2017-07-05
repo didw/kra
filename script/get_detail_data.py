@@ -438,7 +438,7 @@ def get_hr_race_record(hrname, date, race_record, md):
         if len(res_summary[i]) == 0:
             res[6*4+i] = default_res[6*4+i]
         else:
-            res[6*4+i] = np.mean(res_summary[i])
+            res[6*4+i] = np.mean(res_summary[i]) * default_res[6*4+i]
     for ic, course in enumerate([900, 1000, 1200, 1300, 1400, 1700]):
         res_list = [[] for _ in range(4)]
         if course not in hr_data.keys():
