@@ -205,9 +205,13 @@ def parse_txt_race(filename):
             data[-cnt + i].extend([date])
             assert len(data[-cnt+idx]) == 26
         assert len(data[-1]) == 26
-        for line in data:
+        idx_remove = []
+        for idx, line in enumerate(data):
             if line[18] > md['course'][line[0]]*1.2 or line[18] < md['course'][line[0]]*0.9:
                 print("rctime is weird.. course: %d, rctime: %d, filename: %s" % (line[0], line[18], filename))
+                idx_remove.append(idx)
+        for idx in idx_remove[::-1]:
+            del data[idx]
         # columns:  course, humidity, kind, dbudam, drweight, lastday, hr_days, idx, hrname, cntry, 
         #           gender, age, budam, jockey, trainer, owner, weight, dweight, rctime, s1f
         #           g1f, g3f, cnt, rcno, month, date
