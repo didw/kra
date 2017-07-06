@@ -15,6 +15,9 @@ from multiprocessing import Value
 import Queue
 
 
+with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
+    md = cPickle.loads(f.read())
+
 NEXT_AP = re.compile(r'마체중|３코너|4화롱|4펄롱')
 NEXT_RC = re.compile(r'마 체 중|단승식|복승식')
 WORD = re.compile(r"[^\s]+")
@@ -137,6 +140,7 @@ def parse_txt_race(filename):
             adata.append(int(re.search(unicode(r'[-\d]+(?=\))', 'utf-8').encode('utf-8'), line).group()))
             rctime = re.search(unicode(r'\d+:\d+\.\d', 'utf-8').encode('utf-8'), line).group()
             rctime = int(rctime[0])*600 + int(rctime[2:4])*10 + int(rctime[5])
+
             adata.append(rctime)
             data[-cnt+idx].extend(adata)
             assert len(data[-cnt+idx]) == 19
@@ -201,6 +205,9 @@ def parse_txt_race(filename):
             data[-cnt + i].extend([date])
             assert len(data[-cnt+idx]) == 26
         assert len(data[-1]) == 26
+        for line in data:
+            if line[18] > md['course'][line[0]]*1.2 or line[18] < md['course'][line[0]]*0.9:
+                print("rctime is weird.. course: %d, rctime: %d, filename: %s" % (line[0], line[18], filename))
         # columns:  course, humidity, kind, dbudam, drweight, lastday, hr_days, idx, hrname, cntry, 
         #           gender, age, budam, jockey, trainer, owner, weight, dweight, rctime, s1f
         #           g1f, g3f, cnt, rcno, month, date
@@ -218,6 +225,7 @@ def parse_ap_rslt(filename):
         course = 900
         kind = 0
         hrname = ''
+        n_pass = 0
         date = int(re.search(r'\d{8}', filename).group())
         month = date/100%100
         for _ in range(300):
@@ -296,6 +304,8 @@ def parse_ap_rslt(filename):
             words = WORD.findall(line)
             if words[0][0] == '9' and len(words[0])==2:
                 continue
+            if words[-1] == '합':
+                n_pass += 1
             adata.append(int(words[3]))
             adata.append(0)
             rctime = re.search(unicode(r'\d+:\d+\.\d', 'utf-8').encode('utf-8'), line).group()
@@ -358,7 +368,15 @@ def parse_ap_rslt(filename):
             data[-cnt + i].extend([month])
             data[-cnt + i].extend([date])
             assert len(data[-cnt + i]) == 26
-        assert len(data[-1]) == 26
+
+        for i in range(cnt):
+            if i >= n_pass:
+                del data[-1]
+        if len(data) > 0:
+            assert len(data[-1]) == 26
+        for line in data:
+            if line[18] > md['course'][line[0]]*1.2 or line[18] < md['course'][line[0]]*0.9:
+                print("rctime is weird.. course: %d, rctime: %d, filename: %s" % (line[0], line[18], filename))
         # columns:  course, humidity, kind, dbudam, drweight, lastday, hr_days, idx, hrname, cntry, 
         #           gender, age, budam, jockey, trainer, owner, weight, dweight, rctime, s1f, 
         #           g1f, g3f, cnt, rcno, month, date
@@ -368,7 +386,7 @@ def parse_ap_rslt(filename):
 def get_data(function_name, fname_queue, data_queue, filename_queue):
     fname = fname_queue.get(True, 10)
     filename_queue.put(fname)
-    print("%s is processing.."%fname)
+    #print("%s is processing.."%fname)
     data = function_name(fname)
     date = int(re.search(r'\d{8}', fname).group())
     jangu_clinic = wc.parse_hr_clinic(datetime.date(date/10000, date%10000/100, date%100))
@@ -417,7 +435,7 @@ class RaceRecord:
                 print("saved ap at %d" % self.cur_ap_file)
             print("Saving data...")
             serialized = cPickle.dumps(self.__dict__)
-            with gzip.open('../data/race_record.gz', 'wb') as f:
+            with gzip.open('../data/race_record_v2.gz', 'wb') as f:
                 f.write(serialized)
             print("Done")
         saving_mode.value = 0
@@ -437,10 +455,10 @@ class RaceRecord:
         PROCESS_NUM = 5
         saving_mode = Value('i', 0)
         while True:
-            print("Processing: %d/%d" % (file_queue.qsize(), worker_num))
+            #print("Processing: %d/%d" % (file_queue.qsize(), worker_num))
             time.sleep(0.5)
             while worker_num < file_queue.qsize() + PROCESS_NUM and file_queue.qsize() > 0:
-                print("run process %d" % (worker_num - file_queue.qsize()))
+                #print("run process %d" % (worker_num - file_queue.qsize()))
                 proc = mp.Process(target=get_data, args=(parse_txt_race, file_queue, data_queue, filename_queue))
                 proc.start()
                 if file_queue.qsize() < 20:
@@ -472,10 +490,10 @@ class RaceRecord:
         PROCESS_NUM = 5
         saving_mode = Value('i', 0)
         while True:
-            print("Processing: %d/%d" % (file_queue.qsize(), worker_num))
+            #print("Processing: %d/%d" % (file_queue.qsize(), worker_num))
             time.sleep(0.5)
             while worker_num < file_queue.qsize() + PROCESS_NUM and file_queue.qsize() > 0:
-                print("run process %d" % (worker_num - file_queue.qsize()))
+                #print("run process %d" % (worker_num - file_queue.qsize()))
                 proc = mp.Process(target=get_data, args=(parse_ap_rslt, file_queue, data_queue, filename_queue))
                 proc.start()
                 if file_queue.qsize() < 20:
@@ -493,7 +511,7 @@ class RaceRecord:
                 break
 
     def load_model(self):
-        with gzip.open('../data/race_record.gz', 'rb') as f:
+        with gzip.open('../data/race_record_v2.gz', 'rb') as f:
             tmp_dict = cPickle.loads(f.read())
             self.__dict__.update(tmp_dict)
 
@@ -505,11 +523,11 @@ class RaceRecord:
 
 if __name__ == '__main__':
     race_record = RaceRecord()
-    if os.path.exists('../data/race_record.gz'):
-        with gzip.open('../data/race_record.gz', 'rb') as f:
+    if os.path.exists('../data/race_record_v2.gz'):
+        with gzip.open('../data/race_record_v2.gz', 'rb') as f:
             tmp_dict = cPickle.loads(f.read())
             race_record.__dict__.update(tmp_dict)
     race_record.get_race_record()
-    race_record.get_ap_record()
+    #race_record.get_ap_record()
     print(race_record)
 
