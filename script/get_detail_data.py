@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 
-from urllib2 import urlopen
+from urllib2 import urlopen, httplib
 import os
 from bs4 import BeautifulSoup
 import datetime
@@ -147,7 +147,10 @@ def get_lastday(meet, date, rcno, name):
     else:
         base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&"
         url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
-        response_body = urlopen(url).read()
+        try:
+            response_body = urlopen(url).read()
+        except httplib.ImcompleteRead, e:
+            response_body = e.partial
     xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):

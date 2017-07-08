@@ -145,6 +145,10 @@ def parse_txt_race(filename):
             data[-cnt+idx].extend(adata)
             assert len(data[-cnt+idx]) == 19
             idx += 1
+        while cnt > idx:
+            del data[-1]
+            cnt -= 1
+        assert cnt == idx
 
         # 순위 마번    G-3Ｆ   S-1F  １코너  ２코너  ３코너  ４코너    G-1F  단승식 연승식
         idx = 0
@@ -152,10 +156,12 @@ def parse_txt_race(filename):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
             if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
+                #print("passing1: %s" % line)
                 continue
             if NEXT_RC.search(line) is not None:
                 break
             if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:5]) is None:
+                #print("passing2: %s" % line)
                 continue
             adata = []
             words = re.findall(r'\S+', line)
@@ -197,21 +203,29 @@ def parse_txt_race(filename):
             data[-cnt+idx].extend(adata)
             assert len(data[-cnt+idx]) == 22
             idx += 1
+        while cnt > idx:
+            del data[-1]
+            cnt -= 1
+        assert cnt == idx
 
         for i in range(cnt):
             data[-cnt + i].extend([cnt])
             data[-cnt + i].extend([rcno])
             data[-cnt + i].extend([month])
             data[-cnt + i].extend([date])
-            assert len(data[-cnt+idx]) == 26
+            #print(np.shape(data[-cnt+i]))
+            assert len(data[-cnt+i]) == 26
+        if len(data[-1]) != 26:
+            print("len(data[-1]): %d" % len(data[-1]))
         assert len(data[-1]) == 26
         idx_remove = []
-        for idx, line in enumerate(data):
+        for idx in range(cnt):
+            line = data[-cnt+idx]
             if line[18] > md['course'][line[0]]*1.2 or line[18] < md['course'][line[0]]*0.9:
                 print("rctime is weird.. course: %d, rctime: %d, filename: %s" % (line[0], line[18], filename))
                 idx_remove.append(idx)
         for idx in idx_remove[::-1]:
-            del data[idx]
+            del data[-cnt+idx]
         # columns:  course, humidity, kind, dbudam, drweight, lastday, hr_days, idx, hrname, cntry, 
         #           gender, age, budam, jockey, trainer, owner, weight, dweight, rctime, s1f
         #           g1f, g3f, cnt, rcno, month, date
@@ -378,9 +392,14 @@ def parse_ap_rslt(filename):
                 del data[-1]
         if len(data) > 0:
             assert len(data[-1]) == 26
-        for line in data:
+
+        for idx in range(cnt):
+            line = data[-cnt+idx]
             if line[18] > md['course'][line[0]]*1.2 or line[18] < md['course'][line[0]]*0.9:
                 print("rctime is weird.. course: %d, rctime: %d, filename: %s" % (line[0], line[18], filename))
+                idx_remove.append(idx)
+        for idx in idx_remove[::-1]:
+            del data[-cnt+idx]
         # columns:  course, humidity, kind, dbudam, drweight, lastday, hr_days, idx, hrname, cntry, 
         #           gender, age, budam, jockey, trainer, owner, weight, dweight, rctime, s1f, 
         #           g1f, g3f, cnt, rcno, month, date
@@ -532,6 +551,6 @@ if __name__ == '__main__':
             tmp_dict = cPickle.loads(f.read())
             race_record.__dict__.update(tmp_dict)
     race_record.get_race_record()
-    #race_record.get_ap_record()
+    race_record.get_ap_record()
     print(race_record)
 
