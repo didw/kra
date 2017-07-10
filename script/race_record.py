@@ -17,6 +17,7 @@ import Queue
 
 with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
     md = cPickle.loads(f.read())
+md['course'][900] = md['course'][1000]
 
 NEXT_AP = re.compile(r'마체중|３코너|4화롱|4펄롱')
 NEXT_RC = re.compile(r'마 체 중|단승식|복승식')
@@ -221,7 +222,7 @@ def parse_txt_race(filename):
         idx_remove = []
         for idx in range(cnt):
             line = data[-cnt+idx]
-            if line[18] > md['course'][line[0]]*1.2 or line[18] < md['course'][line[0]]*0.9:
+            if line[18] > md['course'][line[0]]*1.2 or line[18] < md['course'][line[0]]*0.8:
                 print("rctime is weird.. course: %d, rctime: %d, filename: %s" % (line[0], line[18], filename))
                 idx_remove.append(idx)
         for idx in idx_remove[::-1]:
@@ -332,6 +333,10 @@ def parse_ap_rslt(filename):
             data[-cnt+idx].extend(adata)
             assert len(data[-cnt+idx]) == 19
             idx += 1
+        while cnt > idx:
+            del data[-1]
+            cnt -= 1
+        assert cnt == idx
 
         # 순위  마번    G-3Ｆ    S-1F   ３코너   ４코너     G-1F  S1F-1C-2C-3C-4C-G1F
         idx = 0
@@ -379,6 +384,10 @@ def parse_ap_rslt(filename):
             data[-cnt+idx].extend(adata)
             assert len(data[-cnt+idx]) == 22
             idx += 1
+        while cnt > idx:
+            del data[-1]
+            cnt -= 1
+        assert cnt == idx
 
         for i in range(cnt):
             data[-cnt + i].extend([cnt])
@@ -390,16 +399,18 @@ def parse_ap_rslt(filename):
         for i in range(cnt):
             if i >= n_pass:
                 del data[-1]
+                cnt -= 1
         if len(data) > 0:
             assert len(data[-1]) == 26
 
-        for idx in range(cnt):
-            line = data[-cnt+idx]
-            if line[18] > md['course'][line[0]]*1.2 or line[18] < md['course'][line[0]]*0.9:
+        idx_remove = []
+        for i in range(cnt):
+            line = data[-cnt+i]
+            if line[18] > md['course'][line[0]]*1.2 or line[18] < md['course'][line[0]]*0.8:
                 print("rctime is weird.. course: %d, rctime: %d, filename: %s" % (line[0], line[18], filename))
-                idx_remove.append(idx)
-        for idx in idx_remove[::-1]:
-            del data[-cnt+idx]
+                idx_remove.append(i)
+        for i in idx_remove[::-1]:
+            del data[-cnt+i]
         # columns:  course, humidity, kind, dbudam, drweight, lastday, hr_days, idx, hrname, cntry, 
         #           gender, age, budam, jockey, trainer, owner, weight, dweight, rctime, s1f, 
         #           g1f, g3f, cnt, rcno, month, date
@@ -458,7 +469,7 @@ class RaceRecord:
                 print("saved ap at %d" % self.cur_ap_file)
             print("Saving data...")
             serialized = cPickle.dumps(self.__dict__)
-            with gzip.open('../data/race_record_v2.gz', 'wb') as f:
+            with gzip.open('../data/race_record.gz', 'wb') as f:
                 f.write(serialized)
             print("Done")
         saving_mode.value = 0
@@ -534,7 +545,7 @@ class RaceRecord:
                 break
 
     def load_model(self):
-        with gzip.open('../data/race_record_v2.gz', 'rb') as f:
+        with gzip.open('../data/race_record.gz', 'rb') as f:
             tmp_dict = cPickle.loads(f.read())
             self.__dict__.update(tmp_dict)
 
@@ -546,8 +557,8 @@ class RaceRecord:
 
 if __name__ == '__main__':
     race_record = RaceRecord()
-    if os.path.exists('../data/race_record_v2.gz'):
-        with gzip.open('../data/race_record_v2.gz', 'rb') as f:
+    if os.path.exists('../data/race_record.gz'):
+        with gzip.open('../data/race_record.gz', 'rb') as f:
             tmp_dict = cPickle.loads(f.read())
             race_record.__dict__.update(tmp_dict)
     race_record.get_race_record()

@@ -461,6 +461,9 @@ def get_hr_race_record(hrname, date, race_record, md):
                 res[ic*4+i] = res[6*4+i] * default_res[ic*4+i] / default_res[6*4+i]
                 continue
             res[ic*4+i] = np.mean(res_list[i])
+    for i in range(len(res)):
+        if res[i] < 100:
+            print("res[i]: %d is weired.." % res[i])
     return res, np.mean(weight_list)
 
 
