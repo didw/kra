@@ -5,41 +5,18 @@ import parse_txt_race as pr
 import datetime
 import pandas as pd
 import os.path
-from sklearn.ensemble.forest import RandomForestRegressor
-from sklearn.preprocessing import StandardScaler
 from sklearn.externals import joblib
 import random
 import simulation as sim
 from mean_data import mean_data
 import numpy as np
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, normalization
-from keras.wrappers.scikit_learn import KerasRegressor
-from keras import backend as K
-from sklearn.model_selection import KFold
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
 import pickle
 import tensorflow as tf
-import Queue
 import time
-from keras.models import model_from_json
+from sklearn.preprocessing import StandardScaler
 
-MODEL_NUM = 10
-
-def baseline_model():
-    # create model
-    model = Sequential()
-    #model.add(Dense(128, input_dim=168, init='he_normal', activation='relu'))
-    model.add(Dense(128, input_dim=119, init='he_normal', activation='relu'))
-    #model.add(Dense(128, input_dim=142, init='he_normal', activation='relu'))  # w/ onehot vector
-    #model.add(normalization.BatchNormalization(epsilon=0.001, mode=0, axis=-1, momentum=0.99, weights=None, beta_init='zero', gamma_init='one', gamma_regularizer=None, beta_regularizer=None))
-    #model.add(Dropout(0.1))
-    #model.add(Dense(128, init='he_normal'))
-    model.add(Dense(1, init='he_normal'))
-    # Compile model
-    model.compile(loss='mean_squared_error', optimizer='adam')
-    return model
+MODEL_NUM = 30
+NUM_ENSEMBLE = 6
 
 
 def normalize_data(org_data):
@@ -68,14 +45,18 @@ def normalize_data(org_data):
     data.loc[data['cntry'] == '프', 'cntry'] = 17
     data.loc[data['cntry'] == '산', 'cntry'] = 18
     data.loc[data['cntry'] == '래', 'cntry'] = 19
-    #oh_gen = [[0]*3 for _ in range(len(data))]
-    #oh_cnt = [[0]*20 for _ in range(len(data))]
-    #for i in range(len(data)):
-    #    oh_gen[i][data['gender'][i]] = 1
-    #    oh_cnt[i][data['cntry'][i]] = 1
-    #df_gen = pd.DataFrame(oh_gen, columns=['g1', 'g2', 'g3'])
-    #df_cnt = pd.DataFrame(oh_cnt, columns=['c%d'%i for i in range(1,21)])
-    #return pd.concat([data, df_gen, df_cnt], axis=1)
+    oh_course = [[0]*10 for _ in range(len(data))]
+    oh_gen = [[0]*3 for _ in range(len(data))]
+    oh_cnt = [[0]*20 for _ in range(len(data))]
+    course_list = [400, 800, 900, 1000, 1110, 1200, 1400, 1610, 1700, 1800]
+    for i in range(len(data)):
+        oh_course[i][course_list.index(data['course'][i])] = 1
+        oh_gen[i][data['gender'][i]] = 1
+        oh_cnt[i][data['cntry'][i]] = 1
+    df_course = pd.DataFrame(oh_course, columns=['cr%d'%i for i in range(1,11)])
+    df_gen = pd.DataFrame(oh_gen, columns=['g1', 'g2', 'g3'])
+    df_cnt = pd.DataFrame(oh_cnt, columns=['c%d'%i for i in range(1,21)])
+    return pd.concat([data, df_course, df_gen, df_cnt], axis=1)
     return data
 
 def get_data(begin_date, end_date):
@@ -140,7 +121,11 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0, kind=0, nData=4
                   'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',
                   'jc31', 'jc32', 'jc33', 'jc34', 'jc35', 'jc36', 'jc37', 'jc38', 'jc39', 'jc40', 'jc41', 'jc42', 'jc43', 'jc44', 'jc45', 'jc46', 'jc47', 'jc48', 'jc49', 'jc50', 'jc51', 'jc52', 'jc53', 'jc54', 'jc55', 'jc56', 'jc57', 'jc58', 'jc59', 'jc60',
                   'jc61', 'jc62', 'jc63', 'jc64', 'jc65', 'jc66', 'jc67', 'jc68', 'jc69', 'jc70', 'jc71', 'jc72', 'jc73', 'jc74', 'jc75', 'jc76', 'jc77', 'jc78', 'jc79', 'jc80', 'jc81'], axis=1)
-    return X_data, Y_data, R_data, data
+    if nData == 105:
+        X_data = X_data.drop(['jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',
+                  'jc31', 'jc32', 'jc33', 'jc34', 'jc35', 'jc36', 'jc37', 'jc38', 'jc39', 'jc40', 'jc41', 'jc42', 'jc43', 'jc44', 'jc45', 'jc46', 'jc47', 'jc48', 'jc49', 'jc50', 'jc51', 'jc52', 'jc53', 'jc54', 'jc55', 'jc56', 'jc57', 'jc58', 'jc59', 'jc60',
+                  'jc61', 'jc62', 'jc63', 'jc64', 'jc65', 'jc66', 'jc67', 'jc68', 'jc69', 'jc70', 'jc71', 'jc72', 'jc73', 'jc74', 'jc75', 'jc76', 'jc77', 'jc78', 'jc79', 'jc80', 'jc81'], axis=1)
+    return np.array(X_data), np.array(Y_data), R_data, data
 
 def delete_lack_data(X_data, Y_data):
     remove_index = []
@@ -155,14 +140,11 @@ def training(train_bd, train_ed, course=0, nData=47):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
-    sess = tf.Session(config=config)
-    K.set_session(sess)
 
-    os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
-    model_name = "../model_tf/%d_%d/model_v1_%d.h5" % (train_bd_i, train_ed_i, course)
-    md_name = "../model_tf/%d_%d/md_%d.pkl" % (train_bd_i, train_ed_i, course)
+    model_dir = '../model/keras/e300_152/%d_%d/' % (train_bd_i, train_ed_i)
+    if not os.path.exists(model_dir):
+        os.makedirs(model_dir)
+    model_name = "%s/model_v1.h5" % model_dir
     estimators = [0] * MODEL_NUM
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
     X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_2007_2016_v1.csv', 0, nData=nData)
@@ -171,26 +153,46 @@ def training(train_bd, train_ed, course=0, nData=47):
     #X_train = X_scaler.fit_transform(X_train)
     print("Start train model")
     # fix random seed for reproducibility
-    X_train = np.array(X_train)
-    Y_train = np.array(Y_train)
+    scaler_x = StandardScaler()
+    scaler_y = StandardScaler()
+    X_train = scaler_x.fit_transform(X_train)
+    Y_train = scaler_y.fit_transform(Y_train)
     seed = 7
     np.random.seed(seed)
     # evaluate model with standardized dataset
     for i in range(MODEL_NUM):
         if os.path.exists(model_name.replace('h5', '%d.h5'%i)):
+            from keras.models import model_from_json
             print("model[%d] exist. try to loading.. %s - %s" % (i, str(train_bd), str(train_ed)))
             estimators[i] = model_from_json(open(model_name.replace('h5', 'json')).read())
             estimators[i].load_weights(model_name.replace('h5', '%d.h5'%i))
         else:
             print("model[%d] training.." % (i+1))
-            estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=200, batch_size=64, verbose=0)
+            def baseline_model():
+                from keras.models import Sequential
+                from keras.layers import Dense, Dropout
+                # create model
+                model = Sequential()
+                model.add(Dense(128, input_shape=(152,), kernel_initializer='he_normal', activation='relu'))
+                model.add(Dense(1, kernel_initializer='he_normal'))
+                # Compile model
+                model.compile(loss='mean_squared_error', optimizer='adam')
+                return model
+
+            config = tf.ConfigProto()
+            config.gpu_options.allow_growth = True
+            sess = tf.Session(config=config)
+            from keras import backend as K
+            K.set_session(sess)
+            from keras.wrappers.scikit_learn import KerasRegressor
+            estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=300, batch_size=32, verbose=0)
             estimators[i].fit(X_train, Y_train)
             # saving model
             json_model = estimators[i].model.to_json()
             open(model_name.replace('h5', 'json'), 'w').write(json_model)
             estimators[i].model.save_weights(model_name.replace('h5', '%d.h5'%i), overwrite=True)
     md = joblib.load('../data/2_2007_2016_v1_md.pkl')
-    return estimators, md
+    return estimators, md, [scaler_x, scaler_y]
 
 def print_log(data, pred, fname):
     flog = open(fname, 'w')
@@ -211,135 +213,24 @@ def print_log(data, pred, fname):
     flog.close()
 
 
-def simulation_weekly(begin_date, end_date, fname_result, delta_day=0, delta_year=0, course=0, kind=0, nData=47):
-    today = begin_date
-    sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    while today <= end_date:
-        while today.weekday() != 3:
-            today = today + datetime.timedelta(days=1)
-
-        today = today + datetime.timedelta(days=1)
-        train_bd = today + datetime.timedelta(days=-365*delta_year)
-        #train_bd = datetime.date(2011, 1, 1)
-        train_ed = today + datetime.timedelta(days=-delta_day)
-        test_bd = today + datetime.timedelta(days=1)
-        test_ed = today + datetime.timedelta(days=2)
-        test_bd_s = "%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day)
-        test_ed_s = "%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day)
-        if not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_bd_s) and not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_ed_s):
-            continue
-        remove_outlier = False
-        train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
-        train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-
-        model_name = "../model_tf/%d_%d/model_v1_%d_%d.h5" % (train_bd_i, train_ed_i, course, 0)
-
-        os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
-        if os.path.exists(model_name):
-            print("model exist. try to loading..")
-            # loading model
-            from keras.models import model_from_json
-            estimator = model_from_json(open(model_name.replace('h5', 'json')).read())
-            estimator.load_weights(model_name)
-        else:
-            print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-            X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_2007_2016_v1.csv', course, 0, nData=nData)
-            print("%d data is fully loaded" % len(X_train))
-            if len(X_train) < 10:
-                res1, res2, res3, res4, res5, res6 = 0, 0, 0, 0, 0, 0
-            else:
-                if remove_outlier:
-                    X_train, Y_train = delete_lack_data(X_train, Y_train)
-                print("Start train model")
-                X_train = np.array(X_train)
-                Y_train = np.array(Y_train)
-                seed = 7
-                np.random.seed(seed)
-                # evaluate model with standardized dataset
-                estimator = KerasRegressor(build_fn=baseline_model, nb_epoch=20, batch_size=32, verbose=0)
-                estimator.fit(X_train, Y_train)
-                # saving model
-                json_model = estimator.model.to_json()
-                open(model_name.replace('h5', 'json'), 'w').write(json_model)
-                # saving weights
-                estimator.model.save_weights(model_name, overwrite=True)
-                print("Finish train model")
-                print("important factor")
-                score_train = estimator.score(X_train, Y_train)
-                print("Score with the entire training dataset = %.2f" % score_train)
-
-        test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
-        test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
-
-        print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
-        X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/2_2007_2016_v1.csv', course, kind, nData=nData)
-        print("%d data is fully loaded" % (len(X_test)))
-        res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12 = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        if len(X_test) == 0:
-            continue
-        else:
-            DEBUG = False
-            if DEBUG:
-                X_test.to_csv('../log/2016_7_9_v1.csv', index=False)
-            score = 0
-            X_test = np.array(X_test)
-            Y_test = np.array(Y_test)
-            pred = estimator.predict(X_test)
-            print("pred test: ", pred[0:4])
-
-            res1 = sim.simulation6(pred, R_test, [[1,2,3]])
-            res2 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,3,4], [2,3,4]])
-            res3 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5]])
-            res4 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5],
-                                                [1,2,6], [1,3,6], [1,4,6], [1,5,6], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
-            res5 = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5],
-                                                [1,2,6], [1,3,6], [1,4,6], [1,5,6], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6],
-                                                [1,2,7], [1,3,7], [1,4,7], [1,5,7], [2,3,7], [2,4,7], [2,5,7], [3,4,7], [3,5,7], [4,5,7],
-                                                [1,6,7], [2,6,7], [3,6,7], [4,6,7], [5,6,7]
-                                                ])
-            res6 = sim.simulation6(pred, R_test, [[2,3,4], [2,3,5], [2,4,5], [3,4,5], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
-            res7 = sim.simulation6(pred, R_test, [[3,4,5], [3,4,6], [3,4,7], [3,5,6], [3,5,7], [3,6,7], [4,5,6], [4,5,7], [4,6,7], [5,6,7]])
-            
-            sr1 += res1
-            sr2 += res2
-            sr3 += res3
-            sr4 += res4
-            sr5 += res5
-            sr6 += res6
-            sr7 += res7
-        print("train data: %s - %s" % (str(train_bd), str(train_ed)))
-        print("test data: %s - %s" % (str(test_bd), str(test_ed)))
-        print("course: %d[%d]" % (course, kind))
-        print("%15s%10s%10s%10s%10s%10s%10s%10s" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
-        print("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                    score, res1, res2, res3, res4, res5, res6, res7))
-        print("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                score, sr1, sr2, sr3, sr4, sr5, sr6, sr7))
-        f_result = open(fname_result, 'a')
-        f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
-        f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
-        f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
-        f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                            score, res1, res2, res3, res4, res5, res6, res7))
-        f_result.close()
-    f_result = open(fname_result, 'a')
-    f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
-    f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                    score, sr1, sr2, sr3, sr4, sr5, sr6, sr7))
-    f_result.close()
-
-
 def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, courses=[0], kinds=[0], nData=47):
     remove_outlier = False
     today = begin_date
     def m():
-        return [{0:0} for _ in range(MODEL_NUM+1)]
+        return [{0:0} for _ in range(MODEL_NUM+int(MODEL_NUM/NUM_ENSEMBLE)+2)]
     sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10, score_sum = m(),m(),m(),m(),m(),m(),m(),m(),m(),m(),m()
     while today <= end_date:
+        #Tensorflow GPU optimization
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
+        sess = tf.Session(config=config)
+        from keras import backend as K
+        K.set_session(sess)
+        
         while today.weekday() != 2:
             today = today + datetime.timedelta(days=1)
-
         today = today + datetime.timedelta(days=1)
+
         train_bd = today + datetime.timedelta(days=-365*delta_year)
         #train_bd = datetime.date(2011, 1, 1)
         train_ed = today + datetime.timedelta(days=-delta_day)
@@ -352,23 +243,43 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-        model_name = "../model_tf/%d_%d/model_v1.h5" % (train_bd_i, train_ed_i)
-        os.system('mkdir \"../model_tf/%d_%d/\"' % (train_bd_i, train_ed_i))
+        model_dir = "../model/keras/e300_152/%d_%d" % (train_bd_i, train_ed_i)
+        model_name = "%s/model_v1.h5" % (model_dir)
+        if not os.path.exists(model_dir):
+            os.makedirs(model_dir)
 
         estimators = [0] * MODEL_NUM
         print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
         X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/2_2007_2016_v1.csv', 0, nData=nData)
-        X_train = np.array(X_train)
-        Y_train = np.array(Y_train)
+        scaler_x = StandardScaler()
+        scaler_y = StandardScaler()
+        X_train = scaler_x.fit_transform(X_train)
+        Y_train = scaler_y.fit_transform(Y_train)
         for i in range(MODEL_NUM):
             #os.system('rm %s' % model_name.replace('h5', '%d.h5'%i))
             if os.path.exists(model_name.replace('h5', '%d.h5'%i)):
+                from keras.models import model_from_json
                 print("model[%d] exist. try to loading.. %s - %s" % (i, str(train_bd), str(train_ed)))
                 estimators[i] = model_from_json(open(model_name.replace('h5', 'json')).read())
                 estimators[i].load_weights(model_name.replace('h5', '%d.h5'%i))
             else:
                 print("model[%d] training.." % (i+1))
-                estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=200, batch_size=32, verbose=0)
+                def baseline_model():
+                    from keras.models import Sequential
+                    from keras.layers import Dense, Dropout
+                    # create model
+                    model = Sequential()
+                    model.add(Dense(128, input_shape=(152,), kernel_initializer='he_normal', activation='relu'))
+                    #model.add(Dense(128, input_dim=87, init='he_normal', activation='relu'))
+                    #model.add(Dropout(0.1))
+                    #model.add(Dense(128, init='he_normal'))
+                    model.add(Dense(1, kernel_initializer='he_normal'))
+                    # Compile model
+                    model.compile(loss='mean_squared_error', optimizer='adam')
+                    return model
+
+                from keras.wrappers.scikit_learn import KerasRegressor
+                estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=300, batch_size=32, verbose=0)
                 estimators[i].fit(X_train, Y_train)
                 # saving model
                 json_model = estimators[i].model.to_json()
@@ -379,11 +290,14 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
         test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
 
+        if not os.path.exists('../data/keras/e300_152'):
+            os.makedirs('../data/keras/e300_152')
         for course in courses:
             for kind in kinds:
-                fname_result = '../data/weekly_keras_nsb_v1_train0_m2_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
                 print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
-                X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/2_2007_2016_v1.csv', course, kind, nData=nData)
+
+                X_test, Y_test, R_test, _ = get_data_from_csv(test_bd_i, test_ed_i, '../data/2_2007_2016_v1.csv', course, kind, nData=nData)
+                X_test = scaler_x.transform(X_test)
                 #X_test = X_scaler.transform(X_test)
                 print("%d data is fully loaded" % (len(X_test)))
 
@@ -399,12 +313,11 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                 else:
                     DEBUG = False
                     if DEBUG:
-                        X_test.to_csv('../log/weekly_train0_%s_v1.csv' % today, index=False)
-                    X_test = np.array(X_test)
-                    Y_test = np.array(Y_test)
+                        X_test.to_csv('../log/weekly_train0_%s.csv' % today, index=False)
                     pred = [0] * MODEL_NUM
                     for i in range(MODEL_NUM):
                         pred[i] = estimators[i].predict(X_test).flatten()
+                        pred[i] = scaler_y.inverse_transform(pred[i])
                         score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
 
                         res1 = sim.simulation7(pred[i], R_test, [[1],[2],[3]])
@@ -414,10 +327,10 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                         res5 = sim.simulation7(pred[i], R_test, [[3,4,5],[4,5,6],[4,5,6]])
                         res6 = sim.simulation7(pred[i], R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
                         res7 = sim.simulation7(pred[i], R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
-                        
-                        print("pred[%d] test: " % (i+1), pred[i][0:4])
-                        print("Y_test[%d] test: " % (i+1), Y_test[0:4])
-                        print("result[%d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+
+                        #print("pred[%d] test: " % (i+1), pred[i][20:24])
+                        #print("Y_test test: ", Y_test[20:24])
+                        print("result[%02d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f" % (
                                 i+1, score, res1, res2, res3, res4, res5, res6, res7))
                         try:
                             sr1[i][course] += res1
@@ -437,19 +350,121 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                             sr6[i][course] = res6
                             sr7[i][course] = res7
                             score_sum[i][course] = score
-                    pred = np.mean(pred, axis=0)
-                    print("pred test: ", pred[0:4])
-                    print("Y_test test: ", Y_test[0:4])
-                    score = np.sqrt(np.mean((pred - Y_test)*(pred - Y_test)))
 
-                    res1 = sim.simulation7(pred, R_test, [[1],[2],[3]])
-                    res2 = sim.simulation7(pred, R_test, [[1,2],[1,2,3],[1,2,3]])
-                    res3 = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3],[1,2,3]])
-                    res4 = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4],[1,2,3,4]])
-                    res5 = sim.simulation7(pred, R_test, [[3,4,5],[4,5,6],[4,5,6]])
-                    res6 = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
-                    res7 = sim.simulation7(pred, R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
+                        fname_result = '../data/keras/e300_152/ss_m%02d.txt' % i
+                        f_result = open(fname_result, 'a')
+                        f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
+                        f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+                        f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+                        f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                                        score, res1, res2, res3, res4, res5, res6, res7))
+                        f_result.close()
+
+                    sr1[MODEL_NUM][course] = 0
+                    sr2[MODEL_NUM][course] = 0
+                    sr3[MODEL_NUM][course] = 0
+                    sr4[MODEL_NUM][course] = 0
+                    sr5[MODEL_NUM][course] = 0
+                    sr6[MODEL_NUM][course] = 0
+                    sr7[MODEL_NUM][course] = 0
+                    score_sum[MODEL_NUM][course] = 0
+
+                    for i in range(MODEL_NUM):
+                        sr1[MODEL_NUM][course] += 1./MODEL_NUM * sr1[i][course]
+                        sr2[MODEL_NUM][course] += 1./MODEL_NUM * sr2[i][course]
+                        sr3[MODEL_NUM][course] += 1./MODEL_NUM * sr3[i][course]
+                        sr4[MODEL_NUM][course] += 1./MODEL_NUM * sr4[i][course]
+                        sr5[MODEL_NUM][course] += 1./MODEL_NUM * sr5[i][course]
+                        sr6[MODEL_NUM][course] += 1./MODEL_NUM * sr6[i][course]
+                        sr7[MODEL_NUM][course] += 1./MODEL_NUM * sr7[i][course]
+                        score_sum[MODEL_NUM][course] += 1./MODEL_NUM * score_sum[i][course]
+
+                    fname_result = '../data/keras/e300_152/ss_m_all.txt'
+                    f_result = open(fname_result, 'a')
+                    f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
+                    f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+                    f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+                    f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                                    score_sum[MODEL_NUM][0], sr1[MODEL_NUM][0], sr2[MODEL_NUM][0], sr3[MODEL_NUM][0], sr4[MODEL_NUM][0], sr5[MODEL_NUM][0], sr6[MODEL_NUM][0], sr7[MODEL_NUM][0]))
+                    f_result.close()
+
+                    index_sum = MODEL_NUM + int(MODEL_NUM/NUM_ENSEMBLE) + 1
+                    for i in range(int(MODEL_NUM/NUM_ENSEMBLE)):
+                        n_split = int(MODEL_NUM/NUM_ENSEMBLE)
+                        pred_ens = np.mean(pred[i*n_split:(i+1)*n_split], axis=0)
+                        score = np.sqrt(np.mean((pred_ens - Y_test)*(pred_ens - Y_test)))
+
+                        res1 = sim.simulation7(pred_ens, R_test, [[1],[2],[3]])
+                        res2 = sim.simulation7(pred_ens, R_test, [[1,2],[1,2,3],[1,2,3]])
+                        res3 = sim.simulation7(pred_ens, R_test, [[1,2,3],[1,2,3],[1,2,3]])
+                        res4 = sim.simulation7(pred_ens, R_test, [[1,2,3,4],[1,2,3,4],[1,2,3,4]])
+                        res5 = sim.simulation7(pred_ens, R_test, [[3,4,5],[4,5,6],[4,5,6]])
+                        res6 = sim.simulation7(pred_ens, R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
+                        res7 = sim.simulation7(pred_ens, R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
+
+                        #print("pred_ens test: ", pred_ens[20:24])
+                        #print("Y_test test: ", Y_test[20:24])
+                        print("result_ens[%2d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f" % (
+                                MODEL_NUM+i+2, score, res1, res2, res3, res4, res5, res6, res7))
+
+                        index_j = MODEL_NUM+i+1
+                        try:
+                            sr1[index_j][course] += res1
+                            sr2[index_j][course] += res2
+                            sr3[index_j][course] += res3
+                            sr4[index_j][course] += res4
+                            sr5[index_j][course] += res5
+                            sr6[index_j][course] += res6
+                            sr7[index_j][course] += res7
+                            score_sum[index_j][course] += score
+                        except KeyError:
+                            sr1[index_j][course] = res1
+                            sr2[index_j][course] = res2
+                            sr3[index_j][course] = res3
+                            sr4[index_j][course] = res4
+                            sr5[index_j][course] = res5
+                            sr6[index_j][course] = res6
+                            sr7[index_j][course] = res7
+                            score_sum[index_j][course] = score
+                        
+                        fname_result = '../data/keras/e300_152/ss_ens%d.txt' % i
+                        f_result = open(fname_result, 'a')
+                        f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
+                        f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+                        f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+                        f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                                        score, res1, res2, res3, res4, res5, res6, res7))
+                        f_result.close()
+
+                    sr1[index_sum][course] = 0
+                    sr2[index_sum][course] = 0
+                    sr3[index_sum][course] = 0
+                    sr4[index_sum][course] = 0
+                    sr5[index_sum][course] = 0
+                    sr6[index_sum][course] = 0
+                    sr7[index_sum][course] = 0
+                    score_sum[index_sum][course] = 0
                     
+                    for i in range(int(MODEL_NUM/NUM_ENSEMBLE)):
+                        index_j = MODEL_NUM+i+1
+                        sr1[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr1[index_j][course]
+                        sr2[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr2[index_j][course]
+                        sr3[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr3[index_j][course]
+                        sr4[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr4[index_j][course]
+                        sr5[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr5[index_j][course]
+                        sr6[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr6[index_j][course]
+                        sr7[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr7[index_j][course]
+                        score_sum[index_sum][course] += 1.*NUM_ENSEMBLE/MODEL_NUM * score_sum[index_j][course]
+
+                    fname_result = '../data/keras/e300_152/ss_ens_all.txt'
+                    f_result = open(fname_result, 'a')
+                    f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
+                    f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+                    f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+                    f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                                    score_sum[index_sum][0], sr1[index_sum][0], sr2[index_sum][0], sr3[index_sum][0], sr4[index_sum][0], sr5[index_sum][0], sr6[index_sum][0], sr7[index_sum][0]))
+                    f_result.close()
+
                     """
                     res1 = sim.simulation1(pred, R_test, 1)
                     res2 = sim.simulation2(pred, R_test, 1)
@@ -496,47 +511,27 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
                     res6 = sim.simulation2(pred, R_test, 6)
                     res7 = sim.simulation2(pred, R_test, 7)
                     """
-                    
-                    try:
-                        sr1[MODEL_NUM][course] += res1
-                        sr2[MODEL_NUM][course] += res2
-                        sr3[MODEL_NUM][course] += res3
-                        sr4[MODEL_NUM][course] += res4
-                        sr5[MODEL_NUM][course] += res5
-                        sr6[MODEL_NUM][course] += res6
-                        sr7[MODEL_NUM][course] += res7
-                        score_sum[MODEL_NUM][course] += score
-                    except KeyError:
-                        sr1[MODEL_NUM][course] = res1
-                        sr2[MODEL_NUM][course] = res2
-                        sr3[MODEL_NUM][course] = res3
-                        sr4[MODEL_NUM][course] = res4
-                        sr5[MODEL_NUM][course] = res5
-                        sr6[MODEL_NUM][course] = res6
-                        sr7[MODEL_NUM][course] = res7
-                        score_sum[MODEL_NUM][course] = score
+                for m in range(MODEL_NUM+int(MODEL_NUM/NUM_ENSEMBLE)+2):
+                    print("result[%02d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f" % (
+                            m, score_sum[m][course], sr1[m][course], sr2[m][course], sr3[m][course], sr4[m][course], sr5[m][course], sr6[m][course], sr7[m][course]))
 
-                print("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                        score, res1, res2, res3, res4, res5, res6, res7))
-                for m in range(MODEL_NUM+1):
-                    print("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                            score_sum[m][course], sr1[m][course], sr2[m][course], sr3[m][course], sr4[m][course], sr5[m][course], sr6[m][course], sr7[m][course]))
-                f_result = open(fname_result, 'a')
-                f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
-                f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
-                f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
-                f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                                score, res1, res2, res3, res4, res5, res6, res7))
-                f_result.close()
-    for m in range(MODEL_NUM+1):
+    for m in range(MODEL_NUM):
         for course in courses:
-            for kind in kinds:
-                fname_result = '../data/weekly_keras_nsb_v1_train0_m2_nd%d_y%d_c%d_k%d.txt' % (nData, delta_year, course, kind)
-                f_result = open(fname_result, 'a')
-                f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
-                f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                                score_sum[m][course], sr1[m][course], sr2[m][course], sr3[m][course], sr4[m][course], sr5[m][course], sr6[m][course], sr7[m][course]))
-                f_result.close()
+            fname_result = '../data/keras/e300_152/ss_m%02d.txt' % m
+            f_result = open(fname_result, 'a')
+            f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+            f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                            score_sum[m][course], sr1[m][course], sr2[m][course], sr3[m][course], sr4[m][course], sr5[m][course], sr6[m][course], sr7[m][course]))
+            f_result.close()
+    for i in range(int(MODEL_NUM/NUM_ENSEMBLE)):
+        for course in courses:
+            fname_result = '../data/keras/e300_152/ss_ens%d.txt' % i
+            f_result = open(fname_result, 'a')
+            f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+            m = MODEL_NUM + i
+            f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                            score_sum[m][course], sr1[m][course], sr2[m][course], sr3[m][course], sr4[m][course], sr5[m][course], sr6[m][course], sr7[m][course]))
+            f_result.close()
 
 
 if __name__ == '__main__':
@@ -545,15 +540,10 @@ if __name__ == '__main__':
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
     test_bd = datetime.date(2016, 6, 5)
-    test_ed = datetime.date(2017, 3, 5)
-    #Tensorflow GPU optimization
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
-    sess = tf.Session(config=config)
-    K.set_session(sess)
+    test_ed = datetime.date(2017, 4, 5)
 
     for delta_year in [8]:
-        for nData in [137]:
+        for nData in [152]:
             simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[0], nData=nData)
             #for c in [1000, 1200, 1300, 1400, 1700]:
             #    for k in [0]:

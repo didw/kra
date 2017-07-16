@@ -321,7 +321,7 @@ def simulation_process(today, sr1, sr2, sr3, sr4, sr5, sr6, sr7, sr8, sr9, sr10,
             estimators.load('../model/tflearn/regression_l2_i152_bn_e100/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
             estimators.fit(X_train, Y_train, n_epoch=300, show_metric=True, snapshot_epoch=False)
         else:
-            estimators.fit(X_train, Y_train, n_epoch=400, show_metric=True, snapshot_epoch=False)
+            estimators.fit(X_train, Y_train, n_epoch=100, show_metric=True, snapshot_epoch=False)
         if not os.path.exists('../model/tflearn/regression_l2_i152_bn_e100/%s_%s' % (train_bd, train_ed)):
             os.makedirs('../model/tflearn/regression_l2_i152_bn_e100/%s_%s' % (train_bd, train_ed))
         estimators.save('../model/tflearn/regression_l2_i152_bn_e100/%s_%s/model.%d.tfl' % (train_bd, train_ed, i))
@@ -605,8 +605,8 @@ if __name__ == '__main__':
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2016, 6, 4)
-    test_ed = datetime.date(2017, 3, 30)
+    test_bd = datetime.date(2017, 4, 5)
+    test_ed = datetime.date(2017, 4, 10)
 
     for delta_year in [8]:
         for nData in [152]:

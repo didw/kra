@@ -45,7 +45,7 @@ def get_dbudam(meet, date, rcno, name):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
             if len(itemList) >= 10 and name in unicode(itemList[1].string).encode('utf-8'):
-                value = int(re.search(r'\d+', unicode(itemList[7].string)).group())
+                value = int(re.search(r'[-\d]+', unicode(itemList[7].string)).group())
                 return value
     print("can not find dbudam of %s in %s" % (name, fname))
     return 0
