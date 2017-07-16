@@ -8,15 +8,21 @@ from urllib2 import urlopen
 import get_detail_data as gdd
 from bs4 import BeautifulSoup
 from mean_data import mean_data
+from mean_data3 import cmake_mean
 from sklearn.externals import joblib
 from get_race_detail import RaceDetail
 import get_weekly_clinic as wc
+import get_jockey as gj
+import get_trainer as gt
+import get_lineage as gl
+from race_record import RaceRecord
+import gzip, cPickle
 
 NEXT = re.compile(unicode(r'마 체 중|단승식|복승식|매출액', 'utf-8').encode('utf-8'))
 WORD = re.compile(r"[^\s]+")
 DEBUG = False
 
-def parse_txt_race(filename, md=mean_data()):
+def parse_txt_race(filename, md):
     data = []
     input_file = open(filename)
     while True:
@@ -93,12 +99,13 @@ def parse_txt_race(filename, md=mean_data()):
             lastday = gdd.get_lastday(2, date, int(rcno), hrname)
             train_state = gdd.get_train_state(2, date, int(rcno), hrname)
             hr_no = gdd.get_hrno(2, date, int(rcno), hrname)
-            race_score, w_ = gdd.get_hr_racescore(2, hr_no, date, month, course, 'File', md)
+            lineage_info = gl.get_lineage(2, hr_no, 'File')
 
             assert len(words) >= 10
             adata = [course, humidity, kind, dbudam, drweight, lastday]
             adata.extend(train_state)
-            adata.extend(race_score)
+            #adata.extend(race_score)
+            adata.extend(lineage_info)
             for i in range(10):
                 adata.append(words[i])
             data.append(adata)
@@ -369,7 +376,7 @@ def parse_txt_jockey(date, name, course, md=mean_data()):
     if len(str(name)) > 9:
         #print("name is changed %s -> %s" % (name, name[:6]))
         name = str(name)[:6]
-    filename = get_fname(date, "jockey")
+    filename = get_fname(datetime.date(date/10000, date%10000/100, date%100), "jockey")
     if DEBUG: print(filename)
     f_input = open(filename)
     while True:
@@ -387,8 +394,8 @@ def parse_txt_jockey(date, name, course, md=mean_data()):
                 data.append(int(participates[0]))
                 data.append(int(participates[1]))
                 data.append(int(participates[2]))
-                data.append(float(participates[1])*100/int(participates[0]))
-                data.append(float(participates[2])*100/int(participates[0]))
+                data.append(float(participates[1])*100/float(participates[0]))
+                data.append(float(participates[2])*100/float(participates[0]))
 
             if int(participates[3]) == 0:
                 data.extend([0] + md.jk_history_year[course][1:])
@@ -396,8 +403,8 @@ def parse_txt_jockey(date, name, course, md=mean_data()):
                 data.append(int(participates[3]))
                 data.append(int(participates[4]))
                 data.append(int(participates[5]))
-                data.append(float(participates[4])*100/int(participates[3]))
-                data.append(float(participates[5])*100/int(participates[3]))
+                data.append(float(participates[4])*100/float(participates[3]))
+                data.append(float(participates[5])*100/float(participates[3]))
 
             #data = map(lambda x: int(x), data)
             return data
@@ -413,7 +420,7 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
         #print("name is changed %s -> %s" % (name, name[:6]))
         name = str(name)[:6]
     course = int(course)
-    filename = get_fname(date, "trainer")
+    filename = get_fname(datetime.date(date/10000, date%10000/100, date%100), "trainer")
     if DEBUG: print(filename)
     f_input = open(filename)
     while True:
@@ -432,8 +439,8 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
                 data.append(int(participates[0]))
                 data.append(int(participates[1]))
                 data.append(int(participates[2]))
-                data.append(float(participates[1])*100/int(participates[0]))
-                data.append(float(participates[2])*100/int(participates[0]))
+                data.append(float(participates[1])*100/float(participates[0]))
+                data.append(float(participates[2])*100/float(participates[0]))
 
             if int(participates[3]) == 0:
                 data.extend([0] + md.tr_history_year[course][1:])
@@ -441,8 +448,8 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
                 data.append(int(participates[3]))
                 data.append(int(participates[4]))
                 data.append(int(participates[5]))
-                data.append(float(participates[4])*100/int(participates[3]))
-                data.append(float(participates[5])*100/int(participates[3]))
+                data.append(float(participates[4])*100/float(participates[3]))
+                data.append(float(participates[5])*100/float(participates[3]))
 
             #data = map(lambda x: int(x), data)
             return data
@@ -451,36 +458,59 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
     return map(lambda x: float(x), md.tr_history_total[course] + md.tr_history_year[course])
 
 
-def get_data(filename, md=mean_data(), rd=RaceDetail()):
+def get_race_record():
+    race_record = RaceRecord()
+    with gzip.open('../data/race_record.gz', 'rb') as f:
+        tmp_dict = cPickle.loads(f.read())
+        race_record.__dict__.update(tmp_dict)
+    return race_record
+
+
+def get_data(filename, md, md3):
     print("race file: %s" % filename)
     date_i = re.search(unicode(r'\d{8}', 'utf-8').encode('utf-8'), filename).group()
     date = datetime.date(int(date_i[:4]), int(date_i[4:6]), int(date_i[6:]))
     data = parse_txt_race(filename, md)
-
+    assert len(data[0]) == 89
     jangu_clinic = wc.parse_hr_clinic(date)
+    race_record = get_race_record()
 
     for i in range(len(data)):
         #print("race file: %s" % filename)
         #print("%s %s %s" % (data[i][5], data[i][10], data[i][11]))
-        data[i].extend(parse_txt_horse(date, int(data[i][39]), data[i][24], data[i][0], md))
-        data[i].extend(parse_txt_jockey(date, data[i][29], data[i][0], md))
-        data[i].extend(parse_txt_trainer(date, data[i][30], data[i][0], md))
-        data[i].extend(rd.get_data(data[i][24], date_i, md))
-        data[i].extend(wc.get_jangu_clinic(jangu_clinic, data[i][24]))
+        rcno = int(data[i][91])
+        hrname = data[i][76]
+        #print("hrname:%s"%hrname)
+        jkname = data[i][81]
+        trname = data[i][82]
+        course = int(data[i][0])
+        date = int(date_i)
+        data[i].extend(parse_txt_horse(date, rcno, hrname, course, md))
+        assert len(data[i]) == 106
+        data[i].extend(parse_txt_jockey(date, jkname, course, md))
+        assert len(data[i]) == 116
+        data[i].extend(parse_txt_trainer(date, trname, course, md))
+        assert len(data[i]) == 126
+        data[i].extend(wc.get_jangu_clinic(jangu_clinic, hrname))
+        assert len(data[i]) == 158
+        race_records, _ = gdd.get_hr_race_record(hrname, date, race_record, md3)
+        #print("len(race_records):%d"%len(race_records))
+        data[i].extend(race_records)
+        assert len(data[i]) == 186
         data[i].extend([date_i])
+        assert len(data[i]) == 187
     df = pd.DataFrame(data)
-    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
-                  'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10', # 10
-                  'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 9
+    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6'] \
+                  + ['lg%d'%i for i in range(1,50)] \
+                  + ['rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 9
                   'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'month', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'samssang', # 18
                   'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
                   'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
                   'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
-                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2',  #10
-                  'rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
-                  'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',  # 30
-                  'jc31', 'jc32',
-                  'date'] # 11
+                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2'] \
+                  + ['jc%d'%i for i in range(1,33)] \
+                  + ['rc%d'%i for i in range(1,29)] \
+                  + ['date']
     return df
 
 
@@ -489,17 +519,14 @@ def get_data(filename, md=mean_data(), rd=RaceDetail()):
 if __name__ == '__main__':
     DEBUG = True
     filename = '../txt/2/rcresult/rcresult_2_20170217.txt'
-    rd = RaceDetail()
     import glob
     year_ = int(re.search(r'\d{8}', filename).group())/10000
-    for year in range(year_-3, year_+1):
-        filelist2 = glob.glob('../txt/2/rcresult/rcresult_2_%d*.txt' % year)
-        print("processed rc in %d" % year)
-        for fname in filelist2:
-            rd.parse_race_detail(fname)
     #md = mean_data()
     md = joblib.load('../data/2_2007_2016_v1_md.pkl')
-    data = get_data(filename, md, rd)
+    with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
+        md3 = cPickle.loads(f.read())
+    md3['humidity'][20] = md3['humidity'][25]
+    data = get_data(filename, md, md3)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)
     del data['name']
     del data['jockey']

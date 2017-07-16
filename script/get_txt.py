@@ -19,16 +19,19 @@ def download_txt(bd, ed, meet, overwrite=False):
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/horse/", "horse", "sdb1.txt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/jockey/", "jockey", "sdb2.txt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/trainer/", "trainer", "sdb3.txt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/owner/", "owner", "sdb6.txt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/chulma/", "chulma", "dacom01.rpt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/daily-train/", "daily-train", "dacom55.rpt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/ap-check-rslt/", "ap-check-rslt", "dacom23.rpt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/weekly-clinic/", "weekly-clinic", "dacom72.rpt", [0,1,2,3,4,5,6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/weekly-jangu/", "weekly-jangu", "dacom71.rpt", [0,1,2,3,4,5,6]]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/weekly-jangu/", "weekly-jangu", "dacom71.rpt", [0,1,2,3,4,5,6]]
+             ],
             # jeju
             [["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/jungbo/rcresult/", "rcresult", "dacom11.rpt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/jeju/horse/", "horse", "cdb1.txt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/jeju/jockey/", "jockey", "cdb2.txt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/jeju/trainer/", "trainer", "cdb3.txt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/jeju/owner/", "owner", "cdb6.txt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/jungbo/chulma/", "chulma", "dacom01.rpt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/sokbo/daily-train/", "daily-train", "dacom55.rpt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/jungbo/ap-check-rslt/", "ap-check-rslt", "dacom23.rpt", [0,1,2,3,4,5,6]],
@@ -39,6 +42,7 @@ def download_txt(bd, ed, meet, overwrite=False):
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/busan/horse/", "horse", "pdb1.txt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/busan/jockey/", "jockey", "pdb2.txt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/busan/trainer/", "trainer", "pdb3.txt", [0,1,2,3,4,5,6]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/busan/owner/", "owner", "pdb6.txt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/chulma/", "chulma", "dacom01.rpt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/sokbo/daily-train/", "daily-train", "dacom55.rpt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/busan/jungbo/ap-check-rslt/", "ap-check-rslt", "dacom23.rpt", [0,1,2,3,4,5,6]],
@@ -126,33 +130,52 @@ def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
                     print('[%s] data downloading failed' % request)
     print("job has completed")
 
+def download_file(request, meet, line, hrno, overwrite):
+    try:
+        fname = "../txt/%d/%s/%s_%d_%06d.txt" % (meet, line[1], line[1], meet, hrno)
+        if not overwrite and os.path.exists(fname):
+            print("[%s] file exist" % fname)
+            return
+        response_body = urlopen(request).read()
+        if not os.path.exists("../txt/%d/%s/"%(meet, line[1])):
+            os.makedirs("../txt/%d/%s/"%(meet, line[1]))
+        fout = open(fname, 'w')
+        fout.write(response_body)
+        fout.close()
+        if os.path.getsize(fname) < line[2]:
+            os.remove(fname)
+        print("[%s] data is downloaded" % (request))
+    except:
+        print('[%s] data downloading failed' % request)
+
+import multiprocessing as mp
+from multiprocessing import Process, Value
+
 def download_racehorse(hrno_b, hrno_e, meet, overwrite=False):
-    data = [
-            ["profileRaceScore.do?Act=02&Sub=1&", "racehorse",
+    data = [# seoul http://race.kra.co.kr/racehorse/profileRaceScore.do?Act=02&Sub=1&meet=1&hrNo=040000
+            [["profileRaceScore.do?Act=02&Sub=1&", "racehorse", 32000],
+             ["profileLineageInfo.do?Act=02&Sub=1&", "LineageInfo", 43000],
              ],
-            ["profileRaceScore.do?Act=02&Sub=1&", "racehorse",
+            [["profileRaceScore.do?Act=02&Sub=1&", "racehorse", 31100],
+             ["profileLineageInfo.do?Act=02&Sub=1&", "LineageInfo", 43000],
              ],
-            ["profileRaceScore.do?Act=02&Sub=1&", "racehorse",
+            [["profileRaceScore.do?Act=02&Sub=1&", "racehorse", 31100],
+             ["profileLineageInfo.do?Act=02&Sub=1&", "LineageInfo", 43000],
              ]
     ]
-    line = data[meet-1]
+    item = data[meet-1]
     base_url = "http://race.kra.co.kr/racehorse/"
-    race_url = base_url + line[0]
-    for hrno in range(hrno_b, hrno_e):
-        request = "%s&meet=%d&hrNo=%06d" % (race_url, meet, hrno)
-        try:
+    for i in range(1,len(item)):
+        line = item[i]
+        race_url = base_url + line[0]
+        for hrno in range(hrno_b, hrno_e):
+            request = "%s&meet=%d&hrNo=%06d" % (race_url, meet, hrno)
             fname = "../txt/%d/%s/%s_%d_%06d.txt" % (meet, line[1], line[1], meet, hrno)
             if not overwrite and os.path.exists(fname):
                 continue
-            response_body = urlopen(request).read()
-            fout = open(fname, 'w')
-            fout.write(response_body)
-            fout.close()
-            if os.path.getsize(fname) < 31100:
-                os.remove(fname)
-            print("[%s] data is downloaded" % request)
-        except:
-            print('[%s] data downloading failed' % request)
+            proc = Process(target=download_file, args=(request, meet, line, hrno, overwrite))
+            proc.start()
+            time.sleep(0.2)
     print("job has completed")
 
 

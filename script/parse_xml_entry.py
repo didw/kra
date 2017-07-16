@@ -16,9 +16,12 @@ import datetime
 import sys
 import os
 import get_detail_data as gdd
+import get_lineage as gl
 from mean_data import mean_data
 from get_race_detail import RaceDetail
 import get_weekly_clinic as wc
+from race_record import RaceRecord
+import gzip, cPickle
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -48,21 +51,6 @@ def get_hr_data(data, name):
     return (-1, -1)
 
 
-#def get_hr_win(tt, t1, t2, yt, y1, y2, course, md=mean_data()):
-#    res = [-1, -1, -1, -1]
-#    if int(tt) != 0:
-#        res[0] = int(t1) * 100 / int(tt)
-#        res[1] = int(t2) * 100 / int(tt)
-#    else:
-#        res[0] = md.hr_history_total[course][3]
-#        res[1] = md.hr_history_total[course][4]
-#    if int(yt) != 0:
-#        res[2] = int(y1) * 100 / int(yt)
-#        res[3] = int(y2) * 100 / int(yt)
-#    else:
-#        res[2] = md.hr_history_year[course][3]
-#        res[3] = md.hr_history_year[course][4]
-#    return res
 
 
 def get_hr_win(data, name, course, md=mean_data()):
@@ -80,14 +68,14 @@ def get_hr_win(data, name, course, md=mean_data()):
                 res[3] = float(t1) * 100 / int(tt)
                 res[4] = float(t2) * 100 / int(tt)
             else:
-                res[3] = md.jk_history_total[course][3]
-                res[4] = md.jk_history_total[course][4]
+                res[3] = md.hr_history_total[course][3]
+                res[4] = md.hr_history_total[course][4]
             if int(yt) != 0:
                 res[8] = float(y1) * 100 / int(yt)
                 res[9] = float(y2) * 100 / int(yt)
             else:
-                res[8] = md.jk_history_year[course][3]
-                res[9] = md.jk_history_year[course][4]
+                res[8] = md.hr_history_year[course][3]
+                res[9] = md.hr_history_year[course][4]
             return res
     print("can not find horse %s" % (name,))
     return res
@@ -326,7 +314,7 @@ def parse_txt_trainer(date, name):
     return [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 
 
-def parse_xml_entry(meet, date_i, number, md=mean_data(), rd=RaceDetail()):
+def parse_xml_entry(meet, date_i, number, md, md3):
     # get other data
     #data_hr = xh.parse_xml_hr(meet)
     data_hr = th.parse_txt_hr(meet, date_i)
@@ -344,6 +332,7 @@ def parse_xml_entry(meet, date_i, number, md=mean_data(), rd=RaceDetail()):
     xml_text = BeautifulSoup(response_body, 'html.parser')
     humidity = get_humidity()
     jangu_clinic = wc.parse_hr_clinic(date)
+    race_record = get_race_record()
     for itemElm in xml_text.findAll('item'):
         #print itemElm
         course = int(unicode(itemElm.rcdist.string))
@@ -372,110 +361,53 @@ def parse_xml_entry(meet, date_i, number, md=mean_data(), rd=RaceDetail()):
         lastday = gdd.get_lastday(meet, date_i, int(rcno), hrname)
         train_state = gdd.get_train_state(meet, date_i, int(rcno), hrname)
         hr_no = gdd.get_hrno(meet, date_i, int(rcno), hrname)
-        race_score, _ = gdd.get_hr_racescore(meet, hr_no, date_i, month, course, 'url', md)
-        rd_data = rd.get_data(hrname, date_i, md)
+        lineage_info = gl.get_lineage(1, hr_no, 'File')
+        race_records, weight_past = gdd.get_hr_race_record(hrname, date_i, race_record, md3)
+        if hr_weight == -1:
+            hr_weight = weight_past
+        if hr_weight == 0:
+            hr_weight = {400: 265, 800: 267, 900: 286, 1000: 293, 1110: 299, 1200: 299, 1400: 300, 1610: 302, 1700: 303, 1800: 304}[course]
         jc_data = wc.get_jangu_clinic(jangu_clinic, hrname)
 
-        adata = [unicode(itemElm.rcdist.string),
-                 humidity,
-                 kind,
-
-                 dbudam,
-                 drweight,
-                 lastday,
-                 train_state[0],
-                 train_state[1],
-                 train_state[2],
-                 train_state[3],
-                 train_state[4],
-                 train_state[5],
-
-                 race_score[0],
-                 race_score[1],
-                 race_score[2],
-                 race_score[3],
-                 race_score[4],
-                 race_score[5],
-                 race_score[6],
-                 race_score[7],
-                 race_score[8],
-                 race_score[9],
-
-                 itemElm.chulno.string,
-                 itemElm.hrname.string,
-                 itemElm.prdctyname.string,
-                 hr_gender,
-                 itemElm.age.string,
-                 itemElm.wgbudam.string,
-                 itemElm.jkname.string,
-
-                 itemElm.trname.string,
-                 itemElm.owname.string,
-                 hr_weight,
-                 hr_dweight,
-                 cnt,
-                 itemElm.rcno.string,
-                 date_i / 100 % 100,
-                 hr_days,
-
-                 hr_win[0],
-                 hr_win[1],
-                 hr_win[2],
-                 hr_win[3],
-                 hr_win[4],
-                 hr_win[5],
-                 hr_win[6],
-                 hr_win[7],
-                 hr_win[8],
-                 hr_win[9],
-
-                 hr_dist_rec[0],
-                 hr_dist_rec[1],
-                 hr_dist_rec[2],
-                 hr_dist_rec[3],
-                 hr_dist_rec[4],
-                 hr_dist_rec[5],
-
-                 jk_win[0],
-                 jk_win[1],
-                 jk_win[2],
-                 jk_win[3],
-                 jk_win[4],
-                 jk_win[5],
-                 jk_win[6],
-                 jk_win[7],
-                 jk_win[8],
-                 jk_win[9],
-
-                 tr_win[0],
-                 tr_win[1],
-                 tr_win[2],
-                 tr_win[3],
-                 tr_win[4],
-                 tr_win[5],
-                 tr_win[6],
-                 tr_win[7],
-                 tr_win[8],
-                 tr_win[9],
-                 ]
-        #print(adata)
-        adata.extend(rd_data)
+        adata = [int(unicode(itemElm.rcdist.string)), int(humidity), int(kind), dbudam, drweight, lastday]
+        assert len(adata) == 6
+        adata.extend(train_state)
+        assert len(adata) == 12
+        adata.extend(lineage_info)
+        assert len(adata) == 62
+        adata.extend([int(itemElm.chulno.string), itemElm.hrname.string, itemElm.prdctyname.string, hr_gender,
+                 int(itemElm.age.string), itemElm.wgbudam.string, itemElm.jkname.string, itemElm.trname.string,
+                 itemElm.owname.string, hr_weight, hr_dweight, int(cnt), int(itemElm.rcno.string), date_i / 100 % 100,
+                 hr_days])
+        assert len(adata) == 77
+        adata.extend(hr_win)
+        assert len(adata) == 87
+        adata.extend(hr_dist_rec)
+        assert len(adata) == 93
+        adata.extend(jk_win)
+        assert len(adata) == 103
+        adata.extend(tr_win)
+        assert len(adata) == 113
         adata.extend(jc_data)
+        assert len(adata) == 145
+        adata.extend(race_records)
+        assert len(adata) == 173
         data.append(adata)
 
     df = pd.DataFrame(data)
-    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', #12
-                  'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10',  # 7
-                  'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', 'owner', # 9
+    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6'] \
+                + ['lg%d'%i for i in range(1,51)] \
+                + ['idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', 'owner', # 9
                   'weight', 'dweight', 'cnt', 'rcno', 'month', 'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', # 13
                   'hr_ny2', 'hr_y1', 'hr_y2', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 9
                   'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', # 7
                   'jk_ny2', 'jk_y1', 'jk_y2', 'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', # 10
-                  'tr_ny2', 'tr_y1', 'tr_y2', # 3
-                  'rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
-                  'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',  # 30
-                  'jc31', 'jc32']  # 21
+                  'tr_ny2', 'tr_y1', 'tr_y2'] \
+                  + ['jc%d'%i for i in range(1,33)] \
+                  + ['rc%d'%i for i in range(1,29)]
     return df
+
+
 # 73 - 4 = 59
 
 if __name__ == '__main__':
