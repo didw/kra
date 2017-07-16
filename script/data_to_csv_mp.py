@@ -80,51 +80,6 @@ def get_data(begin_date, end_date, fname_csv):
     return data
 
 
-def update_data(end_date, fname_csv):
-    data = pd.read_csv(fname_csv)
-    print("update data from %d to today" % data.loc[len(data)-1]['date'])
-    train_bd = data.loc[len(data)-1]['date']
-    train_ed = end_date
-    date = datetime.date(train_bd/10000, train_bd/100%100, train_bd%100)
-    fname_md = fname_csv.replace('.csv', '_md.pkl')
-    md = joblib.load(fname_md)
-    rd = RaceDetail()
-    import glob
-    for year in range(train_bd/10000-2, end_date.year+1):
-        filelist1 = glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_%d*.txt' % year)
-        filelist2 = glob.glob('../txt/1/rcresult/rcresult_1_%d*.txt' % year)
-        print("processed ap in %d" % year)
-        for fname in filelist1:
-            rd.parse_ap_rslt(fname)
-        print("processed rc in %d" % year)
-        for fname in filelist2:
-            rd.parse_race_detail(fname)
-    joblib.dump(rd, fname_csv.replace('.csv', '_rd.pkl'))
-    iter_save = 0
-    while date <= train_ed:
-        date += datetime.timedelta(days=1)
-        if date.weekday() != 5 and date.weekday() != 6:
-            continue
-        filename = "../txt/1/rcresult/rcresult_1_%02d%02d%02d.txt" % (date.year, date.month, date.day)
-        if not os.path.isfile(filename):
-            continue
-        for i in [900, 1000, 1200, 1300, 1400, 1700, 0]:
-            print("%f" % md.race_score[i][0][20], end=' ')
-        print()
-        adata = pr.get_data(filename, md, rd)
-        md.update_data(adata)
-        data = data.append(adata, ignore_index=True)
-        iter_save += 1
-        if iter_save % 10 == 0:
-            data.to_csv(fname_csv.replace('v1', 'v2'), index=False)
-    #os.system("rename \"%s\" \"%s\"" % (fname_csv, fname_csv.replace('.csv', '_%s.csv'%train_bd)))
-    #os.system("rename \"%s\" \"%s\"" % (fname_md, fname_md.replace('.pkl', '_%s.pkl'%train_bd)))
-    os.system("mv \"%s\" \"%s\"" % (fname_csv, fname_csv.replace('.csv', '_%s.csv'%train_bd)))
-    #os.system("mv \"%s\" \"%s\"" % (fname_md, fname_md.replace('.pkl', '_%s.pkl'%train_bd)))
-    data.to_csv(fname_csv.replace('v1', 'v2'), index=False)
-    
-    return data
-
 
 if __name__ == '__main__':
     DEBUG = True
