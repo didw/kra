@@ -37,25 +37,25 @@ def parse_txt_race(filename, md=mean_data()):
                 read_done = True
                 break
             if re.search(unicode(r'제목', 'utf-8').encode('utf-8'), line) is not None:
-                rcno = re.search(unicode(r'\d+(?=경주)', 'utf-8').encode('utf-8'), line).group()
+                rcno = int(re.search(unicode(r'\d+(?=경주)', 'utf-8').encode('utf-8'), line).group())
             if re.search(unicode(r'\(제주\)', 'utf-8').encode('utf-8'), line) is not None:
                 if DEBUG: print("%s" % line)
-                course = re.search(unicode(r'\d+(?=M)', 'utf-8').encode('utf-8'), line).group()
+                course = int(re.search(unicode(r'\d+(?=M)', 'utf-8').encode('utf-8'), line).group())
                 kind = re.search(unicode(r'M.+\d', 'utf-8').encode('utf-8'), line)
                 if kind is None:
                     kind = 0
                 else:
-                    kind = kind.group()[-1]
+                    kind = int(kind.group()[-1])
             if re.search(unicode(r'날씨', 'utf-8').encode('utf-8'), line) is not None:
                 if DEBUG: print("%s" % line)
                 if re.search(unicode(r'불량', 'utf-8').encode('utf-8'), line) is not None:
-                    humidity = 25
+                    humidity = 20
                 else:
                     humidity = re.search(unicode(r'\d+(?=%\))', 'utf-8').encode('utf-8'), line)
                     if humidity is None:
-                        humidity = '10'
+                        humidity = 10
                     else:
-                        humidity = humidity.group()
+                        humidity = int(humidity.group())
             if re.search(unicode(r'기수명|선수명', 'utf-8').encode('utf-8'), line) is not None:
                 break
         if read_done:
@@ -130,6 +130,7 @@ def parse_txt_race(filename, md=mean_data()):
                 adata.append(0)
             rctime = re.search(unicode(r'\d+:\d{2}\.\d', 'utf-8').encode('utf-8'), line).group()
             rctime = int(rctime[0])*600 + int(rctime[2:4])*10 + int(rctime[5])
+
             adata.append(rctime)
             data[-cnt+idx].extend(adata)
             idx += 1
