@@ -201,9 +201,6 @@ if __name__ == '__main__':
     #for year in range(2007,2017):
     #    filelist1 = glob.glob('../txt/2/ap-check-rslt/ap-check-rslt_2_%d*.txt' % year)
     #    filelist2 = glob.glob('../txt/2/rcresult/rcresult_2_%d*.txt' % year)
-    #    for fname in filelist1:
-    #        print("processed ap %s" % fname)
-    #        rd.parse_ap_rslt(fname)
     #    for fname in filelist2:
     #        print("processed rc in %s" % fname)
     #        rd.parse_race_detail(fname)

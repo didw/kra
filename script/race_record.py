@@ -17,7 +17,7 @@ import Queue
 
 with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
     md = cPickle.loads(f.read())
-md['course'][900] = md['course'][1000]
+md['course'][300] = md['course'][900]
 
 NEXT_AP = re.compile(r'마체중|３코너|4화롱|4펄롱')
 NEXT_RC = re.compile(r'마 체 중|단승식|복승식|매출액')
@@ -256,6 +256,146 @@ def parse_txt_race(filename):
     return data
 
 
+def parse_ap_rslt(filename):
+    data = []
+    input_file = open(filename)
+    while True:
+        # skip header
+        humidity = 0
+        read_done = False
+        rcno = -1
+        course = 300
+        kind = 0
+        hrname = ''
+        n_pass = 0
+        date = int(re.search(r'\d{8}', filename).group())
+        month = date/100%100
+        for _ in range(300):
+            line = input_file.readline()
+            line = unicode(line, 'euc-kr').encode('utf-8')
+            if len(line) == 0:
+                read_done = True
+                break
+            if re.search(unicode(r'제목', 'utf-8').encode('utf-8'), line) is not None:
+                rcno = int(re.search(unicode(r'\d+(?=경주)', 'utf-8').encode('utf-8'), line).group())
+            if re.search(unicode(r'주로상태', 'utf-8').encode('utf-8'), line) is not None:
+                if DEBUG: print("%s" % line)
+                if re.search(unicode(r'불량', 'utf-8').encode('utf-8'), line) is not None:
+                    humidity = 20
+                else:
+                    humidity = re.search(unicode(r'\d+(?=%\))', 'utf-8').encode('utf-8'), line)
+                    if humidity is None:
+                        humidity = 10
+                    else:
+                        humidity = int(humidity.group())
+            if re.search(unicode(r'기수명|선수명', 'utf-8').encode('utf-8'), line) is not None:
+                break
+        if read_done:
+            break
+
+        # 순위  마번  마    명         산지  성  연령   부  담  기수명    조교사명
+        cnt = 0
+        for _ in range(300):
+            line = input_file.readline()
+            line = unicode(line, 'euc-kr').encode('utf-8')
+            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
+                continue
+            if NEXT_AP.search(line) is not None:
+                break
+            if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:6]) is None:
+                continue
+
+            words = WORD.findall(line)
+            if words[0][0] == '9' and len(words[0])==2:
+                continue
+            hrname = words[2]
+            dbudam = 0
+            drweight = 0
+            lastday = 30
+            hr_days = get_hr_days(hrname, date)
+
+            if len(words) < 9:
+                print("something wrong..", filename, words)
+                continue
+            adata = [course, humidity, kind, dbudam, drweight, lastday, hr_days]
+            adata.append(int(words[1]))
+            adata.append(words[2])
+            adata.append(words[3])
+            adata.append(words[4])
+            adata.append(int(words[5]))
+            adata.append(np.sum(map(float, words[6].split('+'))))
+            adata.append(words[7])
+            adata.append(words[8])
+            adata.append("NoOwner")
+            data.append(adata)
+            assert len(data[-1]) == 16
+            cnt += 1
+
+        # 순위 마번  마    명        마체중 기  록  도착차    판정 불합격사유   검사사유
+        idx = 0
+        for _ in range(300):
+            line = input_file.readline()
+            line = unicode(line, 'euc-kr').encode('utf-8')
+            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
+                continue
+            if NEXT_AP.search(line) is not None:
+                break
+            if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:6]) is None:
+                continue
+            adata = []
+            words = WORD.findall(line)
+            if words[0][0] == '9' and len(words[0])==2:
+                continue
+            if words[-1] == '합':
+                n_pass += 1
+            adata.append(int(words[3]))
+            adata.append(0)
+            rctime = re.search(unicode(r'\d+:\d+\.\d', 'utf-8').encode('utf-8'), line).group()
+            rctime = int(rctime[0])*600 + int(rctime[2:4])*10 + int(rctime[5])
+            adata.append(rctime)
+            data[-cnt+idx].extend(adata)
+            assert len(data[-cnt+idx]) == 19
+            idx += 1
+        while cnt > idx:
+            del data[-1]
+            cnt -= 1
+        assert cnt == idx
+
+        for i in range(cnt):
+            adata = []
+            rctime = data[-cnt + i][18]
+            adata.append(rctime * 0.2592)  # s1f
+            adata.append(rctime * 0.2586)  # g1f
+            adata.append(rctime * 0.7408)  # g3f
+            data[-cnt + i].extend(adata)
+            assert len(data[-cnt+i]) == 22
+
+        for i in range(cnt):
+            data[-cnt + i].extend([cnt])
+            data[-cnt + i].extend([rcno])
+            data[-cnt + i].extend([month])
+            data[-cnt + i].extend([date])
+            assert len(data[-cnt + i]) == 26
+
+        for i in range(cnt):
+            if i >= n_pass:
+                del data[-1]
+                cnt -= 1
+        if len(data) > 0:
+            assert len(data[-1]) == 26
+
+        idx_remove = []
+        for i in range(cnt):
+            line = data[-cnt+i]
+            if line[18] > md['course'][line[0]]*1.2 or line[18] < md['course'][line[0]]*0.8:
+                print("rctime is weird.. course: %d, rctime: %d, filename: %s" % (line[0], line[18], filename))
+                idx_remove.append(i)
+        for i in idx_remove[::-1]:
+            del data[-cnt+i]
+        # columns:  course, humidity, kind, dbudam, drweight, lastday, hr_days, idx, hrname, cntry, 
+        #           gender, age, budam, jockey, trainer, owner, weight, dweight, rctime, s1f, 
+        #           g1f, g3f, cnt, rcno, month, date
+    return data
 
 
 def get_data(function_name, fname_queue, data_queue, filename_queue):
@@ -350,6 +490,40 @@ class RaceRecord:
                 print("job is finished")
                 break
 
+    def get_ap_record(self):
+        flist = sorted(glob.glob('../txt/2/ap-check-rslt/ap-check-rslt_2_20*.txt'))
+        file_queue = mp.Queue()
+        filename_queue = mp.Queue()
+        data_queue = mp.Queue()
+        for fname in sorted(flist):
+            if int(fname[-12:-4]) <= self.cur_ap_file:
+                print("%s is already loaded, pass" % fname)
+                continue
+            file_queue.put(fname)
+
+        worker_num = file_queue.qsize()
+        PROCESS_NUM = 5
+        saving_mode = Value('i', 0)
+        while True:
+            #print("Processing: %d/%d" % (file_queue.qsize(), worker_num))
+            time.sleep(0.5)
+            while worker_num < file_queue.qsize() + PROCESS_NUM and file_queue.qsize() > 0:
+                #print("run process %d" % (worker_num - file_queue.qsize()))
+                proc = mp.Process(target=get_data, args=(parse_ap_rslt, file_queue, data_queue, filename_queue))
+                proc.start()
+                if file_queue.qsize() < 20:
+                    time.sleep(5)
+                else:
+                    time.sleep(2)
+            if saving_mode.value == 0 and data_queue.qsize() > 0:
+                try:
+                    self.save_data(data_queue, filename_queue, worker_num, saving_mode)
+                    worker_num -= 1
+                except Queue.Empty:
+                    print("queue empty.. nothing to get data %d" % filename_queue.qsize())
+            if worker_num == 0:
+                print("job is finished")
+                break
 
     def load_model(self):
         with gzip.open('../data/race_record.gz', 'rb') as f:
