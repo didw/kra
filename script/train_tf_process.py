@@ -26,16 +26,16 @@ NUM_ENSEMBLE = 6
 def dense(input, n_in, n_out, p_keep=0.8):
     weights = tf.get_variable('weight', [n_in, n_out], initializer=tf.contrib.layers.xavier_initializer())
     biases = tf.get_variable('biases', [n_out], initializer=tf.constant_initializer(0.0))
-    h1 = tf.nn.batch_normalization(input, 0.001, 1.0, 0, 1, 0.0001)
-    return tf.nn.dropout(tf.nn.elu(tf.matmul(h1, weights) + biases), p_keep)
+    h1 = tf.matmul(input, weights) + biases
+    return tf.nn.elu(tf.nn.batch_normalization(h1, 0.001, 1.0, 0, 1, 0.0001))
 
 
 def dense_with_onehot(input, n_in, n_out, p_keep=0.8):
     inputs = tf.reshape(tf.one_hot(tf.to_int32(input), depth=n_in, on_value=1.0, off_value=0.0, axis=-1), [-1, n_in])
     weights = tf.get_variable('weight', [n_in, n_out], initializer=tf.contrib.layers.xavier_initializer())
     biases = tf.get_variable('biases', [n_out], initializer=tf.constant_initializer(0.0))
-    h1 = tf.nn.batch_normalization(inputs, 0.001, 1.0, 0, 1, 0.0001)
-    return tf.nn.dropout(tf.nn.elu(tf.matmul(h1, weights) + biases), p_keep)
+    h1 = tf.matmul(inputs, weights) + biases
+    return tf.nn.elu(tf.nn.batch_normalization(h1, 0.001, 1.0, 0, 1, 0.0001))
 
 
 lg_oh = [5009, 1489, 602, 318, 191, 309, 572, 399, 552, 1373, 769, 396, 717, 1296, 744, 1232, 4450, 1815, 714, 367, 666, 1636, 833, 1505, 4032, 1777, 719, 1604, 3677, 1627, 3320, 18002, 5436, 1570, 619, 336, 592, 1438, 773, 1342, 4712, 1846, 726, 1644, 4187, 1737, 3756, 16473, 5077, 1531, 632, 1399, 4368, 1720, 3858, 14679, 4502, 1394, 3811, 12577, 3783, 10447]
