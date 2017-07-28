@@ -14,7 +14,10 @@ import train_tf_process as tfp
 from get_race_detail import RaceDetail
 import numpy as np
 import os, gzip, cPickle
+import itertools
+from multiprocessing import Process, Queue
 
+MODEL_NUM = 30
 
 name_one_hot_columns = ['course', 'humidity', 'kind', 'idx', 'cntry', 'gender', 'age', 'jockey', 'trainer', 'owner', 'cnt', 'rcno', 'month']
 def normalize_data(org_data):
@@ -124,6 +127,27 @@ def print_detail(players, cand, fresult, mode):
         fresult.write("\n%s,%s,%s, %s: 2000" % (players[0], players[2], players[1], mode))
         fresult.write("\n%s,%s,%s, %s: 2000" % (players[1], players[0], players[2], mode))
         fresult.write("\n%s,%s,%s, %s: 2000" % (players[1], players[2], players[0], mode))
+    elif cand == [[1],[2],[3]]:
+        print("bet: 3000")  # 15000 / 5 = 3000
+        print("%s,%s,%s" % (players[0]+1, players[1]+1, players[2]+1))
+        fresult.write("\n\nbet: 3000")
+        fresult.write("\n%s,%s,%s, %s: 3000" % (players[0]+1, players[1]+1, players[2]+1, mode))
+    elif cand == [[1,2,3],[1,2,3],[1,2,3]] and mode == "ss":
+        print("bet: 500")  # 15000 / 5 / 5 = 600
+        fresult.write("\n\nbet: 500")
+        for i,j,k in itertools.product([1,2,3],[1,2,3],[1,2,3]):
+            if i==j or i==k or j==k:
+                continue
+            print("%s,%s,%s" % (players[i], players[j], players[k]))
+            fresult.write("\n%s,%s,%s, %s: 500" % (players[i], players[j], players[k], mode))
+    elif cand == [[3,4,5],[4,5,6],[4,5,6]]:
+        print("bet: 300")  # 15000 / 5 / 10 = 300
+        fresult.write("\n\nbet: 300")  # 14200 / 6 = 2366
+        for i,j,k in itertools.product([3,4,5],[4,5,6],[4,5,6]):
+            if i==j or i==k or j==k:
+                continue
+            print("%s,%s,%s" % (players[i], players[j], players[k]))
+            fresult.write("\n%s,%s,%s, %s: 300" % (players[i], players[j], players[k], mode))
     elif cand == [[4,5,6],[4,5,6],[4,5,6,7]]:
         print("bet: 2000")  # 14200 / 6 = 2366
         print("%s,%s,%s" % (players[3], players[4], players[5]))
@@ -196,11 +220,6 @@ def print_detail(players, cand, fresult, mode):
         fresult.write("\n%s,%s,{%s,%s,%s}" % (players[7], players[4], players[3], players[5], players[6]))
         fresult.write("\n%s,%s,{%s,%s,%s}" % (players[7], players[5], players[3], players[4], players[6]))
         fresult.write("\n%s,%s,{%s,%s,%s}" % (players[7], players[6], players[3], players[4], players[5]))
-    elif cand == [[1],[2],[3]]:
-        print("bet: 5000")  # 14200
-        print("%s,%s,%s" % (players[0]+1, players[1]+1, players[2]+1))
-        fresult.write("\n\nbet: 5000")  # 14200
-        fresult.write("\n%s,%s,%s, %s: 5000" % (players[0]+1, players[1]+1, players[2]+1, mode))
     elif cand == [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]]:
         print("bet: 100") # 14200 / 55 = 258
         print("%s,%s,{%s,%s,%s,%s}" % (players[0], players[1], players[2], players[3], players[4], players[5]))
@@ -270,6 +289,8 @@ def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
         print_detail(rcdata['idx'], [[1,2],[1,2,3],[1,2,3]], fresult, "ss")
     elif nData in [118, 151, 300]:
         print_detail(rcdata['idx'], [[1],[2],[3]], fresult, "ss")
+        print_detail(rcdata['idx'], [[1,2,3],[1,2,3],[1,2,3]], fresult, "ss")
+        print_detail(rcdata['idx'], [[3,4,5],[4,5,6],[4,5,6]], fresult, "ss")
     else:
         print("please check nData:%d" % nData)
 
@@ -333,7 +354,7 @@ def predict_next(estimators, data_pre, meet, date, rcno, course=0, nData=47, yea
         #print(X_data.columns)
         #print(estimator.feature_importances_)
 
-def predict_next_ens(estimators_, data_pre, meet, date, rcno, course=0, nData=47, year=4, train_course=0, scaler_x1=None, scaler_x2=None, scaler_x3=None, scaler_x4=None, scaler_x5=None, scaler_x6=None, scaler_y=None):
+def predict_next_ens(data_pre, meet, date, rcno, course=0, nData=47, year=4, train_course=0, scaler_x1=None, scaler_x2=None, scaler_x3=None, scaler_x4=None, scaler_x5=None, scaler_x6=None, scaler_y=None):
     data = normalize_data(data_pre)
     print(len(data.columns))
     X_data = data.copy()
@@ -351,8 +372,14 @@ def predict_next_ens(estimators_, data_pre, meet, date, rcno, course=0, nData=47
     X_array[:,88:124] = scaler_x5.transform(X_array[:,88:124])
     X_array[:,204:233] = scaler_x6.transform(X_array[:,204:233])
 
+    estimators = [0] * MODEL_NUM
+    for i in range(MODEL_NUM):
+        #estimators[i] = tfp.TensorflowRegressor('%d_5d/%d' % (train_bd_i, train_ed_i, i))
+        estimators[i] = tfp.TensorflowRegressor('reference/%d' % i)
+        estimators[i].load()
+
     for e in range(5):
-        estimators = estimators_[e*6:(e+1)*6]
+        estimators = estimators[e*6:(e+1)*6]
         preds = [0]*len(estimators)
         for i in range(len(estimators)):
             preds[i] = estimators[i].predict(X_array)
@@ -418,7 +445,7 @@ if __name__ == '__main__':
     #for rcno in range(11, len(courses)):
     course = courses[rcno]
     test_course = course
-    init_date = 20170722
+    init_date = 20170729
     from sklearn.externals import joblib
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
     with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
@@ -429,29 +456,45 @@ if __name__ == '__main__':
     data_pre1 = xe.parse_xml_entry(meet, init_date+0, rcno, md, md3)
     data_pre2 = xe.parse_xml_entry(meet, init_date+1, rcno, md, md3)
     for idx in range(1,2):
-        nData, year, train_course, epoch = [300,151,201,201][idx-1], [6,6,8,6][idx-1], [0,0,0,0][idx-1], [400,200,200,800][idx-1]
+        nData, year, train_course, epoch = [300,151,201,201][idx-1], [6,6,8,6][idx-1], [0,0,0,0][idx-1], [300,200,200,800][idx-1]
         date = init_date
         if train_course == 1: train_course = course
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
 
-        estimators, md, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y = tfp.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData, n_epoch=epoch)
+        train_bd = datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1)
+        train_ed = datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1)
+        n_epoch = epoch
+        #q = Queue()
+        #p = Process(target=tfp.training, args=(train_bd, train_ed, n_epoch, q))
+        #p.start()
+        #p.join()
+        #scaler_x1 = q.get()
+        #scaler_x2 = q.get()
+        #scaler_x3 = q.get()
+        #scaler_x4 = q.get()
+        #scaler_x5 = q.get()
+        #scaler_x6 = q.get()
+        #scaler_y = q.get()
+        scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e300_rms/reference/scaler_x.pkl')
+        scaler_y = joblib.load('../model/tf/l1_e300_rms/reference/scaler_x.pkl')
+        #estimators, md, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y = tfp.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData, n_epoch=epoch)
 
         if idx == 1:
             fname = '../result/1707/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            predict_next_ens(estimators, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
+            predict_next_ens(data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
             date += 1
             fname = '../result/1707/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            predict_next_ens(estimators, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
+            predict_next_ens(data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
         else:
             fname = '../result/1707/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            predict_next(estimators, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
+            predict_next(data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
             date += 1
             fname = '../result/1707/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            predict_next(estimators, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
+            predict_next(data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
         idx += 1
 
 # Strategy
