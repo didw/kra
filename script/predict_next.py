@@ -1,17 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from bs4 import BeautifulSoup
 import pandas as pd
 import glob
 import parse_xml_entry as xe
 import datetime
-import train as tr
-import train_keras as tk
-import train_keras_ensenble as tkn
 import train_tf_ensenble as tfn
 import train_tf_process as tfp
-from get_race_detail import RaceDetail
 import numpy as np
 import os, gzip, cPickle
 import itertools
@@ -372,14 +367,15 @@ def predict_next_ens(data_pre, meet, date, rcno, course=0, nData=47, year=4, tra
     X_array[:,88:124] = scaler_x5.transform(X_array[:,88:124])
     X_array[:,204:233] = scaler_x6.transform(X_array[:,204:233])
 
-    estimators = [0] * MODEL_NUM
+    estimators_ = [0] * MODEL_NUM
     for i in range(MODEL_NUM):
-        #estimators[i] = tfp.TensorflowRegressor('%d_5d/%d' % (train_bd_i, train_ed_i, i))
-        estimators[i] = tfp.TensorflowRegressor('reference/%d' % i)
-        estimators[i].load()
+        print("loading model[%d]..." % i)
+        estimators_[i] = tfp.TensorflowRegressor('%d_%d/%d' % (train_bd_i, train_ed_i, i))
+        #estimators_[i] = tfp.TensorflowRegressor('reference/%d' % i)
+        estimators_[i].load()
 
     for e in range(5):
-        estimators = estimators[e*6:(e+1)*6]
+        estimators = estimators_[e*6:(e+1)*6]
         preds = [0]*len(estimators)
         for i in range(len(estimators)):
             preds[i] = estimators[i].predict(X_array)
@@ -421,20 +417,6 @@ def predict_next_ens(data_pre, meet, date, rcno, course=0, nData=47, year=4, tra
                         rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
                 else:
                     rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
-
-def get_race_detail(date):
-    rd = RaceDetail()
-    import glob
-    for year in range(date/10000 - 3, date/10000+1):
-        filelist1 = glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_%d*.txt' % year)
-        filelist2 = glob.glob('../txt/1/rcresult/rcresult_1_%d*.txt' % year)
-        print("loading rslt at %d" % year)
-        for fname in filelist1:
-            rd.parse_ap_rslt(fname)
-        print("loading rcresult at %d" % year)
-        for fname in filelist2:
-            rd.parse_race_detail(fname)
-    return rd
 
 
 if __name__ == '__main__':
@@ -481,11 +463,11 @@ if __name__ == '__main__':
 
         if idx == 1:
             fname = '../result/1707/%d_%d.txt' % (date%100, idx)
-            os.system("rm %s" % fname)
+            #os.system("rm %s" % fname)
             predict_next_ens(data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
             date += 1
             fname = '../result/1707/%d_%d.txt' % (date%100, idx)
-            os.system("rm %s" % fname)
+            #os.system("rm %s" % fname)
             predict_next_ens(data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
         else:
             fname = '../result/1707/%d_%d.txt' % (date%100, idx)
