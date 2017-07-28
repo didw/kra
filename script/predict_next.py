@@ -133,16 +133,16 @@ def print_detail(players, cand, fresult, mode):
         for i,j,k in itertools.product([1,2,3],[1,2,3],[1,2,3]):
             if i==j or i==k or j==k:
                 continue
-            print("%s,%s,%s" % (players[i], players[j], players[k]))
-            fresult.write("\n%s,%s,%s, %s: 500" % (players[i], players[j], players[k], mode))
+            print("%s,%s,%s" % (players[i]+1, players[j]+1, players[k]+1))
+            fresult.write("\n%s,%s,%s, %s: 500" % (players[i]+1, players[j]+1, players[k]+1, mode))
     elif cand == [[3,4,5],[4,5,6],[4,5,6]]:
         print("bet: 300")  # 15000 / 5 / 10 = 300
         fresult.write("\n\nbet: 300")  # 14200 / 6 = 2366
         for i,j,k in itertools.product([3,4,5],[4,5,6],[4,5,6]):
             if i==j or i==k or j==k:
                 continue
-            print("%s,%s,%s" % (players[i], players[j], players[k]))
-            fresult.write("\n%s,%s,%s, %s: 300" % (players[i], players[j], players[k], mode))
+            print("%s,%s,%s" % (players[i]+1, players[j]+1, players[k]+1))
+            fresult.write("\n%s,%s,%s, %s: 300" % (players[i]+1, players[j]+1, players[k]+1, mode))
     elif cand == [[4,5,6],[4,5,6],[4,5,6,7]]:
         print("bet: 2000")  # 14200 / 6 = 2366
         print("%s,%s,%s" % (players[3], players[4], players[5]))
