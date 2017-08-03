@@ -387,6 +387,11 @@ def get_hr_race_record_mean(hrname, date, race_record, md):
         for hr_c_data in hr_data[course]:
             if hr_c_data[23] >= date:
                 continue
+            res_cands = list(map(lambda x: norm_racescore(hr_c_data[x], md, hr_c_data, hrname, course), [17, 18, 19, 16]))
+            if res_cands[0] < 100: continue
+            if res_cands[1] < 100: continue
+            if res_cands[2] < 100: continue
+            if res_cands[3] < 100: continue
             res_list[0].append(norm_racescore(hr_c_data[17], md, hr_c_data, hrname, course))
             res_list[1].append(norm_racescore(hr_c_data[18], md, hr_c_data, hrname, course))
             res_list[2].append(norm_racescore(hr_c_data[19], md, hr_c_data, hrname, course))
@@ -451,6 +456,11 @@ def get_hr_race_record(hrname, date, race_record, md):
         for hr_c_data in hr_data[course]:
             if hr_c_data[23] >= date:
                 continue
+            res_cands = list(map(lambda x: norm_racescore(hr_c_data[x], md, hr_c_data, hrname, course), [17, 18, 19, 16]))
+            if res_cands[0] < 100: continue
+            if res_cands[1] < 100: continue
+            if res_cands[2] < 100: continue
+            if res_cands[3] < 100: continue
             res_list[0].append(norm_racescore(hr_c_data[17], md, hr_c_data, hrname, course))
             res_list[1].append(norm_racescore(hr_c_data[18], md, hr_c_data, hrname, course))
             res_list[2].append(norm_racescore(hr_c_data[19], md, hr_c_data, hrname, course))

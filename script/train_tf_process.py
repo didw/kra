@@ -111,6 +111,8 @@ class TensorflowRegressor():
         self.dir = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         self.sess = None
 
+        tf.train.export_meta_graph('%s/model_orig.meta' % self.model_dir)
+
     def set_scaler(self, scaler_y):
         self.scaler_y = scaler_y
 
@@ -175,14 +177,18 @@ class TensorflowRegressor():
 
             if not os.path.exists(self.model_dir):
                 os.makedirs(self.model_dir)
-            save_path = self.saver.save(sess,'%s/model.ckpt' % self.model_dir)
+            save_path = self.saver.save(sess,'%s/model' % self.model_dir)
             print("\nModel saved in file: %s" % save_path)
 
     def load(self):
         self.sess = tf.Session(config=self.config)
         self.sess.run(self.init_op)
-        ckpt = tf.train.get_checkpoint_state(self.model_dir)
-        self.saver.restore(self.sess, ckpt.model_checkpoint_path)
+        recent_model = tf.train.latest_checkpoint(self.model_dir)
+        try:
+            self.saver = tf.train.import_meta_graph('%s_orig.meta' % recent_model)
+        except:
+            self.saver = tf.train.import_meta_graph('%s.meta' % recent_model)
+        self.saver.restore(self.sess, recent_model)
 
     def close(self):
         self.sess.close()
@@ -313,6 +319,8 @@ def training(train_bd, train_ed, n_epoch, q):
     X_data[:,88:124] = scaler_x5.fit_transform(X_data[:,88:124])
     X_data[:,204:233] = scaler_x6.fit_transform(X_data[:,204:233])
     Y_data = scaler_y.fit_transform(Y_data)
+    joblib.dump((scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6), "%s/scaler_x.pkl" % (model_dir,))
+    joblib.dump(scaler_y, "%s/scaler_y.pkl" % (model_dir,))
     seed = 7
     np.random.seed(seed)
     # evaluate model with standardized dataset
@@ -396,7 +404,7 @@ def process_train(train_bd, train_ed, q):
             X_train, Y_train = X_data, Y_data
             X_val, Y_val = None, None
 
-        model_name = "%s/%d/model.ckpt.index" % (model_dir, i)
+        model_name = "%s/%d/model.index" % (model_dir, i)
         if os.path.exists(model_name):
             print("model[%d] exist. pass.. %s - %s" % (i, str(train_bd), str(train_ed)))
             #estimators[i] = TensorflowRegressor('%s_%s/%d' % (train_bd_i, train_ed_i, i))
@@ -420,6 +428,14 @@ def process_train(train_bd, train_ed, q):
     q.put(scaler_x6)
     q.put(scaler_y)
 
+
+def load_g_estimators():
+    g_estimators = [0] * MODEL_NUM
+    for i in range(MODEL_NUM):
+        print("load g_estimators[%d]..." % i)
+        g_estimators[i] = TensorflowRegressor('reference/%d' % i)
+        #g_estimators[i].load()
+    return g_estimators
 
 
 def process_test(train_bd, train_ed, scaler, q):
@@ -468,7 +484,7 @@ def process_test(train_bd, train_ed, scaler, q):
         if DEBUG:
             X_test.to_csv('../log/weekly_train0_%s.csv' % today, index=False)
         X_test = np.array(X_test)
-        Y_test = np.array(Y_test.reshape(-1,1)).reshape(-1)
+        Y_test = np.array(Y_test.values.reshape(-1,1)).reshape(-1)
         pred = [0] * MODEL_NUM
         for i in range(MODEL_NUM):
             estimator = TensorflowRegressor('%d_%d/%d' % (train_bd_i, train_ed_i, i))

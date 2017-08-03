@@ -608,26 +608,6 @@ def get_data(filename, md, md3):
                   + ['date']
     return df
 
-def get_data2(filename, _date, _rcno):
-    print("race file: %s" % filename)
-    date = datetime.date(_date/10000, _date/100%100, _date%100)
-    data = parse_txt_race2(filename, _date, _rcno)
-    for i in range(len(data)):
-        #print("race file: %s" % filename)
-        #print("%s %s %s" % (data[i][5], data[i][10], data[i][11]))
-        data[i].extend(parse_txt_horse(date, int(data[i][23]), data[i][12]))
-        data[i].extend(parse_txt_jockey(date, data[i][17]))
-        data[i].extend(parse_txt_trainer(date, data[i][18]))
-        data[i].extend([_date])
-    df = pd.DataFrame(data)
-    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 20
-                  'weight', 'dweight', 'cnt', 'rcno', 'month',
-                  'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
-                  'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
-                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
-                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2', 'date'] # 10
-    return df
-
 
 if __name__ == '__main__':
     DEBUG = True

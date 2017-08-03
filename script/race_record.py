@@ -187,11 +187,11 @@ def parse_txt_race(filename):
             try:
                 s1f = float(re.search(r'\d{2}\.\d', words[3]).group())*10
             except:
-                s1f = 150
+                s1f = -1
             try:
                 g3f = float(re.search(r'\d{2}\.\d', words[2]).group())*10
             except:
-                g3f = 400
+                g3f = -1
             if s1f < 100 or s1f > 200:
                 s1f = -1
             if g1f < 100 or g1f > 200:
@@ -225,6 +225,11 @@ def parse_txt_race(filename):
             if line[18] > md['course'][line[0]]*1.2 or line[18] < md['course'][line[0]]*0.8:
                 print("rctime is weird.. course: %d, rctime: %d, filename: %s" % (line[0], line[18], filename))
                 idx_remove.append(idx)
+                continue
+            if -1 in [line[19], line[20], line[21]]:
+                print("s1f, g1f, g3f is weired")
+                idx_remove.append(idx)
+                continue
         for idx in idx_remove[::-1]:
             del data[-cnt+idx]
         # columns:  course, humidity, kind, dbudam, drweight, lastday, hr_days, idx, hrname, cntry, 
@@ -363,21 +368,21 @@ def parse_ap_rslt(filename):
             try:
                 g1f = float(re.search(r'\d{2}\.\d', words[6]).group())*10
             except:
-                g1f = 150
+                g1f = -1
             try:
                 s1f = float(re.search(r'\d{2}\.\d', words[3]).group())*10
             except:
-                s1f = 150
+                s1f = -1
             try:
                 g3f = float(re.search(r'\d{2}\.\d', words[2]).group())*10
             except:
-                g3f = 400
+                g3f = -1
             if s1f < 100 or s1f > 200:
-                s1f = 150
+                s1f = -1
             if g1f < 100 or g1f > 200:
-                g1f = 150
+                g1f = -1
             if g3f < 300 or g3f > 500:
-                g3f = 400
+                g3f = -1
             adata.append(s1f)
             adata.append(g1f)
             adata.append(g3f)
@@ -409,6 +414,11 @@ def parse_ap_rslt(filename):
             if line[18] > md['course'][line[0]]*1.2 or line[18] < md['course'][line[0]]*0.8:
                 print("rctime is weird.. course: %d, rctime: %d, filename: %s" % (line[0], line[18], filename))
                 idx_remove.append(i)
+                continue
+            if -1 in [line[19], line[20], line[21]]:
+                print("s1f, g1f, g3f is weired")
+                idx_remove.append(i)
+                continue
         for i in idx_remove[::-1]:
             del data[-cnt+i]
         # columns:  course, humidity, kind, dbudam, drweight, lastday, hr_days, idx, hrname, cntry, 
@@ -462,7 +472,7 @@ class RaceRecord:
             self.cur_rc_file = int(fname[-12:-4])
         if "ap" in fname:
             self.cur_ap_file = int(fname[-12:-4])
-        if worker_num % 10 == 1:
+        if worker_num % 50 == 1:
             if "rcresult" in fname:
                 print("saved rc at %d" % self.cur_rc_file)
             if "ap" in fname:
