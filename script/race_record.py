@@ -186,17 +186,22 @@ def parse_txt_race(filename):
                 continue
             try:
                 s1f = float(re.search(r'\d{2}\.\d', words[3]).group())*10
-            except:
+            except ValueError:
+                print("except ValueError in %s" % filename)
                 s1f = -1
             try:
                 g3f = float(re.search(r'\d{2}\.\d', words[2]).group())*10
-            except:
+            except ValueError:
+                print("except ValueError in %s" % filename)
                 g3f = -1
             if s1f < 100 or s1f > 200:
+                print("s1f value is %.1f in %s" % (s1f, filename))
                 s1f = -1
             if g1f < 100 or g1f > 200:
+                print("g1f value is %.1f in %s" % (g1f, filename))
                 g1f = -1
             if g3f < 300 or g3f > 500:
+                print("g3f value is %.1f in %s" % (g3f, filename))
                 g3f = -1
             adata.append(s1f)
             adata.append(g1f)
@@ -227,7 +232,7 @@ def parse_txt_race(filename):
                 idx_remove.append(idx)
                 continue
             if -1 in [line[19], line[20], line[21]]:
-                print("s1f, g1f, g3f is weired")
+                print("s1f, g1f, g3f is weired in %s" % filename)
                 idx_remove.append(idx)
                 continue
         for idx in idx_remove[::-1]:
@@ -367,21 +372,27 @@ def parse_ap_rslt(filename):
             if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (words[3], words[6], words[2]))
             try:
                 g1f = float(re.search(r'\d{2}\.\d', words[6]).group())*10
-            except:
+            except ValueError:
+                print("except ValueError in %s" % filename)
                 g1f = -1
             try:
                 s1f = float(re.search(r'\d{2}\.\d', words[3]).group())*10
-            except:
+            except ValueError:
+                print("except ValueError in %s" % filename)
                 s1f = -1
             try:
                 g3f = float(re.search(r'\d{2}\.\d', words[2]).group())*10
-            except:
+            except ValueError:
+                print("except ValueError in %s" % filename)
                 g3f = -1
             if s1f < 100 or s1f > 200:
+                print("s1f is %.1f in %s" % (s1f, filename))
                 s1f = -1
             if g1f < 100 or g1f > 200:
+                print("g1f is %.1f in %s" % (g1f, filename))
                 g1f = -1
             if g3f < 300 or g3f > 500:
+                print("g3f is %.1f in %s" % (g3f, filename))
                 g3f = -1
             adata.append(s1f)
             adata.append(g1f)
@@ -416,7 +427,7 @@ def parse_ap_rslt(filename):
                 idx_remove.append(i)
                 continue
             if -1 in [line[19], line[20], line[21]]:
-                print("s1f, g1f, g3f is weired")
+                print("s1f, g1f, g3f is weired in %s" % filename)
                 idx_remove.append(i)
                 continue
         for i in idx_remove[::-1]:
