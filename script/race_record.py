@@ -186,13 +186,13 @@ def parse_txt_race(filename):
                 continue
             try:
                 s1f = float(re.search(r'\d{2}\.\d', words[3]).group())*10
-            except ValueError:
-                print("except ValueError in %s" % filename)
+            except AttributeError:
+                print("except AttributeError in %s" % filename)
                 s1f = -1
             try:
                 g3f = float(re.search(r'\d{2}\.\d', words[2]).group())*10
-            except ValueError:
-                print("except ValueError in %s" % filename)
+            except AttributeError:
+                print("except AttributeError in %s" % filename)
                 g3f = -1
             if s1f < 100 or s1f > 200:
                 print("s1f value is %.1f in %s" % (s1f, filename))
@@ -254,7 +254,7 @@ def parse_ap_rslt(filename):
         course = 900
         kind = 0
         hrname = ''
-        n_pass = 0
+        n_pass = []
         date = int(re.search(r'\d{8}', filename).group())
         month = date/100%100
         for _ in range(300):
@@ -334,7 +334,9 @@ def parse_ap_rslt(filename):
             if words[0][0] == '9' and len(words[0])==2:
                 continue
             if words[-1] == '합':
-                n_pass += 1
+                n_pass.append(1)
+            else:
+                n_pass.append(0)
             adata.append(int(words[3]))
             adata.append(0)
             rctime = re.search(unicode(r'\d+:\d+\.\d', 'utf-8').encode('utf-8'), line).group()
@@ -350,6 +352,7 @@ def parse_ap_rslt(filename):
 
         # 순위  마번    G-3Ｆ    S-1F   ３코너   ４코너     G-1F  S1F-1C-2C-3C-4C-G1F
         idx = 0
+        n_words = 0
         for _ in range(300):
             END_CHK = re.compile(r'4화롱|4펄롱')
             if END_CHK.search(line) is not None:
@@ -366,24 +369,33 @@ def parse_ap_rslt(filename):
                 continue
             adata = []
             words = re.findall(r'\S+', line)
+            if idx == 0:
+                n_words = len(words)
+            if n_words != len(words):
+                print("%s:%d is missing.." % (filename, idx))
+                data[-cnt+idx].extend([-1, -1, -1])
+                continue
             if words[0][0] == '9' and len(words[0])==2:
+                continue
+            if n_pass[idx] == 0:
+                data[-cnt+idx].extend([-1, -1, -1])
                 continue
             s1f, g1f, g3f = -1, -1, -1
             if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (words[3], words[6], words[2]))
             try:
                 g1f = float(re.search(r'\d{2}\.\d', words[6]).group())*10
-            except ValueError:
-                print("except ValueError in %s" % filename)
+            except AttributeError:
+                print("except g1f AttributeError in %s:%d" % (filename, idx))
                 g1f = -1
             try:
                 s1f = float(re.search(r'\d{2}\.\d', words[3]).group())*10
-            except ValueError:
-                print("except ValueError in %s" % filename)
+            except AttributeError:
+                print("except s1f AttributeError in %s:%d" % (filename, idx))
                 s1f = -1
             try:
                 g3f = float(re.search(r'\d{2}\.\d', words[2]).group())*10
-            except ValueError:
-                print("except ValueError in %s" % filename)
+            except AttributeError:
+                print("except g3f AttributeError in %s:%d" % (filename, idx))
                 g3f = -1
             if s1f < 100 or s1f > 200:
                 print("s1f is %.1f in %s" % (s1f, filename))
@@ -413,7 +425,7 @@ def parse_ap_rslt(filename):
             assert len(data[-cnt + i]) == 26
 
         for i in range(cnt):
-            if i >= n_pass:
+            if n_pass[i] == 0:
                 del data[-1]
                 cnt -= 1
         if len(data) > 0:
@@ -496,7 +508,7 @@ class RaceRecord:
         saving_mode.value = 0
 
     def get_race_record(self):
-        flist = sorted(glob.glob('../txt/1/rcresult/rcresult_1_20*.txt'))
+        flist = sorted(glob.glob('../txt/1/rcresult/rcresult_1_2007*.txt'))
         file_queue = mp.Queue()
         filename_queue = mp.Queue()
         data_queue = mp.Queue()
@@ -531,7 +543,7 @@ class RaceRecord:
                 break
 
     def get_ap_record(self):
-        flist = sorted(glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_20*.txt'))
+        flist = sorted(glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_2007*.txt'))
         file_queue = mp.Queue()
         filename_queue = mp.Queue()
         data_queue = mp.Queue()
