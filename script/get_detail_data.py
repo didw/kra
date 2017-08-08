@@ -362,8 +362,7 @@ def make_mean_race_record(race_record):
     return res_dict, np.median(weight_list)
 
 
-def get_hr_race_record_mean(hrname, date, race_record, md):
-    mean_data, weight = make_mean_race_record(race_record)
+def get_hr_race_record_mean(hrname, date, race_record, md, mean_data, weight):
     res = []
     weight_list = []
     res_summary = [[] for _ in range(4)]
@@ -409,11 +408,12 @@ def get_hr_race_record_mean(hrname, date, race_record, md):
         if len(res_summary[i]) == 0:
             continue
         res[6*4+i] = np.median(res_summary[i])
-    return res, np.median(weight_list)
+    if len(weight_list) != 0:
+        weight = np.median(weight_list)
+    return res, weight
 
 
-def get_hr_race_record(hrname, date, race_record, md):
-    mean_data, weight = make_mean_race_record(race_record)
+def get_hr_race_record(hrname, date, race_record, md, mean_data, weight):
     default_res = []
     weight_list = []
     res_summary = [[] for _ in range(4)]
@@ -422,7 +422,7 @@ def get_hr_race_record(hrname, date, race_record, md):
         for i in range(4):
             res_summary[i].append(mean_data[course][i])
     for i in range(4):
-        default_res.append(np.median(res_summary[i]))  # default result
+        default_res.append(np.mean(res_summary[i]))  # default result
 
     try:
         hr_data = race_record.data[hrname]
@@ -441,6 +441,7 @@ def get_hr_race_record(hrname, date, race_record, md):
             res_summary[2].append(norm_racescore(hr_c_data[19], md, hr_c_data, hrname, course)/mean_data[course][2])
             res_summary[3].append(norm_racescore(hr_c_data[16], md, hr_c_data, hrname, course)/mean_data[course][3])
 
+    assert len(default_res) == 28
     res = [0]*28
     for i in range(4):
         if len(res_summary[i]) == 0:
@@ -471,10 +472,12 @@ def get_hr_race_record(hrname, date, race_record, md):
                 res[ic*4+i] = res[6*4+i] * default_res[ic*4+i] / default_res[6*4+i]
                 continue
             res[ic*4+i] = np.median(res_list[i])
+    if len(weight_list) != 0:
+        weight = np.median(weight_list)
+    assert len(res) == 28
     for i in range(len(res)):
-        if res[i] < 100:
-            print("res[i]: %d is weired.." % res[i])
-    return res, np.median(weight_list)
+        float(res[i])
+    return res, weight
 
 
 if __name__ == '__main__':
