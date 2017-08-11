@@ -190,6 +190,7 @@ def parse_xml_entry(meet, date_i, number, md, md3):
     humidity = get_humidity()
     jangu_clinic = wc.parse_hr_clinic(date)
     race_record = get_race_record()
+    mean_data, weight = gdd.make_mean_race_record(race_record)
     for itemElm in xml_text.findAll('item'):
         #print itemElm
         course = int(unicode(itemElm.rcdist.string))
@@ -217,7 +218,7 @@ def parse_xml_entry(meet, date_i, number, md, md3):
         train_state = gdd.get_train_state(meet, date_i, int(rcno), hrname)
         hr_no = gdd.get_hrno(meet, date_i, int(rcno), hrname)
         lineage_info = gl.get_lineage(1, hr_no, 'File')
-        race_records, weight_past = gdd.get_hr_race_record(hrname, date_i, race_record, md3)
+        race_records, weight_past = gdd.get_hr_race_record(hrname, date_i, race_record, md3, mean_data, weight)
         if hr_weight == -1:
             hr_weight = weight_past
         if hr_weight == 0:

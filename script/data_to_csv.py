@@ -9,6 +9,7 @@ from mean_data import mean_data
 from sklearn.externals import joblib
 from mean_data3 import save_mean_data
 from race_record import RaceRecord
+import get_detail_data as gdd
 import gzip
 import cPickle
 import get_lineage as lg
@@ -67,8 +68,11 @@ def update_data(end_date, fname_csv):
 
     with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
         md3 = cPickle.loads(f.read())
-    md3['humidity'][20] = md3['humidity'][25]
+    if 25 in md3['humidity']:
+        md3['humidity'][20] = md3['humidity'][25]
 
+    race_record = pr.get_race_record()
+    mean_data, weight = gdd.make_mean_race_record(race_record)
     while date <= train_ed:
         date += datetime.timedelta(days=1)
         if date.weekday() != 5 and date.weekday() != 6:
@@ -79,7 +83,7 @@ def update_data(end_date, fname_csv):
         for i in [900, 1000, 1200, 1300, 1400, 1700, 0]:
             print("%f" % md.race_score[i][0][20], end=' ')
         print()
-        adata = pr.get_data(filename, md, md3)
+        adata = pr.get_data(filename, md, md3, race_record, mean_data, weight)
         data = data.append(adata, ignore_index=True)
     os.system("mv \"%s\" \"%s\"" % (fname_csv, fname_csv.replace('.csv', '_%s.csv'%train_bd)))
     data.to_csv(fname_csv, index=False)
