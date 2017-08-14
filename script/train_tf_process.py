@@ -449,14 +449,11 @@ def process_test(train_bd, train_ed, scaler, q):
     
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/tf/l1_e300_rms/%d_%d" % (train_bd_i, train_ed_i)
-    data_dir = "../data/tf/l1_e300_rms"
+    data_dir = "../data/tf/l1_e300_rms_ref"
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
 
-    if not os.path.exists('../data/tf/l1_e300_rms'):
-        os.makedirs('../data/tf/l1_e300_rms')
-    fname_result = '../data/tf/l1_e300_rms/tf_nd%d_y%d.txt' % (nData, delta_year)
+    fname_result = '%s/tf_nd%d_y%d.txt' % (data_dir, nData, delta_year)
     print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
     X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.csv', nData=nData)
     X_test = np.array(X_test)
@@ -487,8 +484,8 @@ def process_test(train_bd, train_ed, scaler, q):
         Y_test = np.array(Y_test.values.reshape(-1,1)).reshape(-1)
         pred = [0] * MODEL_NUM
         for i in range(MODEL_NUM):
-            estimator = TensorflowRegressor('%d_%d/%d' % (train_bd_i, train_ed_i, i))
-            #estimator = TensorflowRegressor('reference/%d' % i)
+            #estimator = TensorflowRegressor('%d_%d/%d' % (train_bd_i, train_ed_i, i))
+            estimator = TensorflowRegressor('reference/%d' % i)
             pred[i] = estimator.predict(X_test)
             pred[i] = scaler_y.inverse_transform(pred[i])
             score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
@@ -669,18 +666,18 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         test_ed_s = "%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day)
         if not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_bd_s) and not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_ed_s):
             continue
-        p = Process(target=process_train, args=(train_bd, train_ed, q))
-        p.start()
-        p.join()
-        scaler_x1 = q.get()
-        scaler_x2 = q.get()
-        scaler_x3 = q.get()
-        scaler_x4 = q.get()
-        scaler_x5 = q.get()
-        scaler_x6 = q.get()
-        scaler_y = q.get()
-        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e300_rms/reference/scaler_x.pkl')
-        #scaler_y = joblib.load('../model/tf/l1_e300_rms/reference/scaler_y.pkl')
+        #p = Process(target=process_train, args=(train_bd, train_ed, q))
+        #p.start()
+        #p.join()
+        #scaler_x1 = q.get()
+        #scaler_x2 = q.get()
+        #scaler_x3 = q.get()
+        #scaler_x4 = q.get()
+        #scaler_x5 = q.get()
+        #scaler_x6 = q.get()
+        #scaler_y = q.get()
+        scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e300_rms/reference/scaler_x.pkl')
+        scaler_y = joblib.load('../model/tf/l1_e300_rms/reference/scaler_y.pkl')
         q.put((sr, sscore))
         p = Process(target=process_test, args=(train_bd, train_ed, (scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y), q))
         p.start()
