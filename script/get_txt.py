@@ -52,6 +52,8 @@ def download_txt(bd, ed, meet, overwrite=False):
 
     for line in data[meet-1]:
         race_url = line[0]
+        if not os.path.exists("../txt/%d/%s/"%(meet, line[1])):
+            os.makedirs("../txt/%d/%s/"%(meet, line[1]))
         date = bd + datetime.timedelta(days=-1)
         while date < ed:
             date += datetime.timedelta(days=1)
@@ -108,6 +110,8 @@ def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
         base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfo"
         race_url = base_url + line[0]
         date = bd + datetime.timedelta(days=-1)
+        if not os.path.exists("../txt/%d/%s/"%(meet, line[1])):
+            os.makedirs("../txt/%d/%s/"%(meet, line[1]))
         while date < ed:
             date += datetime.timedelta(days=1)
             if date.weekday() not in line[2]:
@@ -182,6 +186,6 @@ def download_racehorse(hrno_b, hrno_e, meet, overwrite=False):
 if __name__ == '__main__':
     for i in range(1, 2):
         #download_racehorse(0, 40000, i, False)
-        download_chulmaDetailInfo(datetime.date(2017, 8, 9), datetime.date.today(), i, True)
-        download_txt(datetime.date(2017, 8, 9), datetime.date.today(), i, True)
+        #download_chulmaDetailInfo(datetime.date(2017, 8, 9), datetime.date.today(), i, True)
+        download_txt(datetime.date(2017, 4, 9), datetime.date.today(), i, True)
 

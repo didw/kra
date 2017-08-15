@@ -47,7 +47,7 @@ def get_hr_data(data, name):
             hr_birth = line['birth']
             hr_birth = (datetime.date.today() - datetime.date(int(hr_birth[:4]), int(hr_birth[5:7]), int(hr_birth[8:]))).days
             return (line['gender'], hr_birth)
-    print("can not find horse %s" % (name,))
+    print("can not find horse %s" % name.encode('utf-8'))
     return (-1, -1)
 
 

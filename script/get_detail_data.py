@@ -80,7 +80,7 @@ def get_weight(meet, date, rcno, name, course):
                 try:
                     return float(unicode(itemList[2].string))
                 except ValueError:
-                    print("could not convert string to float %s, %s" % (name, unicode(itemList[2].string)))
+                    print("could not convert string to float %s, %s" % (name.encode('utf-8'), unicode(itemList[2].string).encode('utf-8')))
                     continue
     return -1
     return {1000: 461, 1100: 460, 1200: 463, 1300: 464, 1400: 466, 1700: 466, 1800: 471, 1900: 475, 2000: 482, 2300: 492}[course]
