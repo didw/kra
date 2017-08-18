@@ -171,51 +171,48 @@ def delete_lack_data(X_data, Y_data):
     print(len(remove_index))
     return X_data.drop(X_data.index[remove_index]), Y_data.drop(Y_data.index[remove_index])
 
-def training(train_bd, train_ed, n_epoch, q):
+def training(train_bd, train_ed, q):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
     model_dir = "../model/xgboost/ens_e1000/%d_%d" % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
-    estimators = [0] * MODEL_NUM
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-    X_data, Y_data, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv')
+    X_data, Y_data, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', 0)
     scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y = StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler()
     X_data = np.array(X_data)
-    Y_data = np.array(Y_data)
-    X_data[:,3:5] = scaler_x1.fit_transform(X_data[:,3:5])  # 'dbudam', 'drweight'
-    X_data[:,6:12] = scaler_x2.fit_transform(X_data[:,6:12])  # 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6'
-    X_data[:,78:79] = scaler_x3.fit_transform(X_data[:,78:79])  # 'budam'
+    X_data = np.array(X_data)
+    X_data, Y_data = shuffle(X_data, Y_data)
+    
+    X_data[:,3:5] = scaler_x1.fit_transform(X_data[:,3:5])
+    X_data[:,6:12] = scaler_x2.fit_transform(X_data[:,6:12])
+    X_data[:,78:79] = scaler_x3.fit_transform(X_data[:,78:79])
     X_data[:,82:84] = scaler_x4.fit_transform(X_data[:,82:84])
     X_data[:,88:124] = scaler_x5.fit_transform(X_data[:,88:124])
     X_data[:,204:233] = scaler_x6.fit_transform(X_data[:,204:233])
-    Y_data = scaler_y.fit_transform(Y_data)
+    Y_data = scaler_y.fit_transform(Y_data.reshape(-1,1))
+    print("Done")
+
     joblib.dump((scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6), "%s/scaler_x.pkl" % (model_dir,))
     joblib.dump(scaler_y, "%s/scaler_y.pkl" % (model_dir,))
-    seed = 7
-    np.random.seed(seed)
-    # evaluate model with standardized dataset
+
     for i in range(MODEL_NUM):
-        print("model[%d] training.." % (i+1))
-        if i >= 12:
-            X_train, X_val, Y_train, Y_val = train_test_split(X_data, Y_data, random_state=0)
+        if i < 5:
+            X_train, X_val, y_train, y_val = train_test_split(X_data, Y_data, random_state=np.random.randint(100))
         else:
-            X_train, Y_train = X_data, Y_data
-            X_val, Y_val = None, None
-        dir_name = '../model/xgboost/ens_e1000/%s_%s/%d' % (train_bd_i, train_ed_i, i)
-        if not os.path.exists(dir_name):
-            os.makedirs(dir_name)
-        tf.reset_default_graph()
-        estimator = TensorflowRegressor("%s_%s/%d"%(train_bd_i, train_ed_i, i))
-        estimator.set_scaler(scaler_y)
-        model_name = "%s/%d/model.ckpt.index" % (model_dir, i)
+            X_train, y_train = X_data, Y_data
+            X_val, y_val = None, None
+
+        model_name = "%s/%d/model.pkl" % (model_dir,i)
         if os.path.exists(model_name):
-            #print("loading exists model")
-            #estimator.load()
-            print("passing exists model")
+            print("model[%d] exist. pass.. %s - %s" % (i, str(train_bd), str(train_ed)))
         else:
-            estimator.fit(X_train, Y_train, X_val, Y_val, n_epoch=n_epoch)
+            if not os.path.exists("%s/%d" % (model_dir, i)):
+                os.makedirs("%s/%d" % (model_dir, i))
+            print("model[%d] training.." % (i+1))
+            train_xgboost("%s_%s/%d"%(train_bd_i, train_ed_i, i), X_train, y_train, X_val, y_val)
+    print("Finish train model")
     q.put(scaler_x1)
     q.put(scaler_x2)
     q.put(scaler_x3)
@@ -223,7 +220,7 @@ def training(train_bd, train_ed, n_epoch, q):
     q.put(scaler_x5)
     q.put(scaler_x6)
     q.put(scaler_y)
-    #return estimators, md, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y
+
 
 def print_log(data, pred, fname):
     flog = open(fname, 'w')
@@ -262,7 +259,7 @@ def train_xgboost(dir_path, X_train, y_train, X_val, y_val):
         watchlist = [(xg_train, 'train')]
     # use linear regression
     param['objective'] = 'reg:linear'
-    num_round = 10000
+    num_round = 1000
     bst = xgb.train(param, xg_train, num_round, watchlist, verbose_eval=False)
     # get prediction
 
