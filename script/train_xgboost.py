@@ -174,7 +174,7 @@ def delete_lack_data(X_data, Y_data):
 def training(train_bd, train_ed, n_epoch, q):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/xgboost/simple_ens_e10000/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/xgboost/ens_e1000/%d_%d" % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
@@ -203,7 +203,7 @@ def training(train_bd, train_ed, n_epoch, q):
         else:
             X_train, Y_train = X_data, Y_data
             X_val, Y_val = None, None
-        dir_name = '../model/xgboost/simple_ens_e10000/%s_%s/%d' % (train_bd_i, train_ed_i, i)
+        dir_name = '../model/xgboost/ens_e1000/%s_%s/%d' % (train_bd_i, train_ed_i, i)
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
         tf.reset_default_graph()
@@ -254,7 +254,7 @@ def train_xgboost(dir_path, X_train, y_train, X_val, y_val):
     param['eta'] = 0.1
     param['max_depth'] = 6
     param['silent'] = 1
-    param['nthread'] = 4
+    param['nthread'] = 12
     param['num_class'] = 1
     if y_val is not None:
         watchlist = [(xg_train, 'train'), (xg_val, 'val')]
@@ -270,15 +270,15 @@ def train_xgboost(dir_path, X_train, y_train, X_val, y_val):
         pred = bst.predict(xg_val)
         error_rate = sqrt(mean_squared_error(pred, y_val))
         print('Test error using softmax = {}'.format(error_rate))
-    if not os.path.exists("../model/xgboost/simple_ens_e10000/%s"%dir_path):
-        os.makedirs("../model/xgboost/simple_ens_e10000/%s"%dir_path)
-    joblib.dump(bst, "../model/xgboost/simple_ens_e10000/%s/model.pkl"%dir_path)
+    if not os.path.exists("../model/xgboost/ens_e1000/%s"%dir_path):
+        os.makedirs("../model/xgboost/ens_e1000/%s"%dir_path)
+    joblib.dump(bst, "../model/xgboost/ens_e1000/%s/model.pkl"%dir_path)
 
 
 def process_train(train_bd, train_ed, q):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/xgboost/simple_ens_e10000/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/xgboost/ens_e1000/%d_%d" % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
@@ -346,7 +346,7 @@ def process_test(train_bd, train_ed, scaler, q):
     
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    data_dir = "../data/xgboost/simple_ens_e10000"
+    data_dir = "../data/xgboost/ens_e1000_20100814_20160812"
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
 
@@ -381,7 +381,8 @@ def process_test(train_bd, train_ed, scaler, q):
         Y_test = np.array(Y_test.values.reshape(-1,1)).reshape(-1)
         pred = [0] * MODEL_NUM
         for i in range(MODEL_NUM):
-            estimator = joblib.load("../model/xgboost/simple_ens_e10000/%d_%d/%d/model.pkl"%(train_bd_i, train_ed_i, i))
+            #estimator = joblib.load("../model/xgboost/ens_e1000/%d_%d/%d/model.pkl"%(train_bd_i, train_ed_i, i))
+            estimator = joblib.load("../model/xgboost/ens_e1000/20100814_20160812/%d/model.pkl"%i)
             xg_test = xgb.DMatrix(X_test)
             pred[i] = estimator.predict(xg_test)
             pred[i] = scaler_y.inverse_transform(pred[i])
@@ -517,18 +518,18 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         test_ed_s = "%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day)
         if not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_bd_s) and not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_ed_s):
             continue
-        p = Process(target=process_train, args=(train_bd, train_ed, q))
-        p.start()
-        p.join()
-        scaler_x1 = q.get()
-        scaler_x2 = q.get()
-        scaler_x3 = q.get()
-        scaler_x4 = q.get()
-        scaler_x5 = q.get()
-        scaler_x6 = q.get()
-        scaler_y = q.get()
-        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/xgboost/simple_ens_e10000/reference/scaler_x.pkl')
-        #scaler_y = joblib.load('../model/xgboost/simple_ens_e10000/reference/scaler_y.pkl')
+        #p = Process(target=process_train, args=(train_bd, train_ed, q))
+        #p.start()
+        #p.join()
+        #scaler_x1 = q.get()
+        #scaler_x2 = q.get()
+        #scaler_x3 = q.get()
+        #scaler_x4 = q.get()
+        #scaler_x5 = q.get()
+        #scaler_x6 = q.get()
+        #scaler_y = q.get()
+        scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/xgboost/ens_e1000/20100814_20160812/scaler_x.pkl')
+        scaler_y = joblib.load('../model/xgboost/ens_e1000/20100814_20160812/scaler_y.pkl')
         q.put((sr, sscore))
         p = Process(target=process_test, args=(train_bd, train_ed, (scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y), q))
         p.start()
@@ -541,6 +542,7 @@ if __name__ == '__main__':
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
     test_bd = datetime.date(2016, 6, 5)
+    test_bd = datetime.date(2016, 8, 14)
     test_ed = datetime.date(2017, 7, 25)
 
     for delta_year in [6]:

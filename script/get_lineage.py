@@ -66,6 +66,8 @@ def get_lineage(meet, hrno, mode='File'):
     if os.path.exists(fname) and mode == 'File':
         response_body = open(fname).read()
     else:
+        if not os.path.exists("../txt/%d/LineageInfo/" % meet):
+            os.makedirs("../txt/%d/LineageInfo/" % meet)
         base_url = "http://race.kra.co.kr/racehorse/profileLineageInfo.do?Act=02&Sub=1&"
         url = base_url + "meet=%d&hrNo=%06d" % (meet, hrno)
         response_body = urlopen(url).read()
