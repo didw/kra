@@ -23,7 +23,7 @@ def make_dict(fname, rcno=1):
                 line_parsing = re.search(r'\d+,\d+,\d+', line)
                 if line_parsing is None:
                     continue
-                key = tuple(line_parsing.group().split(','))
+                key = tuple(map(int, line_parsing.group().split(',')))
                 if re.search(r'(?<=ss: )\d+', line) is not None:
                     value = int(re.search(r'(?<=ss: )\d+', line).group())
                     try:
@@ -44,5 +44,7 @@ if __name__ == '__main__':
         fname = '../result/1708/%d_1.txt' % day
         for i in range(0,16):
             print("===%d==="%i)
-            res_dict[Day_list[day-init_day]][i] = make_dict(fname, i)
+            rcno_dict =  make_dict(fname, i)
+            if len(rcno_dict) > 0:
+                res_dict[Day_list[day-init_day]][i] = rcno_dict
     pickle.dump(res_dict, open("../result/1708/%d.pkl" % init_day, 'wb'))
