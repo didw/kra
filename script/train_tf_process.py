@@ -689,7 +689,7 @@ if __name__ == '__main__':
     delta_year = 4
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2016, 6, 5)
+    test_bd = datetime.date(2016, 10, 5)
     test_ed = datetime.date(2017, 7, 25)
 
     for delta_year in [6]:

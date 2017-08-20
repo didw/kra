@@ -22,6 +22,7 @@ from multiprocessing import Process, Queue
 import xgboost as xgb
 from sklearn.metrics import mean_squared_error
 from math import sqrt
+from sklearn.model_selection import GridSearchCV
 
 MODEL_NUM = 10
 NUM_ENSEMBLE = 5
@@ -174,7 +175,7 @@ def delete_lack_data(X_data, Y_data):
 def training(train_bd, train_ed, n_epoch, q):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/xgboost/simple_ens_e10000/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/xgbregressor/ens_e1000/%d_%d" % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
@@ -203,7 +204,7 @@ def training(train_bd, train_ed, n_epoch, q):
         else:
             X_train, Y_train = X_data, Y_data
             X_val, Y_val = None, None
-        dir_name = '../model/xgboost/simple_ens_e10000/%s_%s/%d' % (train_bd_i, train_ed_i, i)
+        dir_name = '../model/xgbregressor/ens_e1000/%s_%s/%d' % (train_bd_i, train_ed_i, i)
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
         tf.reset_default_graph()
@@ -245,40 +246,47 @@ def print_log(data, pred, fname):
 
 
 def train_xgboost(dir_path, X_train, y_train, X_val, y_val):
+    max_depth = 3
+    min_child_weight = 10
+    subsample = 0.5
+    colsample_bytree = 0.6
+    objective = 'reg:linear'
+    num_estimators = 100
+    learning_rate = 1e-1
+    n_jobs = 10
     xg_train = xgb.DMatrix(X_train, label=y_train)
     if y_val is not None:
         xg_val = xgb.DMatrix(X_val, label=y_val)
-    # setup parameters for xgboost
-    param = {}
-    # scale weight of positive examples
-    param['eta'] = 0.1
-    param['max_depth'] = 6
-    param['silent'] = 1
-    param['nthread'] = 4
-    param['num_class'] = 1
     if y_val is not None:
         watchlist = [(xg_train, 'train'), (xg_val, 'val')]
     else:
         watchlist = [(xg_train, 'train')]
-    # use linear regression
-    param['objective'] = 'reg:linear'
-    num_round = 10000
-    bst = xgb.train(param, xg_train, num_round, watchlist, verbose_eval=False)
+    bst = xgb.XGBRegressor(max_depth=max_depth,
+                        min_child_weight=min_child_weight,
+                        subsample=subsample,
+                        colsample_bytree=colsample_bytree,
+                        objective=objective,
+                        n_estimators=num_estimators,
+                        learning_rate=learning_rate,
+                        n_jobs=n_jobs)
+    bst = GridSearchCV(bst, {'learning_rate': [0.1, 0.05, 0.01],
+                    'max_depth': [4, 6, 8]})
+    bst.fit(X_train, y_train)
+    print(bst.get_params())
     # get prediction
-
     if y_val is not None:
-        pred = bst.predict(xg_val)
+        pred = bst.predict(X_val)
         error_rate = sqrt(mean_squared_error(pred, y_val))
         print('Test error using softmax = {}'.format(error_rate))
-    if not os.path.exists("../model/xgboost/simple_ens_e10000/%s"%dir_path):
-        os.makedirs("../model/xgboost/simple_ens_e10000/%s"%dir_path)
-    joblib.dump(bst, "../model/xgboost/simple_ens_e10000/%s/model.pkl"%dir_path)
+    if not os.path.exists("../model/xgbregressor/ens_e1000/%s"%dir_path):
+        os.makedirs("../model/xgbregressor/ens_e1000/%s"%dir_path)
+    joblib.dump(bst, "../model/xgbregressor/ens_e1000/%s/model.pkl"%dir_path)
 
 
 def process_train(train_bd, train_ed, q):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/xgboost/simple_ens_e10000/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/xgbregressor/ens_e1000/%d_%d" % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
@@ -346,7 +354,7 @@ def process_test(train_bd, train_ed, scaler, q):
     
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    data_dir = "../data/xgboost/simple_ens_e10000"
+    data_dir = "../data/xgbregressor/ens_e1000"
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
 
@@ -381,9 +389,9 @@ def process_test(train_bd, train_ed, scaler, q):
         Y_test = np.array(Y_test.values.reshape(-1,1)).reshape(-1)
         pred = [0] * MODEL_NUM
         for i in range(MODEL_NUM):
-            estimator = joblib.load("../model/xgboost/simple_ens_e10000/%d_%d/%d/model.pkl"%(train_bd_i, train_ed_i, i))
+            estimator = joblib.load("../model/xgbregressor/ens_e1000/%d_%d/%d/model.pkl"%(train_bd_i, train_ed_i, i))
             xg_test = xgb.DMatrix(X_test)
-            pred[i] = estimator.predict(xg_test)
+            pred[i] = estimator.predict(X_test)
             pred[i] = scaler_y.inverse_transform(pred[i])
             score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
 
@@ -527,8 +535,8 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         scaler_x5 = q.get()
         scaler_x6 = q.get()
         scaler_y = q.get()
-        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/xgboost/simple_ens_e10000/reference/scaler_x.pkl')
-        #scaler_y = joblib.load('../model/xgboost/simple_ens_e10000/reference/scaler_y.pkl')
+        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/xgbregressor/ens_e1000/reference/scaler_x.pkl')
+        #scaler_y = joblib.load('../model/xgbregressor/ens_e1000/reference/scaler_y.pkl')
         q.put((sr, sscore))
         p = Process(target=process_test, args=(train_bd, train_ed, (scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y), q))
         p.start()
