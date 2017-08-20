@@ -103,7 +103,7 @@ def get_dweight(meet, date, rcno, name):
                 try:
                     return float(unicode(itemList[3].string))
                 except ValueError:
-                    print("could not convert string to float %s, %s" % (name, unicode(itemList[2].string)))
+                    print("ValueError in %s" % name.encode('utf-8'))
                     continue
     #print("can not find dweight %s in %s" % (name, fname))
     return 0
