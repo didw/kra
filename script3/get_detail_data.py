@@ -1,0 +1,466 @@
+# -*- coding:utf-8 -*-
+
+import sys
+if sys.version_info >= (3, 0):
+    from urllib.request import urlopen
+else:
+    from urllib2 import urlopen
+import os
+from bs4 import BeautifulSoup
+import datetime
+import re
+import numpy as np
+from mean_data import mean_data
+import time
+
+DEBUG = False
+
+
+def get_budam(meet, date, rcno, name):
+    name = name.replace('★', '')
+    fname = '../txt/%d/chulmapyo/chulmapyo_%d_%d_%d.txt' % (meet, meet, date, rcno)
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoChulmapyo.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body, 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if name in itemList[1].string:
+                return itemList[6].string
+    print("can not find budam of %s in %s" % (name, fname))
+    return 54
+
+
+def get_dbudam(meet, date, rcno, name):
+    name = name.replace('★', '')
+    fname = '../txt/%d/chulmapyo/chulmapyo_%d_%d_%d.txt' % (meet, meet, date, rcno)
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoChulmapyo.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body, 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if len(itemList) >= 10 and name in itemList[1].string:
+                value = int(re.search(r'\d+', itemList[7].string).group())
+                return value
+    print("can not find dbudam of %s in %s" % (name, fname))
+    return 0
+
+
+def get_weight(meet, date, rcno, name, course):
+    name = name.replace('★', '')
+    fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
+    if os.path.exists(fname) and True:
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body, 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if name in itemList[1].string:
+                try:
+                    return float(itemList[2].string)
+                except ValueError:
+                    print("could not convert string to float %s, %s" % (name, itemList[2].string))
+                    continue
+    return -1
+    return {1000: 461, 1100: 460, 1200: 463, 1300: 464, 1400: 466, 1700: 466, 1800: 471, 1900: 475, 2000: 482, 2300: 492}[course]
+
+
+def get_dweight(meet, date, rcno, name):
+    name = name.replace('★', '')
+    fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
+    if os.path.exists(fname) and True:
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body, 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if name in itemList[1].string:
+                try:
+                    return float(itemList[3].string)
+                except ValueError:
+                    print("could not convert string to float %s, %s" % (name, itemList[2].string))
+                    continue
+    print("can not find dweight %s in %s" % (name, fname))
+    return 0
+
+
+def get_drweight(meet, date, rcno, name):
+    name = name.replace('★', '')
+    fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
+    if os.path.exists(fname) and True:
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body, 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if len(itemList) < 5:
+                continue
+            if name in itemList[1].string:
+                last_date = itemList[4].string
+                if len(last_date) >= 10:
+                    last_date = datetime.date(int(last_date[:4]), int(last_date[5:7]), int(last_date[8:10]))
+                    delta_day = datetime.date(int(date/10000), int(date/100)%100, date%100) - last_date
+                    return float(itemList[3].string) * 1000 / delta_day.days
+                else:
+                    if "-R" not in last_date:
+                        print("can not parsing get_drweight %s" % fname)
+                    return 0
+    print("can not find drweight %s in %s" % (name, fname))
+    return 0
+
+
+def get_lastday(meet, date, rcno, name):
+    name = name.replace('★', '')
+    fname = '../txt/%d/weight/weight_%d_%d_%d.txt' % (meet, meet, date, rcno)
+    if DEBUG: print(fname)
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body, 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if len(itemList) < 5:
+                continue
+            if name in itemList[1].string:
+                last_date = itemList[4].string
+                if len(last_date) >= 10:
+                    last_date = datetime.date(int(last_date[:4]), int(last_date[5:7]), int(last_date[8:10]))
+                    delta_day = datetime.date(int(date/10000), int(date/100)%100, date%100) - last_date
+                    return delta_day.days
+                else:
+                    if "-R" not in last_date:
+                        print("can not parsing get_lastday %s" % fname)
+                        return 43
+                    else:
+                        return 100  # first attending
+    print("can not find last day %s in %s" % (name, fname))
+    return 43
+
+
+def get_train_state(meet, date, rcno, name):
+    name = name.replace('★', '')
+    fname = '../txt/%d/train_state/train_state_%d_%d_%d.txt' % (meet, meet, date, rcno)
+    res = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    cand = "조보후승기"
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoTrainState.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body, 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            if name in itemList[1].string:
+                for item in itemList[2:]:
+                    if item.string is None:
+                        continue
+                    trainer = re.search(r'[가-힣]+', item.string)
+                    time = re.search(r'\d+', item.string)
+                    if trainer is None or time is None:
+                        continue
+                    trainer = trainer.group()
+                    who = int(cand.find(trainer) / 3)
+                    if who == -1:
+                        who = 4
+                    train_time = int(re.search(r'\d+', item.string).group())
+                    res[who] += train_time
+                    res[5] += train_time
+                return res
+    print("can not find train state %s in %s" % (name, fname))
+    return [2, 7, 1, 27, 125, 162]
+
+
+# http://race.kra.co.kr/racehorse/profileTrainState.do?Act=02&Sub=1&meet=1&hrNo=036114
+def get_train_info(hridx):
+    base_url = "http://race.kra.co.kr/racehorse/profileTrainState.do?Act=02&Sub=1&meet=1&hrNo="
+    url = "%s%s" % (base_url, hridx)
+    print(url)
+    response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body, 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            if len(itemElm2) != 15:
+                continue
+            itemList = itemElm2.findAll('td')
+            #print(itemList[1].string)
+            #print(itemList[5].string)
+    return -1
+
+
+def get_distance_record(meet, name, rcno, date, course, md=mean_data()):
+    name = name.replace('★', '')
+    date_i = int("%d%02d%02d" % (date.year, date.month, date.day))
+    fname = '../txt/%d/dist_rec/dist_rec_%d_%d_%d.txt' % (meet, meet, date_i, rcno)
+    res = []
+    cand = "조보후승기"
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date_i)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body, 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            #print("name: %s, %s" % (name, itemList[1].string.encode('utf-8')))
+            if name in itemList[1].string:
+                #print("find name: %s, %s" % (name, itemList[1].string.encode('utf-8')))
+                if int(itemList[2].string[0]) == 0:
+                    try:
+                        return [0, 0, 0] + list(map(lambda x: float(x), md.dist_rec[course][3:]))
+                    except KeyError:
+                        print("there is no course %d" % course)
+                        return list(map(lambda x: float(x), md.dist_rec[course]))
+                if DEBUG:
+                    print("%s, %s, %s, %s, %s, %s" % (itemList[2].string, itemList[3].string, itemList[4].string, itemList[5].string, itemList[6].string, itemList[7].string))
+                try:
+                    cnt = re.search(r'\d+', itemList[2].string).group()
+                    res.append(float(cnt))
+                    res.append(float(itemList[3].string))
+                    res.append(float(itemList[4].string))
+                    t = itemList[5].string
+                    res.append(float(t.split(':')[0]) * 600 + float(t.split(':')[1].split('.')[0]) * 10 + float(t.split('.')[1][0]))
+                    t = itemList[6].string
+                    res.append(float(t.split(':')[0]) * 600 + float(t.split(':')[1].split('.')[0]) * 10 + float(t.split('.')[1][0]))
+                    t = itemList[7].string
+                    res.append(float(t.split(':')[0]) * 600 + float(t.split(':')[1].split('.')[0]) * 10 + float(t.split('.')[1][0]))
+                    break
+                except:
+                    print("parsing error")
+                    break
+    if len(res) == 6:
+        return res
+    else:
+        print("can not find %s in %s" % (name, fname))
+        try:
+            return list(map(lambda x: float(x), md.dist_rec[course]))
+        except KeyError:
+            print("there is no course %d" % course)
+            return [-1, -1, -1, -1, -1, -1]
+
+
+def get_hrno(meet, date, rcno, name):
+    name = name.replace('★', '')
+    fname = '../txt/%d/chulmapyo/chulmapyo_%d_%d_%d.txt' % (meet, meet, date, rcno)
+    if os.path.exists(fname):
+        response_body = open(fname).read()
+    else:
+        base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoChulmapyo.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
+        response_body = urlopen(url).read()
+    xml_text = BeautifulSoup(response_body, 'html.parser')
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr'):
+            itemList = itemElm2.findAll('td')
+            try:
+                hrname = itemList[1].string
+                hrname = hrname.replace('★', '')
+            except:
+                continue
+            if name == hrname:
+                #print("hrname: %s, %s" % (name, re.search(r'\d{6}', str(itemList[1])).group()))
+                return int(re.search(r'\d{6}', str(itemList[1])).group())
+    print("can not find %s in fname %s" % (name, fname))
+    return -1
+
+
+def norm_racescore(course, month, humidity, value, md=mean_data()):
+    month = int(month)
+    humidity = min(humidity, 20) - 1
+    try:
+        return value * np.array(md.race_score[0])[:,20].mean() / md.race_score[0][month][humidity]
+    except KeyError:
+        return value
+
+
+def get_hr_racescore(meet, hrno, _date, month, course, mode='File', md=mean_data()):
+    first_attend = True
+    weight = 0
+    course = int(course)
+    result = [-1, -1, -1, -1, -1, -1, -1] # 주, 1000, 1200, 1300, 1400, 1700, 0
+    default_res = list(map(lambda x: float(np.mean(np.array(x)[:,20])), [md.race_score[900], md.race_score[1000], md.race_score[1200], md.race_score[1300], md.race_score[1400], md.race_score[1700], md.race_score[0]]))
+    default_res.extend(list(map(lambda x: float(x), md.dist_rec[course][3:])))
+    race_sum = [[], [], [], [], [], [], []]
+    race_same_dist = []
+    if hrno == -1:
+        return default_res, weight
+    fname = '../txt/%d/racehorse/racehorse_%d_%06d.txt' % (meet, meet, hrno)
+    #print("racehorse: %s" % fname)
+    if os.path.exists(fname) and mode == 'File':
+        response_body = open(fname).read()
+    else:
+        #fname_mdate = time.localtime(os.stat(fname).st_mtime)
+        #fname_mdate_ = int("%d%02d%02d" % (fname_mdate.tm_year, fname_mdate.tm_mon, fname_mdate.tm_mday))
+        #print(fname_mdate_, _date)
+        #if os.path.exists(fname) and fname_mdate_ == _date:
+        #    response_body = open(fname).read()
+        #else:
+        base_url = "http://race.kra.co.kr/racehorse/profileRaceScore.do?Act=02&Sub=1&"
+        url = base_url + "meet=%d&hrNo=%06d" % (meet, hrno)
+        response_body = urlopen(url).read()
+        fout = open(fname, 'w')
+        fout.write(str(response_body))
+        fout.close()
+        if os.path.getsize(fname) < 31100:
+            os.remove(fname)
+        print("open url %d" % hrno)
+    try:
+        xml_text = BeautifulSoup(response_body, 'html.parser')
+    except UnicodeDecodeError:
+        print("decode error: %s", fname)
+        return default_res, weight
+    for itemElm in xml_text.findAll('tbody'):
+        for itemElm2 in itemElm.findAll('tr')[2:]:
+            itemList = itemElm2.findAll('td')
+            #print(itemList)
+            try:
+                date = re.search(r'\d{4}/\d{2}/\d{2}', str(itemList[1])).group()
+            except:
+                print(fname)
+                print("regular expression error: %s" % itemList)
+                continue
+            date = int("%s%s%s" % (date[:4], date[5:7], date[8:]))
+            month_ = int(date/100)%100
+            if date >= _date:
+                continue
+
+            if datetime.date(int(date/10000), int(date/100)%100, date%100) + datetime.timedelta(days=365*1) < datetime.date(int(_date/10000), int(_date/100)%100, _date%100):
+                continue
+            racekind = itemList[3].string.strip()
+            try:
+                distance = int(itemList[4].string.strip())
+            except:
+                if racekind == '주':
+                    distance = 900
+                else:
+                    continue
+            try:
+                record = itemList[10].string.strip()
+                if weight == 0:
+                    weight = int(itemList[11].string.strip().split('(')[0])
+            except:
+                print("unicode error")
+                continue
+
+            #print(unicode(itemList[12].string).strip())
+            try:
+                humidity = int(re.search(r'\d+', itemList[12].string).group())
+            except AttributeError:
+                humidity = 7
+            try:
+                record = float(record[0])*600 + float(record[2:4])*10 + float(record[5])
+            except:
+                continue
+            if record == 0:
+                continue
+            #print("주, 일, %s" % racekind)
+            record = norm_racescore(distance, month_-1, humidity, record, md)
+            if distance not in [900, 1000, 1200, 1300, 1400, 1700]:
+                continue
+            if record < md.race_score[distance][month_-1][20]*0.8 or record > md.race_score[distance][month_-1][20]*1.2:
+                continue
+            if racekind == '주' and len(race_sum[0]) == 0:
+                race_sum[0].append(record)
+                race_sum[6].append(record * md.race_score[0][month_-1][humidity] / md.race_score[900][month_-1][humidity])
+                if first_attend:
+                    md.update_race_score_qual(month_-1, humidity, record)
+                first_attend = False
+            elif racekind == '일':
+                if distance == 1000:
+                    race_sum[1].append(record)
+                    race_sum[6].append(record * md.race_score[0][month_-1][humidity] / md.race_score[1000][month_-1][humidity])
+                elif distance == 1200:
+                    race_sum[2].append(record)
+                    race_sum[6].append(record * md.race_score[0][month_-1][humidity] / md.race_score[1200][month_-1][humidity])
+                elif distance == 1300:
+                    race_sum[3].append(record)
+                    race_sum[6].append(record * md.race_score[0][month_-1][humidity] / md.race_score[1300][month_-1][humidity])
+                elif distance == 1400:
+                    race_sum[4].append(record)
+                    race_sum[6].append(record * md.race_score[0][month_-1][humidity] / md.race_score[1400][month_-1][humidity])
+                elif distance == 1700:
+                    race_sum[5].append(record)
+                    race_sum[6].append(record * md.race_score[0][month_-1][humidity] / md.race_score[1700][month_-1][humidity])
+                if course == distance:
+                    race_same_dist.append(record)
+            #print("%d, %s, %s, %d" % (date, racekind, distance, record))
+
+
+    course_score = [0,0,0,0,0,0,0]
+    course_score[0] = np.mean(md.race_score[900])
+    course_score[1] = np.mean(md.race_score[1000])
+    course_score[2] = np.mean(md.race_score[1200])
+    course_score[3] = np.mean(md.race_score[1300])
+    course_score[4] = np.mean(md.race_score[1400])
+    course_score[5] = np.mean(md.race_score[1700])
+    course_score[6] = np.mean(md.race_score[0])
+
+    if len(race_sum[6]) == 0:
+        result[6] = float(course_score[6])
+    else:
+        result[6] = np.mean(race_sum[6])
+        race_sum[6].reverse()
+        for r in race_sum[6]:
+            result[6] += 0.5 * (r - result[6])
+    for i in range(len(race_sum)-1):
+        if len(race_sum[i]) == 0:
+            #result[i] = -1
+            result[i] = float(result[6] * course_score[i] / course_score[6])
+        else:
+            result[i] = np.mean(race_sum[i])
+            race_sum[i].reverse()
+            for r in race_sum[i]:
+                result[i] += 0.5 * (r - result[i])
+            result[i] = float(result[i])
+    if len(race_same_dist) > 0:
+        result.append(float(np.min(race_same_dist)))
+        result.append(float(np.mean(race_same_dist)))
+        result.append(float(np.max(race_same_dist)))
+    elif course in [1000, 1200, 1300, 1400, 1700]:
+        #result.extend([-1, -1, -1])
+        delta1 = md.dist_rec[course][4] - md.dist_rec[course][3]
+        delta2 = md.dist_rec[course][5] - md.dist_rec[course][4]
+        month = int(month)
+        result.append(float(md.race_score[course][month-1][20] - delta1))
+        result.append(float(md.race_score[course][month-1][20]))
+        result.append(float(md.race_score[course][month-1][20] + delta2))
+    else:
+        #result.extend([-1, -1, -1])
+        result.append(float(md.dist_rec[course][3]))
+        result.append(float(md.dist_rec[course][4]))
+        result.append(float(md.dist_rec[course][5]))
+    return result, weight
+
+
+if __name__ == '__main__':
+    DEBUG = True
+    print(get_lastday(1, 20070114, 1, "다시한번"))
+
