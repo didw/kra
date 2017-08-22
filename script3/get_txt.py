@@ -1,7 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from urllib2 import Request, urlopen
+import sys
+import requests
 import datetime
 import time
 import os
@@ -24,7 +25,8 @@ def download_txt(bd, ed, meet, overwrite=False):
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/daily-train/", "daily-train", "dacom55.rpt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/jungbo/ap-check-rslt/", "ap-check-rslt", "dacom23.rpt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/weekly-clinic/", "weekly-clinic", "dacom72.rpt", [0,1,2,3,4,5,6]],
-             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/weekly-jangu/", "weekly-jangu", "dacom71.rpt", [0,1,2,3,4,5,6]]],
+             ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/seoul/sokbo/weekly-jangu/", "weekly-jangu", "dacom71.rpt", [0,1,2,3,4,5,6]]
+             ],
             # jeju
             [["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=chollian/jeju/jungbo/rcresult/", "rcresult", "dacom11.rpt", [0,1,2,3,4,5,6]],
              ["http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/jeju/horse/", "horse", "cdb1.txt", [0,1,2,3,4,5,6]],
@@ -51,6 +53,8 @@ def download_txt(bd, ed, meet, overwrite=False):
 
     for line in data[meet-1]:
         race_url = line[0]
+        if not os.path.exists("../txt/%d/%s/"%(meet, line[1])):
+            os.makedirs("../txt/%d/%s/"%(meet, line[1]))
         date = bd + datetime.timedelta(days=-1)
         while date < ed:
             date += datetime.timedelta(days=1)
@@ -64,17 +68,17 @@ def download_txt(bd, ed, meet, overwrite=False):
                     os.remove(fname)
                 if not overwrite and os.path.exists(fname):
                     continue
-                response_body = urlopen(request).read()
+                response_body = requests.get(request)
                 fout = open(fname, 'w')
-                fout.write(response_body)
+                fout.write(response_body.text)
                 fout.close()
                 if os.path.getsize(fname) < 100:
                     os.remove(fname)
-                print "[%s] data is downloaded" % request
+                print("[%s] data is downloaded" % request)
             except KeyError:
-                print '[%s] data downloading failed' % request
-                print 'or fail to save %s' % fname
-    print "job has completed"
+                print('[%s] data downloading failed' % request)
+                print('or fail to save %s' % fname)
+    print("job has completed")
 
 
 # 해당거리 전적:    http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=1&rcNo=3&rcDate=20070415
@@ -107,6 +111,8 @@ def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
         base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfo"
         race_url = base_url + line[0]
         date = bd + datetime.timedelta(days=-1)
+        if not os.path.exists("../txt/%d/%s/"%(meet, line[1])):
+            os.makedirs("../txt/%d/%s/"%(meet, line[1]))
         while date < ed:
             date += datetime.timedelta(days=1)
             if date.weekday() not in line[2]:
@@ -118,9 +124,9 @@ def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
                     fname = "../txt/%d/%s/%s_%d_%d_%d.txt" % (meet, line[1], line[1], meet, date_s, rcno)
                     if not overwrite and os.path.exists(fname):
                         continue
-                    response_body = urlopen(request).read()
+                    response_body = requests.get(request)
                     fout = open(fname, 'w')
-                    fout.write(response_body)
+                    fout.write(response_body.text)
                     fout.close()
                     if os.path.getsize(fname) < line[3]:
                         os.remove(fname)
@@ -129,39 +135,58 @@ def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
                     print('[%s] data downloading failed' % request)
     print("job has completed")
 
+def download_file(request, meet, line, hrno, overwrite):
+    try:
+        fname = "../txt/%d/%s/%s_%d_%06d.txt" % (meet, line[1], line[1], meet, hrno)
+        if not overwrite and os.path.exists(fname):
+            print("[%s] file exist" % fname)
+            return
+        if not os.path.exists("../txt/%d/%s/"%(meet, line[1])):
+            os.makedirs("../txt/%d/%s/"%(meet, line[1]))
+        response_body = requests.get(request)
+        fout = open(fname, 'w')
+        fout.write(response_body.text)
+        fout.close()
+        if os.path.getsize(fname) < line[2]:
+            os.remove(fname)
+        print("[%s] data is downloaded" % (request))
+    except:
+        print('[%s] data downloading failed' % request)
+
+import multiprocessing as mp
+from multiprocessing import Process, Value
+
 def download_racehorse(hrno_b, hrno_e, meet, overwrite=False):
     data = [# seoul http://race.kra.co.kr/racehorse/profileRaceScore.do?Act=02&Sub=1&meet=1&hrNo=040000
-            ["profileRaceScore.do?Act=02&Sub=1&", "racehorse",
+            [["profileRaceScore.do?Act=02&Sub=1&", "racehorse", 32000],
+             ["profileLineageInfo.do?Act=02&Sub=1&", "LineageInfo", 43000],
              ],
-            ["profileRaceScore.do?Act=02&Sub=1&", "racehorse",
+            [["profileRaceScore.do?Act=02&Sub=1&", "racehorse", 31100],
+             ["profileLineageInfo.do?Act=02&Sub=1&", "LineageInfo", 43000],
              ],
-            ["profileRaceScore.do?Act=02&Sub=1&", "racehorse",
+            [["profileRaceScore.do?Act=02&Sub=1&", "racehorse", 31100],
+             ["profileLineageInfo.do?Act=02&Sub=1&", "LineageInfo", 43000],
              ]
     ]
-    line = data[meet-1]
+    item = data[meet-1]
     base_url = "http://race.kra.co.kr/racehorse/"
-    race_url = base_url + line[0]
-    for hrno in range(hrno_b, hrno_e):
-        request = "%s&meet=%d&hrNo=%06d" % (race_url, meet, hrno)
-        try:
+    for i in range(1,len(item)):
+        line = item[i]
+        race_url = base_url + line[0]
+        for hrno in range(hrno_b, hrno_e):
+            request = "%s&meet=%d&hrNo=%06d" % (race_url, meet, hrno)
             fname = "../txt/%d/%s/%s_%d_%06d.txt" % (meet, line[1], line[1], meet, hrno)
             if not overwrite and os.path.exists(fname):
                 continue
-            response_body = urlopen(request).read()
-            fout = open(fname, 'w')
-            fout.write(response_body)
-            fout.close()
-            if os.path.getsize(fname) < 31100:
-                os.remove(fname)
-            print("[%s] data is downloaded" % request)
-        except:
-            print('[%s] data downloading failed' % request)
+            proc = Process(target=download_file, args=(request, meet, line, hrno, overwrite))
+            proc.start()
+            time.sleep(0.2)
     print("job has completed")
 
 
 if __name__ == '__main__':
     for i in range(1, 2):
-        #download_racehorse(29301, 29301, i, False)
-        download_chulmaDetailInfo(datetime.date(2017, 3, 20), datetime.date.today(), i, True)
-        download_txt(datetime.date(2017, 3, 20), datetime.date.today(), i, True)
+        download_racehorse(0, 40000, i, False)
+        download_chulmaDetailInfo(datetime.date(2017, 8, 9), datetime.date.today(), i, True)
+        download_txt(datetime.date(2017, 8, 9), datetime.date.today(), i, True)
 
