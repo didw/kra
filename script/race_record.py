@@ -48,6 +48,7 @@ def get_hr_days(name, date_i):
 def parse_txt_race(filename):
     data = []
     input_file = open(filename)
+    n_race = 0
     while True:
         # skip header
         humidity = 0
@@ -195,14 +196,11 @@ def parse_txt_race(filename):
                 print("except AttributeError in %s" % filename)
                 g3f = -1
             if s1f < 100 or s1f > 200:
-                print("s1f value is %.1f in %s" % (s1f, filename))
-                s1f = -1
+                print("s1f value is %.1f in %s:%d" % (s1f, filename, n_race))
             if g1f < 100 or g1f > 200:
-                print("g1f value is %.1f in %s" % (g1f, filename))
-                g1f = -1
+                print("g1f value is %.1f in %s:%d" % (g1f, filename, n_race))
             if g3f < 300 or g3f > 500:
-                print("g3f value is %.1f in %s" % (g3f, filename))
-                g3f = -1
+                print("g3f value is %.1f in %s:%d" % (g3f, filename, n_race))
             adata.append(s1f)
             adata.append(g1f)
             adata.append(g3f)
@@ -228,15 +226,16 @@ def parse_txt_race(filename):
         for idx in range(cnt):
             line = data[-cnt+idx]
             if line[18] > md['course'][line[0]]*1.2 or line[18] < md['course'][line[0]]*0.8:
-                print("rctime is weird.. course: %d, rctime: %d, filename: %s" % (line[0], line[18], filename))
+                print("rctime is weird.. course: %d, rctime: %d, filename: %s:%d" % (line[0], line[18], filename, n_race))
                 idx_remove.append(idx)
                 continue
             if -1 in [line[19], line[20], line[21]]:
-                print("s1f, g1f, g3f is weired in %s" % filename)
-                idx_remove.append(idx)
+                print("s1f, g1f, g3f is weired in %s:%d:%d" % (filename, n_race, idx))
+                rctime = data[-cnt+idx][18]
                 continue
         for idx in idx_remove[::-1]:
             del data[-cnt+idx]
+        n_race += 1
         # columns:  course, humidity, kind, dbudam, drweight, lastday, hr_days, idx, hrname, cntry, 
         #           gender, age, budam, jockey, trainer, owner, weight, dweight, rctime, s1f
         #           g1f, g3f, cnt, rcno, month, date
@@ -246,6 +245,7 @@ def parse_txt_race(filename):
 def parse_ap_rslt(filename):
     data = []
     input_file = open(filename)
+    n_race = 1
     while True:
         # skip header
         humidity = 0
@@ -357,7 +357,11 @@ def parse_ap_rslt(filename):
             END_CHK = re.compile(r'4화롱|4펄롱')
             if END_CHK.search(line) is not None:
                 for idx in range(cnt):
-                    data[-cnt+idx].extend([150, 150, 400])
+                    rctime = data[-cnt+idx][18]
+                    s1f = rctime * 0.225
+                    g1f = rctime * 0.220
+                    g3f = rctime * 0.604
+                    data[-cnt+idx].extend([s1f, g1f, g3f])
                 break
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
@@ -368,44 +372,48 @@ def parse_ap_rslt(filename):
             if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:6]) is None:
                 continue
             adata = []
-            words = re.findall(r'\S+', line)
-            if idx == 0:
-                n_words = len(words)
-            if n_words != len(words):
-                print("%s:%d is missing.." % (filename, idx))
-                data[-cnt+idx].extend([-1, -1, -1])
-                continue
+            words = re.findall(r'\S+', line[:59])
             if words[0][0] == '9' and len(words[0])==2:
                 continue
             if n_pass[idx] == 0:
+                # in case couldn't pass
                 data[-cnt+idx].extend([-1, -1, -1])
+                idx += 1
+                continue
+            if n_words == 0:
+                n_words = len(words)
+            if n_words != len(words) or len(words) < 4:
+                print("%s:%d:%d is missing.." % (filename, n_race, idx))
+                data[-cnt+idx].extend([-1, -1, -1])
+                idx += 1
                 continue
             s1f, g1f, g3f = -1, -1, -1
             if DEBUG: print("s1f: %s, g1f: %s, g3f: %s" % (words[3], words[6], words[2]))
             try:
                 g1f = float(re.search(r'\d{2}\.\d', words[6]).group())*10
             except AttributeError:
-                print("except g1f AttributeError in %s:%d" % (filename, idx))
+                print("except g1f AttributeError in %s:%d:%d" % (filename, n_race, idx))
                 g1f = -1
+            except IndexError:
+                print("except g1f IndexError in %s:%d:%d" % (filename, n_race, idx))
+                g1f = -1
+                raise
             try:
                 s1f = float(re.search(r'\d{2}\.\d', words[3]).group())*10
             except AttributeError:
-                print("except s1f AttributeError in %s:%d" % (filename, idx))
+                print("except s1f AttributeError in %s:%d:%d" % (filename, n_race, idx))
                 s1f = -1
             try:
                 g3f = float(re.search(r'\d{2}\.\d', words[2]).group())*10
             except AttributeError:
-                print("except g3f AttributeError in %s:%d" % (filename, idx))
+                print("except g3f AttributeError in %s:%d:%d" % (filename, n_race, idx))
                 g3f = -1
             if s1f < 100 or s1f > 200:
-                print("s1f is %.1f in %s" % (s1f, filename))
-                s1f = -1
+                print("s1f is %.1f in %s:%d" % (s1f, filename, n_race))
             if g1f < 100 or g1f > 200:
-                print("g1f is %.1f in %s" % (g1f, filename))
-                g1f = -1
+                print("g1f is %.1f in %s:%d" % (g1f, filename, n_race))
             if g3f < 300 or g3f > 500:
-                print("g3f is %.1f in %s" % (g3f, filename))
-                g3f = -1
+                print("g3f is %.1f in %s:%d" % (g3f, filename, n_race))
             adata.append(s1f)
             adata.append(g1f)
             adata.append(g3f)
@@ -435,15 +443,20 @@ def parse_ap_rslt(filename):
         for i in range(cnt):
             line = data[-cnt+i]
             if line[18] > md['course'][line[0]]*1.2 or line[18] < md['course'][line[0]]*0.8:
-                print("rctime is weird.. course: %d, rctime: %d, filename: %s" % (line[0], line[18], filename))
+                print("rctime is weird.. course: %d, rctime: %d, filename: %s:%d" % (line[0], line[18], filename, n_race))
                 idx_remove.append(i)
                 continue
             if -1 in [line[19], line[20], line[21]]:
-                print("s1f, g1f, g3f is weired in %s" % filename)
-                idx_remove.append(i)
+                if n_pass[i] == 1:
+                    print("s1f, g1f, g3f is weired in %s:%d:%d" % (filename, n_race, i))
+                rctime = data[-cnt+i][18]
+                data[-cnt+i][19] = rctime * 0.225  # s1f
+                data[-cnt+i][20] = rctime * 0.220  # g1f
+                data[-cnt+i][21] = rctime * 0.604  # g3f
                 continue
         for i in idx_remove[::-1]:
             del data[-cnt+i]
+        n_race += 1
         # columns:  course, humidity, kind, dbudam, drweight, lastday, hr_days, idx, hrname, cntry, 
         #           gender, age, budam, jockey, trainer, owner, weight, dweight, rctime, s1f, 
         #           g1f, g3f, cnt, rcno, month, date
@@ -508,7 +521,7 @@ class RaceRecord:
         saving_mode.value = 0
 
     def get_race_record(self):
-        flist = sorted(glob.glob('../txt/1/rcresult/rcresult_1_2007*.txt'))
+        flist = sorted(glob.glob('../txt/1/rcresult/rcresult_1_20*.txt'))
         file_queue = mp.Queue()
         filename_queue = mp.Queue()
         data_queue = mp.Queue()
@@ -543,7 +556,7 @@ class RaceRecord:
                 break
 
     def get_ap_record(self):
-        flist = sorted(glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_2007*.txt'))
+        flist = sorted(glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_20*.txt'))
         file_queue = mp.Queue()
         filename_queue = mp.Queue()
         data_queue = mp.Queue()

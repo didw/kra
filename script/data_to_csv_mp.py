@@ -9,6 +9,7 @@ from mean_data import mean_data
 from mean_data3 import cmake_mean
 from sklearn.externals import joblib
 from get_race_detail import RaceDetail
+import get_detail_data as gdd
 import multiprocessing as mp
 import Queue
 import numpy as np
@@ -16,10 +17,10 @@ import gzip, cPickle
 
 PROCESS_NUM = 8
 
-def load_worker(worker_idx, filename_queue, output_queue, md, md3):
+def load_worker(worker_idx, filename_queue, output_queue, md, md3, race_record, mean_data, weight):
     print("[W%d] Current File/Feature Queue Size = %d/%d" % (worker_idx, filename_queue.qsize(), output_queue.qsize()))
     afile = filename_queue.get(True, 10)
-    adata = pr.get_data(afile, md, md3)
+    adata = pr.get_data(afile, md, md3, race_record, mean_data, weight)
     output_queue.put(adata, True)
 
 
@@ -37,7 +38,8 @@ def get_data(begin_date, end_date, fname_csv):
         md = mean_data()
     with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
         md3 = cPickle.loads(f.read())
-    md3['humidity'][20] = md3['humidity'][25]
+    if 25 in md3['humidity']:
+        md3['humidity'][20] = md3['humidity'][25]
 
     filename_queue = mp.Queue()
     data_queue = mp.Queue()
@@ -54,10 +56,12 @@ def get_data(begin_date, end_date, fname_csv):
     worker_num = filename_queue.qsize()
 
     iter_save = 0
+    race_record = pr.get_race_record()
+    mean_data, weight = gdd.make_mean_race_record(race_record)
     while True:
         print("current index: %d" % worker_num)
         if worker_num < filename_queue.qsize() + PROCESS_NUM and filename_queue.qsize() > 0:
-            proc = mp.Process(target=load_worker, args=(worker_num, filename_queue, data_queue, md, md3))
+            proc = mp.Process(target=load_worker, args=(worker_num, filename_queue, data_queue, md, md3, race_record, mean_data, weight))
             proc.start()
         try:
             adata = data_queue.get(True, 10)

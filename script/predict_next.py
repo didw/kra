@@ -80,215 +80,27 @@ def get_chulma_fname(date):
 
 
 # 300*48 + 2000*6*4 + 14000 + 300*55 = 
-def print_detail(players, cand, fresult, mode):
-    if cand == [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]]:
-        print("bet: 100") # 14200 / 48 = 295
-        print("%s,%s,{%s,%s,%s,%s}" % (players[0], players[1], players[2], players[3], players[4], players[5]))
-        print("%s,%s,{%s,%s,%s,%s}" % (players[0], players[2], players[1], players[3], players[4], players[5]))
-        print("%s,%s,{%s,%s,%s,%s}" % (players[0], players[3], players[1], players[2], players[4], players[5]))
-        print("%s,%s,{%s,%s,%s,%s}" % (players[0], players[4], players[1], players[2], players[3], players[5]))
-        print("%s,%s,{%s,%s,%s,%s}" % (players[1], players[0], players[2], players[3], players[4], players[5]))
-        print("%s,%s,{%s,%s,%s,%s}" % (players[1], players[2], players[0], players[3], players[4], players[5]))
-        print("%s,%s,{%s,%s,%s,%s}" % (players[1], players[3], players[0], players[2], players[4], players[5]))
-        print("%s,%s,{%s,%s,%s,%s}" % (players[1], players[4], players[0], players[2], players[3], players[5]))
-        print("%s,%s,{%s,%s,%s,%s}" % (players[2], players[0], players[1], players[3], players[4], players[5]))
-        print("%s,%s,{%s,%s,%s,%s}" % (players[2], players[1], players[0], players[3], players[4], players[5]))
-        print("%s,%s,{%s,%s,%s,%s}" % (players[2], players[3], players[0], players[1], players[4], players[5]))
-        print("%s,%s,{%s,%s,%s,%s}" % (players[2], players[4], players[0], players[1], players[3], players[5]))
-        fresult.write("\n\nbet: 100") # 14200 / 48 = 295
-        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[0], players[1], players[2], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[0], players[2], players[1], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[0], players[3], players[1], players[2], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[0], players[4], players[1], players[2], players[3], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[1], players[0], players[2], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[1], players[2], players[0], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[1], players[3], players[0], players[2], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[1], players[4], players[0], players[2], players[3], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[2], players[0], players[1], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[2], players[1], players[0], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[2], players[3], players[0], players[1], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[2], players[4], players[0], players[1], players[3], players[5]))
-    elif cand == [1,2,3] and mode == "sb":
-        print("%s,%s,%s, %s: 10000" % (players[0], players[1], players[2], mode))
-
-        fresult.write("\n%s,%s,%s, %s: 10000" % (players[0], players[1], players[2], mode))
-    elif cand == [[1,2],[1,2,3],[1,2,3]] and mode == "ss":
-        print("%s,%s,%s, %s: 50" % (players[0], players[1], players[2], mode))
-        print("%s,%s,%s, %s: 50" % (players[0], players[2], players[1], mode))
-        print("%s,%s,%s, %s: 50" % (players[1], players[0], players[2], mode))
-        print("%s,%s,%s, %s: 50" % (players[1], players[2], players[0], mode))
-
-        fresult.write("\n%s,%s,%s, %s: 2000" % (players[0], players[1], players[2], mode))
-        fresult.write("\n%s,%s,%s, %s: 2000" % (players[0], players[2], players[1], mode))
-        fresult.write("\n%s,%s,%s, %s: 2000" % (players[1], players[0], players[2], mode))
-        fresult.write("\n%s,%s,%s, %s: 2000" % (players[1], players[2], players[0], mode))
-    elif cand == [[1],[2],[3]]:
-        print("bet: 3000")  # 15000 / 5 = 3000
-        print("%s,%s,%s" % (players[0]+1, players[1]+1, players[2]+1))
-        fresult.write("\n\nbet: 3000")
-        fresult.write("\n%s,%s,%s, %s: 3000" % (players[0]+1, players[1]+1, players[2]+1, mode))
-    elif cand == [[1,2,3],[1,2,3],[1,2,3]] and mode == "ss":
-        print("bet: 500")  # 15000 / 5 / 5 = 600
-        fresult.write("\n\nbet: 500")
-        for i,j,k in itertools.product([1,2,3],[1,2,3],[1,2,3]):
-            if i==j or i==k or j==k:
-                continue
-            print("%s,%s,%s" % (players[i]+1, players[j]+1, players[k]+1))
-            fresult.write("\n%s,%s,%s, %s: 500" % (players[i]+1, players[j]+1, players[k]+1, mode))
-    elif cand == [[3,4,5],[4,5,6],[4,5,6]]:
-        print("bet: 300")  # 15000 / 5 / 10 = 300
-        fresult.write("\n\nbet: 300")  # 14200 / 6 = 2366
-        for i,j,k in itertools.product([3,4,5],[4,5,6],[4,5,6]):
-            if i==j or i==k or j==k:
-                continue
-            print("%s,%s,%s" % (players[i]+1, players[j]+1, players[k]+1))
-            fresult.write("\n%s,%s,%s, %s: 300" % (players[i]+1, players[j]+1, players[k]+1, mode))
-    elif cand == [[4,5,6],[4,5,6],[4,5,6,7]]:
-        print("bet: 2000")  # 14200 / 6 = 2366
-        print("%s,%s,%s" % (players[3], players[4], players[5]))
-        print("%s,%s,%s" % (players[3], players[4], players[6]))
-        print("%s,%s,%s" % (players[3], players[5], players[4]))
-        print("%s,%s,%s" % (players[3], players[5], players[6]))
-        print("%s,%s,%s" % (players[4], players[3], players[5]))
-        print("%s,%s,%s" % (players[4], players[3], players[7]))
-        print("%s,%s,%s" % (players[4], players[5], players[3]))
-        print("%s,%s,%s" % (players[4], players[5], players[7]))
-        print("%s,%s,%s" % (players[5], players[3], players[4]))
-        print("%s,%s,%s" % (players[5], players[3], players[7]))
-        print("%s,%s,%s" % (players[5], players[4], players[3]))
-        print("%s,%s,%s" % (players[5], players[4], players[7]))
-
-        fresult.write("\n\nbet: 800")  # 14200 / 6 = 2366
-        fresult.write("\n%s,%s,%s, %s: 900" % (players[3], players[4], players[5], mode))
-        fresult.write("\n%s,%s,%s, %s: 900" % (players[3], players[4], players[6], mode))
-        fresult.write("\n%s,%s,%s, %s: 900" % (players[3], players[5], players[4], mode))
-        fresult.write("\n%s,%s,%s, %s: 900" % (players[3], players[5], players[6], mode))
-        fresult.write("\n%s,%s,%s, %s: 800" % (players[4], players[3], players[5], mode))
-        fresult.write("\n%s,%s,%s, %s: 800" % (players[4], players[3], players[7], mode))
-        fresult.write("\n%s,%s,%s, %s: 800" % (players[4], players[5], players[3], mode))
-        fresult.write("\n%s,%s,%s, %s: 800" % (players[4], players[5], players[7], mode))
-        fresult.write("\n%s,%s,%s, %s: 800" % (players[5], players[3], players[4], mode))
-        fresult.write("\n%s,%s,%s, %s: 800" % (players[5], players[3], players[7], mode))
-        fresult.write("\n%s,%s,%s, %s: 800" % (players[5], players[4], players[3], mode))
-        fresult.write("\n%s,%s,%s, %s: 800" % (players[5], players[4], players[7], mode))
-    elif cand == [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]]:
-        print("bet: 100")  # 14200 / 60 = 200
-        print("%s,%s,{%s,%s,%s}" % (players[3], players[4], players[5], players[6], players[7]))
-        print("%s,%s,{%s,%s,%s}" % (players[3], players[5], players[4], players[6], players[7]))
-        print("%s,%s,{%s,%s,%s}" % (players[3], players[6], players[4], players[5], players[7]))
-        print("%s,%s,{%s,%s,%s}" % (players[3], players[7], players[4], players[5], players[6]))
-        print("%s,%s,{%s,%s,%s}" % (players[4], players[3], players[5], players[6], players[7]))
-        print("%s,%s,{%s,%s,%s}" % (players[4], players[5], players[3], players[6], players[7]))
-        print("%s,%s,{%s,%s,%s}" % (players[4], players[6], players[3], players[5], players[7]))
-        print("%s,%s,{%s,%s,%s}" % (players[4], players[7], players[3], players[5], players[6]))
-        print("%s,%s,{%s,%s,%s}" % (players[5], players[3], players[4], players[6], players[7]))
-        print("%s,%s,{%s,%s,%s}" % (players[5], players[4], players[3], players[6], players[7]))
-        print("%s,%s,{%s,%s,%s}" % (players[5], players[6], players[3], players[4], players[7]))
-        print("%s,%s,{%s,%s,%s}" % (players[5], players[7], players[3], players[4], players[6]))
-        print("%s,%s,{%s,%s,%s}" % (players[6], players[3], players[4], players[5], players[7]))
-        print("%s,%s,{%s,%s,%s}" % (players[6], players[4], players[3], players[5], players[7]))
-        print("%s,%s,{%s,%s,%s}" % (players[6], players[5], players[3], players[4], players[7]))
-        print("%s,%s,{%s,%s,%s}" % (players[6], players[7], players[3], players[4], players[5]))
-        print("%s,%s,{%s,%s,%s}" % (players[7], players[3], players[4], players[5], players[6]))
-        print("%s,%s,{%s,%s,%s}" % (players[7], players[4], players[3], players[5], players[6]))
-        print("%s,%s,{%s,%s,%s}" % (players[7], players[5], players[3], players[4], players[6]))
-        print("%s,%s,{%s,%s,%s}" % (players[7], players[6], players[3], players[4], players[5]))
-
-        fresult.write("\n\nbet: 100")  # 14200 / 60 = 200
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[3], players[4], players[5], players[6], players[7]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[3], players[5], players[4], players[6], players[7]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[3], players[6], players[4], players[5], players[7]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[3], players[7], players[4], players[5], players[6]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[4], players[3], players[5], players[6], players[7]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[4], players[5], players[3], players[6], players[7]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[4], players[6], players[3], players[5], players[7]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[4], players[7], players[3], players[5], players[6]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[5], players[3], players[4], players[6], players[7]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[5], players[4], players[3], players[6], players[7]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[5], players[6], players[3], players[4], players[7]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[5], players[7], players[3], players[4], players[6]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[6], players[3], players[4], players[5], players[7]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[6], players[4], players[3], players[5], players[7]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[6], players[5], players[3], players[4], players[7]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[6], players[7], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[7], players[3], players[4], players[5], players[6]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[7], players[4], players[3], players[5], players[6]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[7], players[5], players[3], players[4], players[6]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[7], players[6], players[3], players[4], players[5]))
-    elif cand == [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]]:
-        print("bet: 100") # 14200 / 55 = 258
-        print("%s,%s,{%s,%s,%s,%s}" % (players[0], players[1], players[2], players[3], players[4], players[5]))
-        print("%s,%s,{%s,%s,%s}" % (players[0], players[2], players[3], players[4], players[5]))
-        print("%s,%s,{%s,%s,%s}" % (players[0], players[3], players[2], players[4], players[5]))
-        print("%s,%s,{%s,%s,%s}" % (players[0], players[4], players[2], players[3], players[5]))
-        print("%s,%s,{%s,%s,%s}" % (players[0], players[5], players[2], players[3], players[4]))
-        print("%s,%s,{%s,%s,%s,%s}" % (players[1], players[0], players[2], players[3], players[4], players[5]))
-        print("%s,%s,{%s,%s,%s}" % (players[1], players[2], players[3], players[4], players[5]))
-        print("%s,%s,{%s,%s,%s}" % (players[1], players[3], players[2], players[4], players[5]))
-        print("%s,%s,{%s,%s,%s}" % (players[1], players[4], players[2], players[3], players[5]))
-        print("%s,%s,{%s,%s,%s}" % (players[1], players[5], players[2], players[3], players[4]))
-        print("%s,%s,{%s,%s,%s}" % (players[2], players[0], players[3], players[4], players[5]))
-        print("%s,%s,{%s,%s,%s}" % (players[2], players[1], players[3], players[4], players[5]))
-        print("%s,%s,{%s,%s}" % (players[2], players[3], players[4], players[5]))
-        print("%s,%s,{%s,%s}" % (players[2], players[4], players[3], players[5]))
-        print("%s,%s,{%s,%s}" % (players[2], players[5], players[3], players[4]))
-        print("%s,%s,{%s,%s,%s}" % (players[3], players[0], players[2], players[4], players[5]))
-        print("%s,%s,{%s,%s}" % (players[3], players[1], players[4], players[5]))
-        print("%s,%s,{%s,%s}" % (players[3], players[2], players[4], players[5]))
-        print("%s,%s,{%s,%s}" % (players[3], players[4], players[2], players[5]))
-        print("%s,%s,{%s,%s}" % (players[3], players[5], players[2], players[4]))
-
-        fresult.write("\n\nbet: 100")  # 14200 / 55 = 258
-        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[0], players[1], players[2], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[0], players[2], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[0], players[3], players[2], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[0], players[4], players[2], players[3], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[0], players[5], players[2], players[3], players[4]))
-        fresult.write("\n%s,%s,{%s,%s,%s,%s}" % (players[1], players[0], players[2], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[1], players[2], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[1], players[3], players[2], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[1], players[4], players[2], players[3], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[1], players[5], players[2], players[3], players[4]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[2], players[0], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[2], players[1], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (players[2], players[3], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (players[2], players[4], players[3], players[5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (players[2], players[5], players[3], players[4]))
-        fresult.write("\n%s,%s,{%s,%s,%s}" % (players[3], players[0], players[2], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (players[3], players[1], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (players[3], players[2], players[4], players[5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (players[3], players[4], players[2], players[5]))
-        fresult.write("\n%s,%s,{%s,%s}" % (players[3], players[5], players[2], players[4]))
+def print_detail(players, cand, fresult, mode, total_bet=5000):
+    total_num = 0
+    for i,j,k in itertools.product(*cand):
+        if i!=j and i!=k and j!=k:
+            total_num += 1
+    bet = int(total_bet/total_num/100)*100
+    print("bet: %d"%bet)  # 15000 / 5 / 10 = 300
+    fresult.write("\n\nbet: %d"%bet)  # 14200 / 6 = 2366
+    for i,j,k in itertools.product(*cand):
+        if i==j or i==k or j==k:
+            continue
+        print("%s,%s,%s" % (players[i]+1, players[j]+1, players[k]+1))
+        fresult.write("\n%s,%s,%s, %s: %d" % (players[i]+1, players[j]+1, players[k]+1, mode, bet))
+    fresult.write("\n")
 
 
-def print_bet(rcdata, course=0, year=4, nData=47, train_course=0):
-    print("dan")
-    print("%s" % (rcdata['idx'][0]))
-    print("bok")
-    print("%s,%s" % (rcdata['idx'][0], rcdata['idx'][1]))
-    print("bokyeon")
-    print("%s,%s" % (rcdata['idx'][0], rcdata['idx'][1]))
-    print("ssang")
-    print("%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2]))
-    print("%s,{%s,%s}" % (rcdata['idx'][1], rcdata['idx'][0], rcdata['idx'][2]))
-
-    print("sambok")
-    print("%s,%s,{%s,%s}" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3]))
-    print("{%s,%s},%s,%s" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3]))
-
-    print("samssang")
+def print_bet(rcdata, target=[[1],[2],[3]], total_bet=5000):
     global fname
     fresult = open(fname, 'a')
     fresult.write("%s,%s,%s,%s,%s,%s\n" % (rcdata['idx'][0], rcdata['idx'][1], rcdata['idx'][2], rcdata['idx'][3], rcdata['idx'][4], rcdata['idx'][5]))
-    if nData == 201:
-        print_detail(rcdata['idx'], [[1,2],[1,2,3],[1,2,3]], fresult, "ss")
-    elif nData in [118, 151, 300]:
-        print_detail(rcdata['idx'], [[1],[2],[3]], fresult, "ss")
-        print_detail(rcdata['idx'], [[1,2,3],[1,2,3],[1,2,3]], fresult, "ss")
-        print_detail(rcdata['idx'], [[3,4,5],[4,5,6],[4,5,6]], fresult, "ss")
-    else:
-        print("please check nData:%d" % nData)
-
+    print_detail(rcdata['idx'], target, fresult, "ss", total_bet)
     fresult.close()
 
 
@@ -301,6 +113,8 @@ def predict_next(estimators, data_pre, meet, date, rcno, course=0, nData=47, yea
     if nData in [118, 151]:
         del X_data['rcno']
     __DEBUG__ = True
+    if not os.path.exists('../log'):
+        os.makedirs('../log')
     if __DEBUG__:
         X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
     print(len(X_data.columns))
@@ -339,7 +153,7 @@ def predict_next(estimators, data_pre, meet, date, rcno, course=0, nData=47, yea
                 fresult = open(fname, 'a')
                 fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d ===\n" % (int(prev_rc)+1, nData, year, train_course))
                 fresult.close()
-                print_bet(rcdata, course, nData=nData, year=year, train_course=train_course)
+                print_bet(rcdata, target=[[1],[2],[3]], total_bet=1000)
                 rcdata = []
                 prev_rc = row['rcno']
                 if idx+1 != len(data):
@@ -355,8 +169,8 @@ def load_estimators(train_bd, train_ed):
     estimators = [0] * MODEL_NUM
     for i in range(MODEL_NUM):
         print("loading model[%d]..." % i)
-        estimators[i] = tfp.TensorflowRegressor('%d_%d/%d' % (train_bd_i, train_ed_i, i))
-        #estimators[i] = tfp.TensorflowRegressor('reference/%d' % i)
+        #estimators[i] = tfp.TensorflowRegressor('%d_%d/%d' % (train_bd_i, train_ed_i, i))
+        estimators[i] = tfp.TensorflowRegressor('reference/%d' % i)
         estimators[i].load()
     return estimators
 
@@ -368,6 +182,8 @@ def predict_next_ens(estimators_, data_pre, meet, date, rcno, course=0, nData=47
     print(len(X_data.columns))
     X_data = X_data.drop(['name', 'index'], axis=1)
     __DEBUG__ = True
+    if not os.path.exists('../log'):
+        os.makedirs('../log')
     if __DEBUG__:
         X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
     print(len(X_data.columns))
@@ -415,7 +231,8 @@ def predict_next_ens(estimators_, data_pre, meet, date, rcno, course=0, nData=47
                     fresult = open(fname, 'a')
                     fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d, model: %d ===\n" % (int(prev_rc)+1, nData, year, train_course, i))
                     fresult.close()
-                    print_bet(rcdata, course, nData=nData, year=year, train_course=train_course)
+                    print_bet(rcdata, target=[[1],[2],[3]], total_bet=5000)
+                    print_bet(rcdata, target=[[3,4,5],[4,5,6],[4,5,6]], total_bet=5000)
                     rcdata = []
                     prev_rc = row['rcno']
                     if idx+1 != len(data):
@@ -432,12 +249,13 @@ if __name__ == '__main__':
     #for rcno in range(11, len(courses)):
     course = courses[rcno]
     test_course = course
-    init_date = 20170729
+    init_date = 20170812
     from sklearn.externals import joblib
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
     with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
         md3 = cPickle.loads(f.read())
-    md3['humidity'][20] = md3['humidity'][25]
+    if 25 in md3['humidity']:
+        md3['humidity'][20] = md3['humidity'][25]
 
     data_pre1, data_pre2 = None, None
     data_pre1 = xe.parse_xml_entry(meet, init_date+0, rcno, md, md3)
@@ -451,7 +269,7 @@ if __name__ == '__main__':
         train_bd = datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1)
         train_ed = datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1)
         n_epoch = epoch
-        #q = Queue()
+        q = Queue()
         #p = Process(target=tfp.training, args=(train_bd, train_ed, n_epoch, q))
         #p.start()
         #p.join()
@@ -462,28 +280,30 @@ if __name__ == '__main__':
         #scaler_x5 = q.get()
         #scaler_x6 = q.get()
         #scaler_y = q.get()
-        train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
-        train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-        scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e300_rms/%d_%d/scaler_x.pkl' % (train_bd_i, train_ed_i))
-        scaler_y = joblib.load('../model/tf/l1_e300_rms/%d_%d/scaler_x.pkl' % (train_bd_i, train_ed_i))
-        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e300_rms/reference/scaler_x.pkl')
-        #scaler_y = joblib.load('../model/tf/l1_e300_rms/reference/scaler_x.pkl')
+        #train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
+        #train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
+        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e300_rms/%d_%d/scaler_x.pkl' % (train_bd_i, train_ed_i))
+        #scaler_y = joblib.load('../model/tf/l1_e300_rms/%d_%d/scaler_x.pkl' % (train_bd_i, train_ed_i))
+        scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e300_rms/reference/scaler_x.pkl')
+        scaler_y = joblib.load('../model/tf/l1_e300_rms/reference/scaler_y.pkl')
         #estimators, md, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y = tfp.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData, n_epoch=epoch)
         estimators = load_estimators(train_bd, train_ed)
         if idx == 1:
-            fname = '../result/1707/%d_%d.txt' % (date%100, idx)
-            #os.system("rm %s" % fname)
+            fname = '../result/1708/%d_%d.txt' % (date%100, idx)
+            os.system("rm %s" % fname)
             predict_next_ens(estimators, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
+            #predict_next(estimators, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
             date += 1
-            fname = '../result/1707/%d_%d.txt' % (date%100, idx)
-            #os.system("rm %s" % fname)
+            fname = '../result/1708/%d_%d.txt' % (date%100, idx)
+            os.system("rm %s" % fname)
             predict_next_ens(estimators, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
+            #predict_next(estimators, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
         else:
-            fname = '../result/1707/%d_%d.txt' % (date%100, idx)
+            fname = '../result/1708/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
             predict_next(estimators, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
             date += 1
-            fname = '../result/1707/%d_%d.txt' % (date%100, idx)
+            fname = '../result/1708/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
             predict_next(estimators, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
         idx += 1

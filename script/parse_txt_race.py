@@ -560,14 +560,13 @@ def get_race_record():
     return race_record
 
 
-def get_data(filename, md, md3):
+def get_data(filename, md, md3, race_record, mean_data, weight):
     print("race file: %s" % filename)
     date_i = re.search(unicode(r'\d{8}', 'utf-8').encode('utf-8'), filename).group()
     date = datetime.date(int(date_i[:4]), int(date_i[4:6]), int(date_i[6:]))
     data = parse_txt_race(filename, md)
     assert len(data[0]) == 101
     jangu_clinic = wc.parse_hr_clinic(date)
-    race_record = get_race_record()
 
     for i in range(len(data)):
         #print("race file: %s" % filename)
@@ -587,7 +586,7 @@ def get_data(filename, md, md3):
         assert len(data[i]) == 138
         data[i].extend(wc.get_jangu_clinic(jangu_clinic, hrname))
         assert len(data[i]) == 219
-        race_records, _ = gdd.get_hr_race_record(hrname, date, race_record, md3)
+        race_records, _ = gdd.get_hr_race_record(hrname, date, race_record, md3, mean_data, weight)
         #print("len(race_records):%d"%len(race_records))
         data[i].extend(race_records)
         assert len(data[i]) == 247
