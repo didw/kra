@@ -7,12 +7,14 @@ import parse_xml_entry as xe
 import datetime
 import train_tf_ensenble as tfn
 import train_tf_process as tfp
+import train_xgboost as txg
 import numpy as np
 import os, gzip, cPickle
 import itertools
 from multiprocessing import Process, Queue
+import xgboost as xgb
 
-MODEL_NUM = 30
+MODEL_NUM = 10
 
 name_one_hot_columns = ['course', 'humidity', 'kind', 'idx', 'cntry', 'gender', 'age', 'jockey', 'trainer', 'owner', 'cnt', 'rcno', 'month']
 def normalize_data(org_data):
@@ -85,7 +87,7 @@ def print_detail(players, cand, fresult, mode, total_bet=5000):
     for i,j,k in itertools.product(*cand):
         if i!=j and i!=k and j!=k:
             total_num += 1
-    bet = int(total_bet/total_num/100)*100
+    bet = max(int(total_bet/total_num/100), 1)*100
     print("bet: %d"%bet)  # 15000 / 5 / 10 = 300
     fresult.write("\n\nbet: %d"%bet)  # 14200 / 6 = 2366
     for i,j,k in itertools.product(*cand):
@@ -163,19 +165,8 @@ def predict_next(estimators, data_pre, meet, date, rcno, course=0, nData=47, yea
         #print(X_data.columns)
         #print(estimator.feature_importances_)
 
-def load_estimators(train_bd, train_ed):
-    train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
-    train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    estimators = [0] * MODEL_NUM
-    for i in range(MODEL_NUM):
-        print("loading model[%d]..." % i)
-        #estimators[i] = tfp.TensorflowRegressor('%d_%d/%d' % (train_bd_i, train_ed_i, i))
-        estimators[i] = tfp.TensorflowRegressor('reference/%d' % i)
-        estimators[i].load()
-    return estimators
 
-
-def predict_next_ens(estimators_, data_pre, meet, date, rcno, course=0, nData=47, year=4, train_course=0, scaler_x1=None, scaler_x2=None, scaler_x3=None, scaler_x4=None, scaler_x5=None, scaler_x6=None, scaler_y=None):
+def predict_next_ens(model_dir, data_pre, meet, date, rcno, course=0, nData=47, year=4, train_course=0, scaler_x1=None, scaler_x2=None, scaler_x3=None, scaler_x4=None, scaler_x5=None, scaler_x6=None, scaler_y=None):
     data = normalize_data(data_pre)
     print(len(data.columns))
     X_data = data.copy()
@@ -195,11 +186,14 @@ def predict_next_ens(estimators_, data_pre, meet, date, rcno, course=0, nData=47
     X_array[:,88:124] = scaler_x5.transform(X_array[:,88:124])
     X_array[:,204:233] = scaler_x6.transform(X_array[:,204:233])
 
-    for e in range(5):
-        estimators = estimators_[e*6:(e+1)*6]
-        preds = [0]*len(estimators)
-        for i in range(len(estimators)):
-            preds[i] = estimators[i].predict(X_array)
+    X_array = xgb.DMatrix(X_array)
+    idx_model = 0
+    for e in range(2):
+        preds = [0]*5
+        for i in range(5):
+            estimator = joblib.load("%s/%d/model.pkl"% (model_dir, idx_model))
+            idx_model += 1
+            preds[i] = estimator.predict(X_array)
 
         for i in range(len(preds)+1):
             if i == len(preds):
@@ -231,8 +225,8 @@ def predict_next_ens(estimators_, data_pre, meet, date, rcno, course=0, nData=47
                     fresult = open(fname, 'a')
                     fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d, model: %d ===\n" % (int(prev_rc)+1, nData, year, train_course, i))
                     fresult.close()
-                    print_bet(rcdata, target=[[1],[2],[3]], total_bet=5000)
-                    print_bet(rcdata, target=[[3,4,5],[4,5,6],[4,5,6]], total_bet=5000)
+                    print_bet(rcdata, target=[[1],[2],[3]], total_bet=2500)
+                    #print_bet(rcdata, target=[[1,2,3],[1,2,3],[1,2,3]], total_bet=2500)
                     rcdata = []
                     prev_rc = row['rcno']
                     if idx+1 != len(data):
@@ -249,7 +243,7 @@ if __name__ == '__main__':
     #for rcno in range(11, len(courses)):
     course = courses[rcno]
     test_course = course
-    init_date = 20170812
+    init_date = 20170819
     from sklearn.externals import joblib
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
     with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
@@ -270,33 +264,34 @@ if __name__ == '__main__':
         train_ed = datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1)
         n_epoch = epoch
         q = Queue()
-        #p = Process(target=tfp.training, args=(train_bd, train_ed, n_epoch, q))
-        #p.start()
-        #p.join()
-        #scaler_x1 = q.get()
-        #scaler_x2 = q.get()
-        #scaler_x3 = q.get()
-        #scaler_x4 = q.get()
-        #scaler_x5 = q.get()
-        #scaler_x6 = q.get()
-        #scaler_y = q.get()
-        #train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
-        #train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e300_rms/%d_%d/scaler_x.pkl' % (train_bd_i, train_ed_i))
-        #scaler_y = joblib.load('../model/tf/l1_e300_rms/%d_%d/scaler_x.pkl' % (train_bd_i, train_ed_i))
-        scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e300_rms/reference/scaler_x.pkl')
-        scaler_y = joblib.load('../model/tf/l1_e300_rms/reference/scaler_y.pkl')
+        p = Process(target=txg.training, args=(train_bd, train_ed, q))
+        p.start()
+        p.join()
+        scaler_x1 = q.get()
+        scaler_x2 = q.get()
+        scaler_x3 = q.get()
+        scaler_x4 = q.get()
+        scaler_x5 = q.get()
+        scaler_x6 = q.get()
+        scaler_y = q.get()
+        train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
+        train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
+        scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/xgboost/ens_e1000/%d_%d/scaler_x.pkl' % (train_bd_i, train_ed_i))
+        scaler_y = joblib.load('../model/xgboost/ens_e1000/%d_%d/scaler_y.pkl' % (train_bd_i, train_ed_i))
+        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/xgboost/ens_e1000/20100814_20160812/scaler_x.pkl')
+        #scaler_y = joblib.load('../model/xgboost/ens_e1000/20100814_20160812/scaler_y.pkl')
         #estimators, md, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y = tfp.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData, n_epoch=epoch)
-        estimators = load_estimators(train_bd, train_ed)
+        model_dir = "../model/xgboost/ens_e1000/%d_%d/"%(train_bd_i, train_ed_i)
         if idx == 1:
+            idx = 2
             fname = '../result/1708/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            predict_next_ens(estimators, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
+            predict_next_ens(model_dir, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
             #predict_next(estimators, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
             date += 1
             fname = '../result/1708/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            predict_next_ens(estimators, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
+            predict_next_ens(model_dir, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
             #predict_next(estimators, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
         else:
             fname = '../result/1708/%d_%d.txt' % (date%100, idx)

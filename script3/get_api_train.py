@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import requests
 from urllib2 import Request, urlopen
 from urllib import urlencode, quote_plus
 
@@ -10,8 +11,8 @@ def get_data(meet, date):
     url = "%s?meet=%d&trainData=%s&ServiceKey=%s" % (race_url, meet, date, service_key)
     request = Request(url)
     request.get_method = lambda: 'GET'
-    response_body = urlopen(request).read()
+    response_body = requests.get(request)
     fout = open("../xml/getTrain_%d_%d.xml" % (date, meet), 'w')
-    fout.write(response_body)
+    fout.write(response_body.text)
     fout.close()
     print("train(%d) is downloaded" % date)

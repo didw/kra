@@ -4,14 +4,13 @@
 from bs4 import BeautifulSoup
 import pandas as pd
 import glob
-import codecs
 
 
 def parse_xml_train(date, meet):
     data = []
     filename  = '../xml/getTrain_%d_%d.xml' % (date, meet)
-    file_input = codecs.open(filename, 'r', 'utf-8')
-    print("process in %s" % filename)
+    file_input = open(filename)
+    print "process in %s" % filename
     response_body = file_input.read()
     xml_text = BeautifulSoup(response_body, 'html.parser')
     for itemElm in xml_text.findAll('item'):

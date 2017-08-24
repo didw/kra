@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import re
+import pickle
 
-def dict_test(fname, rcno=1):
-
+def make_dict(fname, rcno=1):
     data_ss = {}
-    data_sb = {}
     fInput = open(fname)
     first = True
     while True:
@@ -24,29 +23,28 @@ def dict_test(fname, rcno=1):
                 line_parsing = re.search(r'\d+,\d+,\d+', line)
                 if line_parsing is None:
                     continue
-                key = line_parsing.group()
+                key = tuple(map(int, line_parsing.group().split(',')))
                 if re.search(r'(?<=ss: )\d+', line) is not None:
                     value = int(re.search(r'(?<=ss: )\d+', line).group())
                     try:
                         data_ss[key] += value
                     except KeyError:
                         data_ss[key] = value
-                if re.search(r'(?<=sb: )\d+', line) is not None:
-                    key2 = "%s"%sorted(key.split(','))
-                    value = int(re.search(r'(?<=sb: )\d+', line).group())
-                    try:
-                        data_sb[key2] += value
-                    except KeyError:
-                        data_sb[key2] = value
     print("ss")
     for k,v in sorted(data_ss.items()):
+        v = int((v+50)/100)*100
         print(k, v)
-    print("sb")
-    for k,v in sorted(data_sb.items()):
-        print(k, v)
+    return data_ss
 
 if __name__ == '__main__':
-    fname = '../result/1704/2_0.txt'
-    for i in range(1,13):
-        print("===%d==="%i)
-        dict_test(fname, i)
+    init_day = 19
+    res_dict = {"Sat": {}, "Sun": {}}
+    Day_list = ["Sat", "Sun"]
+    for day in [init_day, init_day+1]:
+        fname = '../result/1708/%d_1.txt' % day
+        for i in range(0,16):
+            print("===%d==="%i)
+            rcno_dict =  make_dict(fname, i)
+            if len(rcno_dict) > 0:
+                res_dict[Day_list[day-init_day]][i] = rcno_dict
+    pickle.dump(res_dict, open("../result/1708/%d.pkl" % init_day, 'wb'))

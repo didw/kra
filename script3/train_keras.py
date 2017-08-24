@@ -26,10 +26,10 @@ import tensorflow as tf
 def baseline_model():
     # create model
     model = Sequential()
-    model.add(Dense(128, input_dim=168, init='he_normal', activation='relu'))
+    model.add(Dense(160, input_shape=(230,), kernel_initializer='he_normal', activation='relu'))
     #model.add(Dropout(0.1))
     #model.add(Dense(128, init='he_normal'))
-    model.add(Dense(1, init='he_normal'))
+    model.add(Dense(1, kernel_initializer='he_normal'))
     # Compile model
     model.compile(loss='mean_squared_error', optimizer='adam')
     return model

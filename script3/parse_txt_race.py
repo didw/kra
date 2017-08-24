@@ -12,15 +12,21 @@ else:
 import get_detail_data as gdd
 from bs4 import BeautifulSoup
 from mean_data import mean_data
+from mean_data3 import cmake_mean
 from sklearn.externals import joblib
 from get_race_detail import RaceDetail
 import get_weekly_clinic as wc
+import get_jockey as gj
+import get_trainer as gt
+import get_lineage as gl
+from race_record import RaceRecord
+import gzip, _pickle
 
 NEXT = re.compile(r'마 체 중|단승식|복승식|매출액')
 WORD = re.compile(r"[^\s]+")
 DEBUG = False
 
-def parse_txt_race(filename, md=mean_data()):
+def parse_txt_race(filename, md):
     data = []
     input_file = open(filename)
     while True:
@@ -41,25 +47,25 @@ def parse_txt_race(filename, md=mean_data()):
                 read_done = True
                 break
             if re.search(unicode(r'제목', 'utf-8').encode('utf-8'), line) is not None:
-                rcno = re.search(unicode(r'\d+(?=경주)', 'utf-8').encode('utf-8'), line).group()
+                rcno = int(re.search(unicode(r'\d+(?=경주)', 'utf-8').encode('utf-8'), line).group())
             if re.search(unicode(r'경주명', 'utf-8').encode('utf-8'), line) is not None:
                 if DEBUG: print("%s" % line)
-                course = re.search(unicode(r'\d+(?=M)', 'utf-8').encode('utf-8'), line).group()
+                course = int(re.search(unicode(r'\d+(?=M)', 'utf-8').encode('utf-8'), line).group())
                 kind = re.search(unicode(r'M.+\d', 'utf-8').encode('utf-8'), line)
                 if kind is None:
                     kind = 0
                 else:
-                    kind = kind.group()[-1]
+                    kind = int(kind.group()[-1])
             if re.search(unicode(r'경주조건', 'utf-8').encode('utf-8'), line) is not None:
                 if DEBUG: print("%s" % line)
                 if re.search(unicode(r'불량', 'utf-8').encode('utf-8'), line) is not None:
-                    humidity = 25
+                    humidity = 20
                 else:
                     humidity = re.search(unicode(r'\d+(?=%\))', 'utf-8').encode('utf-8'), line)
                     if humidity is None:
-                        humidity = '10'
+                        humidity = 10
                     else:
-                        humidity = humidity.group()
+                        humidity = int(humidity.group())
             if re.search(unicode(r'기수명|선수명', 'utf-8').encode('utf-8'), line) is not None:
                 break
         if read_done:
@@ -95,12 +101,13 @@ def parse_txt_race(filename, md=mean_data()):
             lastday = gdd.get_lastday(1, date, int(rcno), hrname)
             train_state = gdd.get_train_state(1, date, int(rcno), hrname)
             hr_no = gdd.get_hrno(1, date, int(rcno), hrname)
-            race_score, w_ = gdd.get_hr_racescore(1, hr_no, date, month, course, 'File', md)
+            lineage_info = gl.get_lineage(1, hr_no, 'File')
 
             assert len(words) >= 10
             adata = [course, humidity, kind, dbudam, drweight, lastday]
             adata.extend(train_state)
-            adata.extend(race_score)
+            #adata.extend(race_score)
+            adata.extend(lineage_info)
             for i in range(10):
                 adata.append(words[i])
             data.append(adata)
@@ -132,14 +139,14 @@ def parse_txt_race(filename, md=mean_data()):
         for _ in range(300):
             line = input_file.readline()
             line = unicode(line, 'euc-kr').encode('utf-8')
-            if re.match(r'[-─]+', line[:5]) is not None:
+            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
                 continue
             if NEXT.search(line) is not None:
                 break
-            if re.search(r'[^\s]+', line[:5]) is None:
+            if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:5]) is None:
                 continue
             adata = []
-            rating = re.search(r'\d+[.]\d\s+\d+[.]\d\s*$', line).group().split()
+            rating = re.search(unicode(r'\d+[.]\d\s+\d+[.]\d\s*$', 'utf-8').encode('utf-8'), line).group().split()
             adata.append(rating[0])
             adata.append(rating[1])
             data[-cnt+idx].extend(adata)
@@ -153,13 +160,13 @@ def parse_txt_race(filename, md=mean_data()):
         rating = 0
         for _ in range(300):
             line = input_file.readline()
-            line = line
-            if re.match(r'[-─]+', line[:5]) is not None:
+            line = unicode(line, 'euc-kr').encode('utf-8')
+            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
                 continue
-            if re.search(r'매출액', line) is not None:
-                price = int(re.search(r'(?<=단식:)[ ,\d]+', line).group().replace(',', ''))
+            if re.search(unicode(r'매출액', 'utf-8').encode('utf-8'), line) is not None:
+                price = int(re.search(unicode(r'(?<=단식:)[ ,\d]+', 'utf-8').encode('utf-8'), line).group().replace(',', ''))
                 break
-            parse_line = re.search(r'%s\s+\d+[.]\d' % exp, line)
+            parse_line = re.search(unicode(r'%s\s+\d+[.]\d' % exp, 'utf-8').encode('utf-8'), line)
 
             if parse_line is not None:
                 rating = parse_line.group().split('-')[1].split()[1]
@@ -397,6 +404,7 @@ def get_fname(date, job):
             return filename
     return -1
 
+
 def get_fname_dist(date, rcno):
     while True:
         date_s = int("%d%02d%02d" % (date.year, date.month, date.day))
@@ -411,6 +419,7 @@ def get_fname_dist(date, rcno):
 # 킹메신저          한    수2014/03/08 2국6 18박대흥죽마조합            시에로골드          난초                    1    0    0    1    0    0    3000000                     0
 def parse_txt_horse(date, rcno, name, course, md=mean_data()):
     name = name.replace('★', '')
+    date = datetime.date(date/10000, date%10000/100, date%100)
     filename = get_fname(date, "horse")
     if DEBUG: print(filename)
     course = int(course)
@@ -427,7 +436,7 @@ def parse_txt_horse(date, rcno, name, course, md=mean_data()):
             birth = re.search(unicode(r'\d{4}/\d{2}/\d{2}', 'utf-8').encode('utf-8'), line).group()
             data.append((date - datetime.date(int(birth[:4]), int(birth[5:7]), int(birth[8:]))).days)
             participates = re.search(unicode(r'\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s', 'utf-8').encode('utf-8'), line).group().replace(',', '').split()
-            dist_rec = gdd.get_distance_record(1, name, rcno, date, course)
+            dist_rec = gdd.get_distance_record(1, name, rcno, date, course, md)
             #print(participates)
             if int(participates[0]) == 0:
                 #data.extend([0, -1, -1, -1, -1])
@@ -465,7 +474,7 @@ def parse_txt_jockey(date, name, course, md=mean_data()):
     if len(str(name)) > 9:
         #print("name is changed %s -> %s" % (name, name[:6]))
         name = str(name)[:6]
-    filename = get_fname(date, "jockey")
+    filename = get_fname(datetime.date(date/10000, date%10000/100, date%100), "jockey")
     #print("find %s at %s" % (name, filename))
     f_input = open(filename)
     while True:
@@ -509,7 +518,7 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
         #print("name is changed %s -> %s" % (name, name[:6]))
         name = str(name)[:6]
     course = int(course)
-    filename = get_fname(date, "trainer")
+    filename = get_fname(datetime.date(date/10000, date%10000/100, date%100), "trainer")
     if DEBUG: print(filename)
     f_input = open(filename)
     while True:
@@ -547,78 +556,72 @@ def parse_txt_trainer(date, name, course, md=mean_data()):
     return map(lambda x: float(x), md.tr_history_total[course] + md.tr_history_year[course])
 
 
-def get_data(filename, md=mean_data(), rd=RaceDetail()):
+def get_race_record():
+    race_record = RaceRecord()
+    with gzip.open('../data/race_record.gz', 'rb') as f:
+        tmp_dict = _pickle.loads(f.read())
+        race_record.__dict__.update(tmp_dict)
+    return race_record
+
+
+def get_data(filename, md, md3, race_record, mean_data, weight):
     print("race file: %s" % filename)
     date_i = re.search(unicode(r'\d{8}', 'utf-8').encode('utf-8'), filename).group()
     date = datetime.date(int(date_i[:4]), int(date_i[4:6]), int(date_i[6:]))
     data = parse_txt_race(filename, md)
+    assert len(data[0]) == 101
     jangu_clinic = wc.parse_hr_clinic(date)
 
     for i in range(len(data)):
         #print("race file: %s" % filename)
         #print("%s %s %s" % (data[i][5], data[i][10], data[i][11]))
-        data[i].extend(parse_txt_horse(date, int(data[i][39]), data[i][24], data[i][0], md))
-        data[i].extend(parse_txt_jockey(date, data[i][29], data[i][0], md))
-        data[i].extend(parse_txt_trainer(date, data[i][30], data[i][0], md))
-        data[i].extend(rd.get_data(data[i][24], date_i, md))
-        data[i].extend(wc.get_jangu_clinic(jangu_clinic, data[i][24]))
+        rcno = int(data[i][91])
+        hrname = data[i][76]
+        #print("hrname:%s"%hrname)
+        jkname = data[i][81]
+        trname = data[i][82]
+        course = int(data[i][0])
+        date = int(date_i)
+        data[i].extend(parse_txt_horse(date, rcno, hrname, course, md))
+        assert len(data[i]) == 118
+        data[i].extend(parse_txt_jockey(date, jkname, course, md))
+        assert len(data[i]) == 128
+        data[i].extend(parse_txt_trainer(date, trname, course, md))
+        assert len(data[i]) == 138
+        data[i].extend(wc.get_jangu_clinic(jangu_clinic, hrname))
+        assert len(data[i]) == 219
+        race_records, _ = gdd.get_hr_race_record(hrname, date, race_record, md3, mean_data, weight)
+        #print("len(race_records):%d"%len(race_records))
+        data[i].extend(race_records)
+        assert len(data[i]) == 247
         data[i].extend([date_i])
+        assert len(data[i]) == 248
     df = pd.DataFrame(data)
-    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
-                  'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10', # 10
-                  'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 9
+
+    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6'] \
+                  + ['lg%d'%i for i in range(1,63)] \
+                  + ['rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 9
                   'owner', 'weight', 'dweight', 'rctime', 'r1', 'r2', 'r3', 'cnt', 'rcno', 'month', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'samssang', # 18
                   'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
                   'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
                   'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
-                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2',  #10
-                  'rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
-                  'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',  # 30
-                  'jc31', 'jc32', 'jc33', 'jc34', 'jc35', 'jc36', 'jc37', 'jc38', 'jc39', 'jc40', 'jc41', 'jc42', 'jc43', 'jc44', 'jc45', 'jc46', 'jc47', 'jc48', 'jc49', 'jc50', 'jc51', 'jc52', 'jc53', 'jc54', 'jc55', 'jc56', 'jc57', 'jc58', 'jc59', 'jc60',  # 30
-                  'jc61', 'jc62', 'jc63', 'jc64', 'jc65', 'jc66', 'jc67', 'jc68', 'jc69', 'jc70', 'jc71', 'jc72', 'jc73', 'jc74', 'jc75', 'jc76', 'jc77', 'jc78', 'jc79', 'jc80', 'jc81',  # 21
-                  'date'] # 11
-    return df
-
-
-def get_data2(filename, _date, _rcno):
-    print("race file: %s" % filename)
-    date = datetime.date(_date/10000, _date/100%100, _date%100)
-    data = parse_txt_race2(filename, _date, _rcno)
-    for i in range(len(data)):
-        #print("race file: %s" % filename)
-        #print("%s %s %s" % (data[i][5], data[i][10], data[i][11]))
-        data[i].extend(parse_txt_horse(date, int(data[i][23]), data[i][12]))
-        data[i].extend(parse_txt_jockey(date, data[i][17]))
-        data[i].extend(parse_txt_trainer(date, data[i][18]))
-        data[i].extend([_date])
-    df = pd.DataFrame(data)
-    df.columns = ['course', 'humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'rank', 'idx', 'name', 'cntry', 'gender', 'age', 'budam', 'jockey', 'trainer', # 20
-                  'weight', 'dweight', 'cnt', 'rcno', 'month',
-                  'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
-                  'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
-                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
-                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2', 'date'] # 10
+                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2'] \
+                  + ['jc%d'%i for i in range(1,82)] \
+                  + ['rc%d'%i for i in range(1,29)] \
+                  + ['date']
     return df
 
 
 if __name__ == '__main__':
     DEBUG = True
-    filename = '../txt/1/rcresult/rcresult_1_20070113.txt'
-    rd = RaceDetail() 
+    filename = '../txt/1/rcresult/rcresult_1_20170408.txt'
     import glob
     year_ = int(re.search(r'\d{8}', filename).group())/10000
-    for year in range(year_-3, year_+1):
-        filelist1 = glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_%d*.txt' % year)
-        filelist2 = glob.glob('../txt/1/rcresult/rcresult_1_%d*.txt' % year)
-        print("processed ap in %d" % year)
-        for fname in filelist1:
-            rd.parse_ap_rslt(fname)
-        print("processed rc in %d" % year)
-        for fname in filelist2:
-            rd.parse_race_detail(fname)
-    #md = mean_data()
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
-    data = get_data(filename, md, rd)
+    with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
+        md3 = _pickle.loads(f.read())
+    md3['humidity'][20] = md3['humidity'][25]
+    data = get_data(filename, md, md3)
     data.to_csv(filename.replace('.txt', '.csv'), index=False)
     del data['name']
     del data['jockey']

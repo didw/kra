@@ -1,9 +1,13 @@
 # -*- coding:utf-8 -*-
 from __future__ import print_function
-
 import re
 import pandas as pd
-from urllib2 import Request, urlopen
+try:
+    # For Python 3.0 and later
+    from urllib.request import urlopen, Request
+except ImportError:
+    # Fall back to Python 2's urllib2
+    from urllib2 import urlopen, Request
 import random
 import datetime
 import os
@@ -580,8 +584,27 @@ def make_list_of_dict():
     def m():
         return [{0:0} for _ in range(MODEL_NUM+1)]
     list_of_dict = m()
-    for 
+
+
+def calc_coefficient():
+    df = pd.read_csv('../data/1_2007_2016_v1.csv')
+    df_course1000 = df.loc[df['course']==1000]
+    print(df.corr()['rctime'])
+    print(df_course1000.corr()['rctime'])
+
+def remove_outlier():
+    df = pd.read_csv('../data/1_2007_2016_v1.csv')
+    print(np.shape(df))
+    m_c = {}
+    for c in df['course'].unique():
+        m = df.loc[df['course']==c, 'rctime'].mean()
+        df = df.loc[(df['course']!=c) | (df['rctime'] > 0.95*m)]
+        df = df.loc[(df['course']!=c) | (df['rctime'] < 1.05*m)]
+        print(c, m)
+    print(np.shape(df))
+    df.to_csv('../data/1_2007_2016_v1_ro.csv', index=False)
+
 
 if __name__ == '__main__':
-    make_list_of_dict()
+    remove_outlier()
 

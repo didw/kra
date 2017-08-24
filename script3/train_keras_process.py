@@ -15,12 +15,6 @@ import tensorflow as tf
 import time
 from sklearn.preprocessing import StandardScaler
 from multiprocessing import Process, Queue
-from keras.models import Sequential
-from keras.layers import Dense, Dropout
-from keras import regularizers
-from keras import backend as K
-from keras.models import model_from_json
-from keras.wrappers.scikit_learn import KerasRegressor
 
 MODEL_NUM = 30
 NUM_ENSEMBLE = 6
@@ -119,6 +113,49 @@ def get_data_from_csv(begin_date, end_date, fname_csv, course=0, kind=0, nData=2
     Y_data = data['rctime']
     X_data = data.copy()
     X_data = X_data.drop(['name', 'jockey', 'trainer', 'owner', 'rctime', 'rank', 'r3', 'r2', 'r1', 'date', 'price', 'bokyeon1', 'bokyeon2', 'bokyeon3', 'boksik', 'ssang', 'sambok', 'ssang', 'samssang', 'index'], axis=1)
+    if nData == 11:
+        X_data = X_data.drop(['humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
+                  'idx', 'cntry', 'gender', 'age', 'budam', # 9
+                  'weight', 'dweight', 'cnt', 'rcno', 'month',
+                  'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
+                  'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
+                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
+                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2',  #10
+                  'rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
+                  'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',  # 30
+                  'jc31', 'jc32', 'jc33', 'jc34', 'jc35', 'jc36', 'jc37', 'jc38', 'jc39', 'jc40', 'jc41', 'jc42', 'jc43', 'jc44', 'jc45', 'jc46', 'jc47', 'jc48', 'jc49', 'jc50', 'jc51', 'jc52', 'jc53', 'jc54', 'jc55', 'jc56', 'jc57', 'jc58', 'jc59', 'jc60',  # 30
+                  'jc61', 'jc62', 'jc63', 'jc64', 'jc65', 'jc66', 'jc67', 'jc68', 'jc69', 'jc70', 'jc71', 'jc72', 'jc73', 'jc74', 'jc75', 'jc76', 'jc77', 'jc78', 'jc79', 'jc80', 'jc81',  # 21
+                  ], axis=1)
+    if nData == 29:
+        X_data = X_data.drop(['humidity', 'kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
+                  'idx', 'cntry', 'gender', 'age', 'budam', # 9
+                  'weight', 'dweight', 'cnt', 'rcno', 'month',
+                  'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
+                  'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
+                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
+                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2',  #10
+                  'jc1', 'jc2', 'jc3', 'jc4', 'jc5', 'jc6', 'jc7', 'jc8', 'jc9', 'jc10', 'jc11', 'jc12', 'jc13', 'jc14', 'jc15', 'jc16', 'jc17', 'jc18', 'jc19', 'jc20', 'jc21', 'jc22', 'jc23', 'jc24', 'jc25', 'jc26', 'jc27', 'jc28', 'jc29', 'jc30',  # 30
+                  'jc31', 'jc32', 'jc33', 'jc34', 'jc35', 'jc36', 'jc37', 'jc38', 'jc39', 'jc40', 'jc41', 'jc42', 'jc43', 'jc44', 'jc45', 'jc46', 'jc47', 'jc48', 'jc49', 'jc50', 'jc51', 'jc52', 'jc53', 'jc54', 'jc55', 'jc56', 'jc57', 'jc58', 'jc59', 'jc60',  # 30
+                  'jc61', 'jc62', 'jc63', 'jc64', 'jc65', 'jc66', 'jc67', 'jc68', 'jc69', 'jc70', 'jc71', 'jc72', 'jc73', 'jc74', 'jc75', 'jc76', 'jc77', 'jc78', 'jc79', 'jc80', 'jc81',  # 21
+                  ], axis=1)
+    if nData == 118:
+        X_data = X_data.drop(['kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
+                  'weight', 'dweight', 'rcno',
+                  'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
+                  'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
+                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
+                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2',  #10
+                  'cr1', 'cr2', 'cr3', 'cr4', 'cr5', 'cr6', 'cr7', 'cr8', 'cr9', 'cr10', 'cr11', 'cr12', 'cr13', 'g1', 'g2', 'g3',
+                  'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'c10', 'c11', 'c12', 'c13', 'c14', 'c15', 'c16', 'c17',
+                  ], axis=1)
+    if nData == 151:
+        X_data = X_data.drop(['kind', 'dbudam', 'drweight', 'lastday', 'ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', # 12
+                  'weight', 'dweight', 'rcno',
+                  'hr_days', 'hr_nt', 'hr_nt1', 'hr_nt2', 'hr_t1', 'hr_t2', 'hr_ny', 'hr_ny1', 'hr_ny2', 'hr_y1', 'hr_y2', # 11
+                  'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl', # 6
+                  'jk_nt', 'jk_nt1', 'jk_nt2', 'jk_t1', 'jk_t2', 'jk_ny', 'jk_ny1', 'jk_ny2', 'jk_y1', 'jk_y2', # 10
+                  'tr_nt', 'tr_nt1', 'tr_nt2', 'tr_t1', 'tr_t2', 'tr_ny', 'tr_ny1', 'tr_ny2', 'tr_y1', 'tr_y2',  #10
+                  ], axis=1)
     if nData == 47:
         X_data = X_data.drop(['ts1', 'ts2', 'ts3', 'ts4', 'ts5', 'ts6', 'score1', 'score2', 'score3', 'score4', 'score5', 'score6', 'score7', 'score8', 'score9', 'score10', 'hr_dt', 'hr_d1', 'hr_d2', 'hr_rh', 'hr_rm', 'hr_rl'], axis=1)
         X_data = X_data.drop(['rd1', 'rd2', 'rd3', 'rd4', 'rd5', 'rd6', 'rd7', 'rd8', 'rd9', 'rd10', 'rd11', 'rd12', 'rd13', 'rd14', 'rd15', 'rd16', 'rd17', 'rd18', # 18
@@ -141,11 +178,13 @@ def delete_lack_data(X_data, Y_data):
     return X_data.drop(X_data.index[remove_index]), Y_data.drop(Y_data.index[remove_index])
 
 def training(train_bd, train_ed, course=0, nData=47):
+    from keras.wrappers.scikit_learn import KerasRegressor
+    from keras.models import model_from_json
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-    #os.system('rm -r \"../model/keras/e800_i201/%d_%d/\"' % (train_bd_i, train_ed_i))
-    model_dir = '../model/keras/e800_i201/%d_%d/' % (train_bd_i, train_ed_i)
+    #os.system('rm -r \"../model/keras/e200_i586_l3/%d_%d/\"' % (train_bd_i, train_ed_i))
+    model_dir = '../model/keras/e200_i586_l3/%d_%d/' % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
     model_name = "%s/model_v1.h5" % model_dir
@@ -166,12 +205,15 @@ def training(train_bd, train_ed, course=0, nData=47):
     # evaluate model with standardized dataset
     for i in range(MODEL_NUM):
         if os.path.exists(model_name.replace('h5', '%d.h5'%i)):
+            from keras.models import model_from_json
             print("model[%d] exist. try to loading.. %s - %s" % (i, str(train_bd), str(train_ed)))
             estimators[i] = model_from_json(open(model_name.replace('h5', 'json')).read())
             estimators[i].load_weights(model_name.replace('h5', '%d.h5'%i))
         else:
             print("model[%d] training.." % (i+1))
             def baseline_model():
+                from keras.models import Sequential
+                from keras.layers import Dense, Dropout
                 # create model
                 model = Sequential()
                 model.add(Dense(128, input_shape=(201,), kernel_initializer='he_normal', activation='relu'))
@@ -183,7 +225,9 @@ def training(train_bd, train_ed, course=0, nData=47):
             config = tf.ConfigProto()
             config.gpu_options.allow_growth = True
             sess = tf.Session(config=config)
+            from keras import backend as K
             K.set_session(sess)
+            from keras.wrappers.scikit_learn import KerasRegressor
             estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=200, batch_size=32, verbose=0)
             estimators[i].fit(X_train, Y_train)
             # saving model
@@ -214,11 +258,16 @@ def print_log(data, pred, fname):
 
 def process_train(train_bd, train_ed):
     #Tensorflow GPU optimization
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    sess = tf.Session(config=config)
+    from keras import backend as K
+    K.set_session(sess)
     
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
-    model_dir = "../model/keras/e800_i201/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/keras/e200_i586_l3/%d_%d" % (train_bd_i, train_ed_i)
     model_name = "%s/model_v1.h5" % (model_dir)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
@@ -234,20 +283,26 @@ def process_train(train_bd, train_ed):
     #joblib.dump(scaler_y, '%s/scaler_y.pkl'%model_dir)
     for i in range(MODEL_NUM):
         if os.path.exists(model_name.replace('h5', '%d.h5'%i)):
+            from keras.models import model_from_json
             print("model[%d] exist. try to loading.. %s - %s" % (i, str(train_bd), str(train_ed)))
             estimators[i] = model_from_json(open(model_name.replace('h5', 'json')).read())
             estimators[i].load_weights(model_name.replace('h5', '%d.h5'%i))
         else:
             print("model[%d] training.." % (i+1))
             def baseline_model():
+                from keras.models import Sequential
+                from keras.layers import Dense, Dropout
+                from keras import regularizers
                 # create model
                 model = Sequential()
-                model.add(Dense(128, input_shape=(201,), kernel_initializer='he_normal', activation='relu'))
+                model.add(Dense(100, input_shape=(586,), kernel_initializer='he_normal', activation='relu'))
+                model.add(Dense(10, kernel_initializer='he_normal', activation='relu'))
                 model.add(Dense(1, kernel_initializer='he_normal'))
                 # Compile model
                 model.compile(loss='mean_squared_error', optimizer='adam')
                 return model
 
+            from keras.wrappers.scikit_learn import KerasRegressor
             estimators[i] = KerasRegressor(build_fn=baseline_model, nb_epoch=400, batch_size=32, verbose=0)
             estimators[i].fit(X_train, Y_train, epochs=20)
             # saving model
@@ -274,9 +329,9 @@ def process_test(train_bd, train_ed, q):
     
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/keras/e800_i201/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/keras/e200_i586_l3/%d_%d" % (train_bd_i, train_ed_i)
     model_name = "%s/model_v1.h5" % (model_dir)
-    data_dir = "../data/keras/e800_i201"
+    data_dir = "../data/keras/e200_i586_l3"
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
     print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
@@ -301,6 +356,7 @@ def process_test(train_bd, train_ed, q):
             X_test.to_csv('../log/weekly_train0_%s.csv' % today, index=False)
         pred = [0] * MODEL_NUM
         for i in range(MODEL_NUM):
+            from keras.models import model_from_json
             estimator = model_from_json(open(model_name.replace('h5', 'json')).read())
             estimator.load_weights(model_name.replace('h5', '%d.h5'%i))
             pred[i] = estimator.predict(X_test).flatten()
@@ -421,13 +477,13 @@ def process_test(train_bd, train_ed, q):
         res[5] = sim.simulation6(pred, R_test, [[1,2,3]])
         res[6] = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3],[2,3,4]])
 
-        res[0] = sim.simulation5(pred, R_test, [[1,2]])
-        res[1] = sim.simulation5(pred, R_test, [[1,2],[1,3]])
-        res[2] = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3]])
-        res[3] = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4]])
-        res[4] = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4]])
-        res[5] = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[1,5]])
-        res[6] = sim.simulation5(pred, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[1,5],[2,5],[3,5],[4,5]])
+        res[0] = sim.simulation5(pred_ens, R_test, [[1,2]])
+        res[1] = sim.simulation5(pred_ens, R_test, [[1,2],[1,3],[2,1],[2,3]])
+        res[2] = sim.simulation5(pred_ens, R_test, [[1,2],[1,3],[2,1],[2,3],[3,1],[3,2]])
+        res[3] = sim.simulation5(pred_ens, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[2,1],[3,1],[3,2],[4,1],[4,2],[4,3]])
+        res[4] = sim.simulation5(pred_ens, R_test, [[3,4],[3,5],[3,6],[4,5],[4,6],[5,4]])
+        res[5] = sim.simulation5(pred_ens, R_test, [[4,5],[4,6],[5,4],[5,6],[6,4],[6,5]])
+        res[6] = sim.simulation5(pred_ens, R_test, [[4,5],[4,6],[4,7],[5,4],[5,6],[5,7],[6,4],[6,5],[6,7],[7,4],[7,5],[7,6]])
         
         res[0] = sim.simulation6(pred, R_test, [[1,2,3]])
         res[1] = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,3,4], [2,3,4]])
@@ -442,14 +498,14 @@ def process_test(train_bd, train_ed, q):
         res[5] = sim.simulation6(pred, R_test, [[2,3,4], [2,3,5], [2,4,5], [3,4,5], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
         res[6] = sim.simulation6(pred, R_test, [[3,4,5], [3,4,6], [3,4,7], [3,5,6], [3,5,7], [3,6,7], [4,5,6], [4,5,7], [4,6,7], [5,6,7]])
         
-        res[0] = sim.simulation7(pred, R_test, [[1],[2],[3]])
-        res[1] = sim.simulation7(pred, R_test, [[1,2],[1,2,3],[1,2,3]])
-        res[2] = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3,4,5],[1,2,3,4,5,6]])
-        res[3] = sim.simulation7(pred, R_test, [[1,2,3,4],[1,2,3,4,5,6],[3,4,5,6]])
-        res[4] = sim.simulation7(pred, R_test, [[4,5,6],[4,5,6],[4,5,6]])
-        res[5] = sim.simulation7(pred, R_test, [[4,5,6,7,8],[4,5,6,7,8],[4,5,6,7,8]])
-        res[6] = sim.simulation7(pred, R_test, [[5,6,7,8,9,10],[5,6,7,8,9,10],[5,6,7,8,9,10]])
-        
+        res[0] = sim.simulation7(pred[i], R_test, [[1],[2],[3]])
+        res[1] = sim.simulation7(pred[i], R_test, [[1,2],[1,2,3],[1,2,3]])
+        res[2] = sim.simulation7(pred[i], R_test, [[1,2,3],[1,2,3],[1,2,3]])
+        res[3] = sim.simulation7(pred[i], R_test, [[1,2,3,4],[1,2,3,4],[1,2,3,4]])
+        res[4] = sim.simulation7(pred[i], R_test, [[3,4,5],[4,5,6],[4,5,6]])
+        res[5] = sim.simulation7(pred[i], R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
+        res[6] = sim.simulation7(pred[i], R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
+
         res[0] = sim.simulation2(pred, R_test, 1)
         res[1] = sim.simulation2(pred, R_test, 2)
         res[2] = sim.simulation2(pred, R_test, 3)
@@ -462,7 +518,6 @@ def process_test(train_bd, train_ed, q):
         print("result[%02d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f" % (
                 m, sscore[m], sr[m][0], sr[m][1], sr[m][2], sr[m][3], sr[m][4], sr[m][5], sr[m][6]))
     q.put((sr, sscore))
-
 
 
 def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, courses=[0], kinds=[0], nData=47):
@@ -495,21 +550,15 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         sr, sscore = q.get()
 
 
-
-
 if __name__ == '__main__':
     delta_year = 4
     dbname = '../data/train_201101_20160909.pkl'
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
     test_bd = datetime.date(2016, 6, 5)
-    test_ed = datetime.date(2017, 4, 30)
+    test_ed = datetime.date(2017, 5, 15)
 
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
-    sess = tf.Session(config=config)
-    K.set_session(sess)
-    for delta_year in [6]:
+    for delta_year in [8]:
         for nData in [201]:
             simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[0], nData=nData)
             #for c in [1000, 1200, 1300, 1400, 1700]:

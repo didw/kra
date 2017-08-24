@@ -7,7 +7,14 @@ import pandas as pd
 import os.path
 from mean_data import mean_data
 from sklearn.externals import joblib
-from get_race_detail import RaceDetail
+from mean_data3 import save_mean_data
+from race_record import RaceRecord
+import get_detail_data as gdd
+import gzip
+import cPickle
+import get_lineage as lg
+from make_unique_columns import make_unique_columns
+
 
 def get_data(begin_date, end_date, fname_csv):
     train_bd = begin_date
@@ -21,18 +28,9 @@ def get_data(begin_date, end_date, fname_csv):
         md = joblib.load(fname_md)
     else:
         md = mean_data()
-    rd = RaceDetail()
-    import glob
-    for year in range(2007, 2018):
-        filelist1 = glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_%d*.txt' % year)
-        filelist2 = glob.glob('../txt/1/rcresult/rcresult_1_%d*.txt' % year)
-        for fname in filelist1:
-            print("processed ap %s" % fname)
-            rd.parse_ap_rslt(fname)
-        for fname in filelist2:
-            print("processed rc in %s" % fname)
-            rd.parse_race_detail(fname)
-    joblib.dump(rd, fname_csv.replace('.csv', '_rd.pkl'))
+    with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
+        md3 = cPickle.loads(f.read())
+    md3['humidity'][20] = md3['humidity'][25]
     while date < train_ed:
         date += datetime.timedelta(days=1)
         if date.weekday() != 5 and date.weekday() != 6:
@@ -47,16 +45,15 @@ def get_data(begin_date, end_date, fname_csv):
             print("[%.0f %.0f %.0f]" % (md.race_detail[i][0], md.race_detail[i][1], md.race_detail[i][2]), end=', ')
         print()
         if first:
-            adata = pr.get_data(filename, md, rd)
+            adata = pr.get_data(filename, md, md3)
             md.update_data(adata)
             data = adata
             first = False
         else:
-            adata = pr.get_data(filename, md, rd)
+            adata = pr.get_data(filename, md, md3)
             md.update_data(adata)
             data = data.append(adata, ignore_index=True)
     data.to_csv(fname_csv, index=False)
-    joblib.dump(md, fname_csv.replace('.csv', '_md.pkl'))
     return data
 
 
@@ -68,18 +65,14 @@ def update_data(end_date, fname_csv):
     date = datetime.date(train_bd/10000, train_bd/100%100, train_bd%100)
     fname_md = fname_csv.replace('.csv', '_md.pkl')
     md = joblib.load(fname_md)
-    rd = RaceDetail()
-    import glob
-    for year in range(train_bd/10000-2, end_date.year+1):
-        filelist1 = glob.glob('../txt/1/ap-check-rslt/ap-check-rslt_1_%d*.txt' % year)
-        filelist2 = glob.glob('../txt/1/rcresult/rcresult_1_%d*.txt' % year)
-        print("processed ap in %d" % year)
-        for fname in filelist1:
-            rd.parse_ap_rslt(fname)
-        print("processed rc in %d" % year)
-        for fname in filelist2:
-            rd.parse_race_detail(fname)
-    joblib.dump(rd, fname_csv.replace('.csv', '_rd.pkl'))
+
+    with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
+        md3 = cPickle.loads(f.read())
+    if 25 in md3['humidity']:
+        md3['humidity'][20] = md3['humidity'][25]
+
+    race_record = pr.get_race_record()
+    mean_data, weight = gdd.make_mean_race_record(race_record)
     while date <= train_ed:
         date += datetime.timedelta(days=1)
         if date.weekday() != 5 and date.weekday() != 6:
@@ -90,23 +83,11 @@ def update_data(end_date, fname_csv):
         for i in [900, 1000, 1200, 1300, 1400, 1700, 0]:
             print("%f" % md.race_score[i][0][20], end=' ')
         print()
-        adata = pr.get_data(filename, md, rd)
-        md.update_data(adata)
+        adata = pr.get_data(filename, md, md3, race_record, mean_data, weight)
         data = data.append(adata, ignore_index=True)
-    #os.system("rename \"%s\" \"%s\"" % (fname_csv, fname_csv.replace('.csv', '_%s.csv'%train_bd)))
-    #os.system("rename \"%s\" \"%s\"" % (fname_md, fname_md.replace('.pkl', '_%s.pkl'%train_bd)))
     os.system("mv \"%s\" \"%s\"" % (fname_csv, fname_csv.replace('.csv', '_%s.csv'%train_bd)))
-    os.system("mv \"%s\" \"%s\"" % (fname_md, fname_md.replace('.pkl', '_%s.pkl'%train_bd)))
     data.to_csv(fname_csv, index=False)
-    joblib.dump(md, fname_md)
     return data
-
-
-def update_md(fname):
-    data = pd.read_csv(fname)
-    md = mean_data()
-    md.update_data(data)
-    joblib.dump(md, fname.replace('.csv', '_md.pkl'))
 
 
 if __name__ == '__main__':
@@ -117,3 +98,15 @@ if __name__ == '__main__':
     #get_data(bdate, edate, fname_csv)
     update_data(datetime.date.today(), fname_csv)
 
+    race_record = RaceRecord()
+    race_record.load_model()
+    race_record.update_model()
+
+    save_mean_data()
+
+    lg.save_lineage_info(1)
+
+    make_unique_columns()
+
+    print("\n\nAll Finished")
+    
