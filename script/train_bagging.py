@@ -19,11 +19,12 @@ from sklearn.metrics import mean_squared_error
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 from multiprocessing import Process, Queue
-import xgboost as xgb
 from sklearn.metrics import mean_squared_error
 from math import sqrt
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import BaggingRegressor
+from sklearn.linear_model import BayesianRidge
+from sklearn.neighbors import KNeighborsRegressor
 
 
 MODEL_NUM = 10
@@ -177,7 +178,7 @@ def delete_lack_data(X_data, Y_data):
 def training(train_bd, train_ed, n_epoch, q):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/bagging/ens_e1000/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/bagging_nn/ens_e1000/%d_%d" % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
@@ -206,7 +207,7 @@ def training(train_bd, train_ed, n_epoch, q):
         else:
             X_train, Y_train = X_data, Y_data
             X_val, Y_val = None, None
-        dir_name = '../model/bagging/ens_e1000/%s_%s/%d' % (train_bd_i, train_ed_i, i)
+        dir_name = '../model/bagging_nn/ens_e1000/%s_%s/%d' % (train_bd_i, train_ed_i, i)
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
         tf.reset_default_graph()
@@ -247,23 +248,23 @@ def print_log(data, pred, fname):
     flog.close()
 
 
-def train_bagging(dir_path, X_train, y_train, X_val, y_val):
-    clf = BaggingRegressor(n_estimators=10, n_jobs=10, random_state=np.random.randint(100))
+def train_bagging_nn(dir_path, X_train, y_train, X_val, y_val):
+    clf = BaggingRegressor(base_estimator=KNeighborsRegressor(10), random_state=np.random.randint(100))
     clf.fit(X_train, y_train)
     # get prediction
     if y_val is not None:
         pred = clf.predict(X_val)
         error_rate = sqrt(mean_squared_error(pred, y_val))
         print('Test error  = {}'.format(error_rate))
-    if not os.path.exists("../model/bagging/ens_e1000/%s"%dir_path):
-        os.makedirs("../model/bagging/ens_e1000/%s"%dir_path)
-    joblib.dump(clf, "../model/bagging/ens_e1000/%s/model.pkl"%dir_path)
+    if not os.path.exists("../model/bagging_nn/ens_e1000/%s"%dir_path):
+        os.makedirs("../model/bagging_nn/ens_e1000/%s"%dir_path)
+    joblib.dump(clf, "../model/bagging_nn/ens_e1000/%s/model.pkl"%dir_path)
 
 
 def process_train(train_bd, train_ed, q):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/bagging/ens_e1000/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/bagging_nn/ens_e1000/%d_%d" % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
@@ -300,7 +301,7 @@ def process_train(train_bd, train_ed, q):
             if not os.path.exists("%s/%d" % (model_dir, i)):
                 os.makedirs("%s/%d" % (model_dir, i))
             print("model[%d] training.." % (i+1))
-            train_bagging("%s_%s/%d"%(train_bd_i, train_ed_i, i), X_train, y_train, X_val, y_val)
+            train_bagging_nn("%s_%s/%d"%(train_bd_i, train_ed_i, i), X_train, y_train, X_val, y_val)
     print("Finish train model")
     q.put(scaler_x1)
     q.put(scaler_x2)
@@ -331,7 +332,7 @@ def process_test(train_bd, train_ed, scaler, q):
     
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    data_dir = "../data/bagging/ens_e1000"
+    data_dir = "../data/bagging_nn/ens_e1000"
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
 
@@ -366,7 +367,9 @@ def process_test(train_bd, train_ed, scaler, q):
         Y_test = np.array(Y_test.values.reshape(-1,1)).reshape(-1)
         pred = [0] * MODEL_NUM
         for i in range(MODEL_NUM):
-            estimator = joblib.load("../model/bagging/ens_e1000/%d_%d/%d/model.pkl"%(train_bd_i, train_ed_i, i))
+            estimator = joblib.load("../model/bagging_nn/ens_e1000/%d_%d/%d/model.pkl"%(train_bd_i, train_ed_i, i))
+            #estimator = joblib.load("../model/bagging_nn/ens_e1000/20110212_20170210/%d/model.pkl"%i)
+
             pred[i] = estimator.predict(X_test)
             pred[i] = scaler_y.inverse_transform(pred[i])
             score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
@@ -511,8 +514,8 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         scaler_x5 = q.get()
         scaler_x6 = q.get()
         scaler_y = q.get()
-        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/bagging/ens_e1000/reference/scaler_x.pkl')
-        #scaler_y = joblib.load('../model/bagging/ens_e1000/reference/scaler_y.pkl')
+        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/bagging_nn/ens_e1000/20110212_20170210/scaler_x.pkl')
+        #scaler_y = joblib.load('../model/bagging_nn/ens_e1000/20110212_20170210/scaler_y.pkl')
         q.put((sr, sscore))
         p = Process(target=process_test, args=(train_bd, train_ed, (scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y), q))
         p.start()
@@ -524,8 +527,8 @@ if __name__ == '__main__':
     delta_year = 4
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2016, 6, 5)
-    test_ed = datetime.date(2017, 7, 25)
+    test_bd = datetime.date(2017, 3, 15)
+    test_ed = datetime.date(2017, 8, 25)
 
     for delta_year in [6]:
         for nData in [186]:

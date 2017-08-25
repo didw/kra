@@ -37,7 +37,7 @@ def make_dict(fname, rcno=1):
     return data_ss
 
 if __name__ == '__main__':
-    init_day = 19
+    init_day = 26
     res_dict = {"Sat": {}, "Sun": {}}
     Day_list = ["Sat", "Sun"]
     for day in [init_day, init_day+1]:

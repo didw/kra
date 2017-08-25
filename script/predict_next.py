@@ -85,14 +85,14 @@ def print_detail(players, cand, fresult, mode, total_bet=5000):
     for i,j,k in itertools.product(*cand):
         if i!=j and i!=k and j!=k:
             total_num += 1
-    bet = int(total_bet/total_num/100)*100
+    bet = max(int(total_bet/total_num/100),1)*100
     print("bet: %d"%bet)  # 15000 / 5 / 10 = 300
     fresult.write("\n\nbet: %d"%bet)  # 14200 / 6 = 2366
     for i,j,k in itertools.product(*cand):
         if i==j or i==k or j==k:
             continue
-        print("%s,%s,%s" % (players[i]+1, players[j]+1, players[k]+1))
-        fresult.write("\n%s,%s,%s, %s: %d" % (players[i]+1, players[j]+1, players[k]+1, mode, bet))
+        print("%s,%s,%s" % (players[i-1]+1, players[j-1]+1, players[k-1]+1))
+        fresult.write("\n%s,%s,%s, %s: %d" % (players[i-1]+1, players[j-1]+1, players[k-1]+1, mode, bet))
     fresult.write("\n")
 
 
@@ -117,7 +117,6 @@ def predict_next(estimators, data_pre, meet, date, rcno, course=0, nData=47, yea
         os.makedirs('../log')
     if __DEBUG__:
         X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
-    print(len(X_data.columns))
     X_array = np.array(X_data)
     X_array[:,3:5] = scaler_x1.transform(X_array[:,3:5])
     X_array[:,6:12] = scaler_x2.transform(X_array[:,6:12])
@@ -138,7 +137,7 @@ def predict_next(estimators, data_pre, meet, date, rcno, course=0, nData=47, yea
         for idx, row in data.iterrows():
             try:
                 if int(data['hr_nt'][idx]) == 0 or int(data['jk_nt'][idx]) == 0 or int(data['tr_nt'][idx]) == 0:
-                    print("%s data is not enough. be careful[hr:%d, jk:%d, tr:%d]" % (data['name'][idx], int(data['hr_nt'][idx]), int(data['jk_nt'][idx]), int(data['tr_nt'][idx])))
+                    print("data is not enough. be careful[hr:%d, jk:%d, tr:%d]" % (int(data['hr_nt'][idx]), int(data['jk_nt'][idx]), int(data['tr_nt'][idx])))
             except KeyError:
                 pass
             if row['rcno'] != prev_rc or idx+1 == len(data):
@@ -154,6 +153,8 @@ def predict_next(estimators, data_pre, meet, date, rcno, course=0, nData=47, yea
                 fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d ===\n" % (int(prev_rc)+1, nData, year, train_course))
                 fresult.close()
                 print_bet(rcdata, target=[[1],[2],[3]], total_bet=1000)
+                print_bet(rcdata, target=[[1,2],[1,2,3],[1,2,3]], total_bet=1000)
+                print_bet(rcdata, target=[[4,5,6],[4,5,6],[4,5,6,7]], total_bet=1000)
                 rcdata = []
                 prev_rc = row['rcno']
                 if idx+1 != len(data):
@@ -170,7 +171,7 @@ def load_estimators(train_bd, train_ed):
     for i in range(MODEL_NUM):
         print("loading model[%d]..." % i)
         #estimators[i] = tfp.TensorflowRegressor('%d_%d/%d' % (train_bd_i, train_ed_i, i))
-        estimators[i] = tfp.TensorflowRegressor('reference/%d' % i)
+        estimators[i] = tfp.TensorflowRegressor('20110716_20170714/%d' % i)
         estimators[i].load()
     return estimators
 
@@ -249,7 +250,7 @@ if __name__ == '__main__':
     #for rcno in range(11, len(courses)):
     course = courses[rcno]
     test_course = course
-    init_date = 20170812
+    init_date = 20170826
     from sklearn.externals import joblib
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
     with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
@@ -282,13 +283,13 @@ if __name__ == '__main__':
         #scaler_y = q.get()
         #train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         #train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e300_rms/%d_%d/scaler_x.pkl' % (train_bd_i, train_ed_i))
-        #scaler_y = joblib.load('../model/tf/l1_e300_rms/%d_%d/scaler_x.pkl' % (train_bd_i, train_ed_i))
-        scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e300_rms/reference/scaler_x.pkl')
-        scaler_y = joblib.load('../model/tf/l1_e300_rms/reference/scaler_y.pkl')
+        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e300_rms_rev/%d_%d/scaler_x.pkl' % (train_bd_i, train_ed_i))
+        #scaler_y = joblib.load('../model/tf/l1_e300_rms_rev/%d_%d/scaler_x.pkl' % (train_bd_i, train_ed_i))
+        scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e300_rms_rev/20110716_20170714/scaler_x.pkl')
+        scaler_y = joblib.load('../model/tf/l1_e300_rms_rev/20110716_20170714/scaler_y.pkl')
         #estimators, md, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y = tfp.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData, n_epoch=epoch)
         estimators = load_estimators(train_bd, train_ed)
-        if idx == 1:
+        if idx != 1:
             fname = '../result/1708/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
             predict_next_ens(estimators, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
