@@ -5,10 +5,6 @@ import pandas as pd
 import glob
 import re
 import sys
-if sys.version_info >= (3, 0):
-    from urllib.request import urlopen
-else:
-    from urllib2 import urlopen
 import parse_xml_jk as xj
 import parse_xml_hr as xh
 import parse_xml_tr as xt
@@ -20,18 +16,17 @@ import get_lineage as gl
 from mean_data import mean_data
 import get_weekly_clinic as wc
 from race_record import RaceRecord
-import gzip, cPickle
+import gzip, _pickle
+import requests
 
-reload(sys)
-sys.setdefaultencoding('utf-8')
 
 
 DEBUG = False
 
 def get_humidity():
     url = "http://race.kra.co.kr/chulmainfo/trackView.do?Act=02&Sub=10&meet=1"
-    response_body = urlopen(url).read()
-    line = unicode(response_body, 'euc-kr').encode('utf-8')
+    response_body = requests.get(url)
+    line = unicode(response_body.text, 'euc-kr').encode('utf-8')
     #print("%s" % line)
     p = re.compile(unicode(r'(?<=함수율 <span>: )\d+(?=\%\()', 'utf-8').encode('utf-8'), re.MULTILINE)
     pl = p.search(line)
@@ -173,7 +168,7 @@ def get_game_info(date, rcno):
 def get_race_record():
     race_record = RaceRecord()
     with gzip.open('../data/race_record.gz', 'rb') as f:
-        tmp_dict = cPickle.loads(f.read())
+        tmp_dict = _pickle.loads(f.read())
         race_record.__dict__.update(tmp_dict)
     return race_record
 

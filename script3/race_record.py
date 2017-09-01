@@ -602,10 +602,10 @@ class RaceRecord:
 
 if __name__ == '__main__':
     race_record = RaceRecord()
-    if os.path.exists('../data/race_record.gz'):
-        with gzip.open('../data/race_record.gz', 'rb') as f:
-            tmp_dict = _pickle.loads(f.read())
-            race_record.__dict__.update(tmp_dict)
+    #if os.path.exists('../data/race_record.gz'):
+    #    with gzip.open('../data/race_record.gz', 'rb') as f:
+    #        tmp_dict = _pickle.loads(f.read())
+    #        race_record.__dict__.update(tmp_dict)
     race_record.get_race_record()
     race_record.get_ap_record()
     print(race_record)

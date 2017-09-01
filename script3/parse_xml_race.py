@@ -10,7 +10,7 @@ def parse_xml_race(dirname):
     data = []
     for filename in glob.glob(dirname):
         file_input = open(filename)
-        print "process in %s" % filename
+        print("process in %s" % filename)
         response_body = file_input.read()
         xml_text = BeautifulSoup(response_body, 'html.parser')
         for itemElm in xml_text.findAll('item'):

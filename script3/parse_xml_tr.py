@@ -10,7 +10,7 @@ def parse_xml_tr(meet):
     data = []
     filename  = '../xml/getTR_%d.xml' % meet
     file_input = open(filename)
-    print "process in %s" % filename
+    print("process in %s" % filename)
     response_body = file_input.read()
     xml_text = BeautifulSoup(response_body, 'html.parser')
     for itemElm in xml_text.findAll('item'):
