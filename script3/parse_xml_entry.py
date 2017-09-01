@@ -172,7 +172,7 @@ def get_race_record():
         race_record.__dict__.update(tmp_dict)
     return race_record
 
-def parse_xml_entry(meet, date_i, number, md, md3):
+def parse_xml_entry(meet, date_i, number, md3):
     # get other data
     data_hr = xh.parse_xml_hr(meet)
     data_jk = xj.parse_xml_jk(meet)
@@ -205,9 +205,9 @@ def parse_xml_entry(meet, date_i, number, md, md3):
         hr_dist_rec = gdd.get_distance_record(meet, itemElm.hrname.string, int(itemElm.rcno.string), date, course, md)
         cnt, kind = get_game_info(datetime.date(date_i / 10000, date_i / 100 % 100, date_i % 100), int(itemElm.rcno.string))
         hr_win = get_hr_win(itemElm.cntt.string, itemElm.ord1t.string, itemElm.ord2t.string, itemElm.cnty.string,
-                           itemElm.ord1y.string, itemElm.ord2y.string, course, md)
-        jk_win = get_jk_win(data_jk, itemElm.jkname.string, course, md)
-        tr_win = get_tr_win(data_tr, itemElm.trname.string, course, md)
+                           itemElm.ord1y.string, itemElm.ord2y.string, course)
+        jk_win = get_jk_win(data_jk, itemElm.jkname.string, course)
+        tr_win = get_tr_win(data_tr, itemElm.trname.string, course)
 		
         hrname = unicode(itemElm.hrname.string).encode('utf-8')
         dbudam = gdd.get_dbudam(meet, date_i, int(rcno), hrname)

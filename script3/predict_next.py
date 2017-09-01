@@ -117,7 +117,6 @@ def predict_next(estimators, data_pre, meet, date, rcno, course=0, nData=47, yea
         os.makedirs('../log')
     if __DEBUG__:
         X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
-    print(len(X_data.columns))
     X_array = np.array(X_data)
     X_array[:,3:5] = scaler_x1.transform(X_array[:,3:5])
     X_array[:,6:12] = scaler_x2.transform(X_array[:,6:12])
@@ -138,7 +137,7 @@ def predict_next(estimators, data_pre, meet, date, rcno, course=0, nData=47, yea
         for idx, row in data.iterrows():
             try:
                 if int(data['hr_nt'][idx]) == 0 or int(data['jk_nt'][idx]) == 0 or int(data['tr_nt'][idx]) == 0:
-                    print("%s data is not enough. be careful[hr:%d, jk:%d, tr:%d]" % (data['name'][idx], int(data['hr_nt'][idx]), int(data['jk_nt'][idx]), int(data['tr_nt'][idx])))
+                    print("data is not enough. be careful[hr:%d, jk:%d, tr:%d]" % (int(data['hr_nt'][idx]), int(data['jk_nt'][idx]), int(data['tr_nt'][idx])))
             except KeyError:
                 pass
             if row['rcno'] != prev_rc or idx+1 == len(data):
@@ -258,8 +257,8 @@ if __name__ == '__main__':
         md3['humidity'][20] = md3['humidity'][25]
 
     data_pre1, data_pre2 = None, None
-    data_pre1 = xe.parse_xml_entry(meet, init_date+0, rcno, md, md3)
-    data_pre2 = xe.parse_xml_entry(meet, init_date+1, rcno, md, md3)
+    data_pre1 = xe.parse_xml_entry(meet, init_date+0, rcno, md3)
+    data_pre2 = xe.parse_xml_entry(meet, init_date+1, rcno, md3)
     for idx in range(1,2):
         nData, year, train_course, epoch = [300,151,201,201][idx-1], [6,6,8,6][idx-1], [0,0,0,0][idx-1], [300,200,200,800][idx-1]
         date = init_date
