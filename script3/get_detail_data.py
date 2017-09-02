@@ -20,8 +20,8 @@ def get_budam(meet, date, rcno, name):
     else:
         base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoChulmapyo.do?Act=02&Sub=1&"
         url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
-        response_body = reqeusts.get(url)
-    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+        response_body = requests.get(url)
+    xml_text = BeautifulSoup(response_body.text, 'html.parser')
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
@@ -31,8 +31,8 @@ def get_budam(meet, date, rcno, name):
                 ret_idx = 7
             else:
                 continue
-            if name in unicode(itemList[1].string).encode('utf-8'):
-                return unicode(itemList[ret_idx].string)
+            if name in itemList[1].string:
+                return itemList[ret_idx].string
     #print("can not find budam of %s in %s" % (name, fname))
     return 54
 
@@ -45,8 +45,8 @@ def get_dbudam(meet, date, rcno, name):
     else:
         base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoChulmapyo.do?Act=02&Sub=1&"
         url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
-        response_body = reqeusts.get(url)
-    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+        response_body = requests.get(url)
+    xml_text = BeautifulSoup(response_body.text, 'html.parser')
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
@@ -56,8 +56,9 @@ def get_dbudam(meet, date, rcno, name):
                 ret_idx = 8
             else:
                 continue
-            if len(itemList) >= 10 and name in unicode(itemList[1].string).encode('utf-8'):
-                value = int(re.search(r'[-\d]+', unicode(itemList[ret_idx].string)).group())
+            if len(itemList) >= 10 and str(name) in itemList[1].string:
+                #print(type(r'[-\d]+'), type(itemList[ret_idx].string))
+                value = int(re.search(r'[-\d]+', itemList[ret_idx].string).group())
                 return value
     #print("can not find dbudam of %s in %s" % (name, fname))
     return 0
@@ -71,16 +72,16 @@ def get_weight(meet, date, rcno, name, course):
     else:
         base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&"
         url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
-        response_body = reqeusts.get(url)
-    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+        response_body = requests.get(url)
+    xml_text = BeautifulSoup(response_body.text, 'html.parser')
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if name in unicode(itemList[1].string).encode('utf-8'):
+            if name in itemList[1].string:
                 try:
-                    return float(unicode(itemList[2].string))
+                    return float(itemList[2].string)
                 except ValueError:
-                    print("could not convert string to float %s, %s" % (name.encode('utf-8'), unicode(itemList[2].string).encode('utf-8')))
+                    print("could not convert string to float %s, %s" % (name, itemList[2].string))
                     continue
     return -1
     return {1000: 461, 1100: 460, 1200: 463, 1300: 464, 1400: 466, 1700: 466, 1800: 471, 1900: 475, 2000: 482, 2300: 492}[course]
@@ -94,16 +95,16 @@ def get_dweight(meet, date, rcno, name):
     else:
         base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&"
         url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
-        response_body = reqeusts.get(url)
-    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+        response_body = requests.get(url)
+    xml_text = BeautifulSoup(response_body.text, 'html.parser')
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if name in unicode(itemList[1].string).encode('utf-8'):
+            if name in itemList[1].string:
                 try:
-                    return float(unicode(itemList[3].string))
+                    return float(itemList[3].string)
                 except ValueError:
-                    print("ValueError in %s" % name.encode('utf-8'))
+                    print("ValueError in %s" % name)
                     continue
     #print("can not find dweight %s in %s" % (name, fname))
     return 0
@@ -117,19 +118,19 @@ def get_drweight(meet, date, rcno, name):
     else:
         base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&"
         url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
-        response_body = reqeusts.get(url)
-    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+        response_body = requests.get(url)
+    xml_text = BeautifulSoup(response_body.text, 'html.parser')
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
             if len(itemList) < 5:
                 continue
-            if name in unicode(itemList[1].string).encode('utf-8'):
+            if name in itemList[1].string:
                 last_date = itemList[4].string
                 if len(last_date) >= 10:
                     last_date = datetime.date(int(last_date[:4]), int(last_date[5:7]), int(last_date[8:10]))
                     delta_day = datetime.date(int(date/10000), int(date/100)%100, date%100) - last_date
-                    return float(unicode(itemList[3].string)) * 1000 / delta_day.days
+                    return float(itemList[3].string) * 1000 / delta_day.days
                 else:
                     if "-R" not in last_date:
                         print("can not parsing get_drweight %s" % fname)
@@ -148,16 +149,16 @@ def get_lastday(meet, date, rcno, name):
         base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoWeight.do?Act=02&Sub=1&"
         url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
         try:
-            response_body = reqeusts.get(url)
+            response_body = requests.get(url)
         except httplib.ImcompleteRead as e:
             response_body = e.partial
-    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    xml_text = BeautifulSoup(response_body.text, 'html.parser')
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
             if len(itemList) < 5:
                 continue
-            if name in unicode(itemList[1].string).encode('utf-8'):
+            if name in itemList[1].string:
                 last_date = itemList[4].string
                 if last_date is None:
                     return 43
@@ -185,24 +186,24 @@ def get_train_state(meet, date, rcno, name):
     else:
         base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoTrainState.do?Act=02&Sub=1&"
         url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
-        response_body = reqeusts.get(url)
-    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+        response_body = requests.get(url)
+    xml_text = BeautifulSoup(response_body.text, 'html.parser')
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            if name in unicode(itemList[1].string).encode('utf-8'):
+            if name in itemList[1].string:
                 for item in itemList[2:]:
                     if item.string is None:
                         continue
-                    trainer = re.search(r'[가-힣]+', item.string.encode('utf-8'))
-                    time = re.search(r'\d+', item.string.encode('utf-8'))
+                    trainer = re.search(r'[가-힣]+', item.string)
+                    time = re.search(r'\d+', item.string)
                     if trainer is None or time is None:
                         continue
                     trainer = trainer.group()
                     who = int(cand.find(trainer) / 3)
                     if who == -1:
                         who = 4
-                    train_time = int(re.search(r'\d+', item.string.encode('utf-8')).group())
+                    train_time = int(re.search(r'\d+', item.string).group())
                     res[who] += train_time
                     res[5] += train_time
                 return res
@@ -215,8 +216,8 @@ def get_train_info(hridx):
     base_url = "http://race.kra.co.kr/racehorse/profileTrainState.do?Act=02&Sub=1&meet=1&hrNo="
     url = "%s%s" % (base_url, hridx)
     print(url)
-    response_body = reqeusts.get(url)
-    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    response_body = requests.get(url)
+    xml_text = BeautifulSoup(response_body.text, 'html.parser')
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             if len(itemElm2) != 15:
@@ -238,37 +239,41 @@ def get_distance_record(meet, name, rcno, date, course, md=mean_data()):
     else:
         base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&"
         url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date_i)
-        response_body = urlopen(url).read()
-    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+        response_body = requests.get(url)
+    xml_text = BeautifulSoup(response_body.text, 'html.parser')
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
-            #print("name: %s, %s" % (name, itemList[1].string.encode('utf-8')))
-            if name in unicode(itemList[1].string).encode('utf-8'):
-                #print("find name: %s, %s" % (name, itemList[1].string.encode('utf-8')))
+            #print("name: %s, %s" % (name, itemList[1].string))
+            if name in itemList[1].string:
+                #print(itemList)
+                #print("find name: %s, %s" % (name, itemList[1].string))
                 try:
-                    int(unicode(itemList[2].string)[0])
+                    int(itemList[2].string[0])
                 except ValueError:
-                    print("ValueError: ", unicode(itemList[2].string))
-                    return [0, 0, 0] + map(float, md.dist_rec[course][3:])
-                if int(unicode(itemList[2].string)[0]) == 0:
+                    print("ValueError: ", itemList[2].string)
+                    return [0, 0, 0] + list(map(float, md.dist_rec[course][3:]))
+                except TypeError:
+                    print("TypeError: ", itemList[2].string)
+                    return [0, 0, 0] + list(map(float, md.dist_rec[course][3:]))
+                if int(itemList[2].string[0]) == 0:
                     try:
                         return [0, 0, 0] + list(map(float, md.dist_rec[course][3:]))
                     except KeyError:
                         print("there is no course %d" % course)
                         return list(map(float, md.dist_rec[course]))
                 if DEBUG:
-                    print("%s, %s, %s, %s, %s, %s" % (unicode(itemList[2].string), unicode(itemList[3].string), unicode(itemList[4].string), unicode(itemList[5].string), unicode(itemList[6].string), unicode(itemList[7].string)))
+                    print("%s, %s, %s, %s, %s, %s" % (itemList[2].string, itemList[3].string, itemList[4].string, itemList[5].string, itemList[6].string, itemList[7].string))
                 try:
-                    cnt = re.search(r'\d+', unicode(itemList[2].string)).group()
+                    cnt = re.search(r'\d+', itemList[2].string).group()
                     res.append(float(cnt))
-                    res.append(float(unicode(itemList[3].string)))
-                    res.append(float(unicode(itemList[4].string)))
-                    t = unicode(itemList[5].string)
+                    res.append(float(itemList[3].string))
+                    res.append(float(itemList[4].string))
+                    t = itemList[5].string
                     res.append(float(t.split(':')[0]) * 600 + float(t.split(':')[1].split('.')[0]) * 10 + float(t.split('.')[1][0]))
-                    t = unicode(itemList[6].string)
+                    t = itemList[6].string
                     res.append(float(t.split(':')[0]) * 600 + float(t.split(':')[1].split('.')[0]) * 10 + float(t.split('.')[1][0]))
-                    t = unicode(itemList[7].string)
+                    t = itemList[7].string
                     res.append(float(t.split(':')[0]) * 600 + float(t.split(':')[1].split('.')[0]) * 10 + float(t.split('.')[1][0]))
                     break
                 except:
@@ -277,12 +282,12 @@ def get_distance_record(meet, name, rcno, date, course, md=mean_data()):
     if len(res) == 6:
         return res
     else:
-        #print("can not find %s in %s" % (unicode(name, 'utf-8'), fname))
+        #print("can not find %s in %s" % (name, 'utf-8'), fname))
         try:
             return list(map(float, md.dist_rec[course]))
         except KeyError:
             print("there is no course %d" % course)
-            return [0, 0, 0] + map(float, md.dist_rec[course][3:])
+            return [0, 0, 0] + list(map(float, md.dist_rec[course][3:]))
 
 
 def get_hrno(meet, date, rcno, name):
@@ -293,19 +298,19 @@ def get_hrno(meet, date, rcno, name):
     else:
         base_url = "http://race.kra.co.kr/chulmainfo/chulmaDetailInfoChulmapyo.do?Act=02&Sub=1&"
         url = base_url + "meet=%d&rcNo=%d&rcDate=%d" % (meet, rcno, date)
-        response_body = reqeusts.get(url)
-    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+        response_body = requests.get(url)
+    xml_text = BeautifulSoup(response_body.text, 'html.parser')
     for itemElm in xml_text.findAll('tbody'):
         for itemElm2 in itemElm.findAll('tr'):
             itemList = itemElm2.findAll('td')
             try:
-                hrname = unicode(itemList[1].string).encode('utf-8')
+                hrname = itemList[1].string
                 hrname = hrname.replace('★', '')
             except:
                 continue
             if name == hrname:
-                #print("hrname: %s, %d" % (name, int(re.search(r'\d{6}', unicode(itemList[1])).group())))
-                return int(re.search(r'\d{6}', unicode(itemList[1])).group())
+                #print("hrname: %s, %d" % (name, int(re.search(r'\d{6}', itemList[1])).group())))
+                return int(re.search(r'\d{6}', str(itemList[1])).group())
     #print("can not find %s in fname %s" % (name, fname))
     return -1
 

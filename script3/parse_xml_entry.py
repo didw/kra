@@ -18,6 +18,7 @@ import get_weekly_clinic as wc
 from race_record import RaceRecord
 import gzip, _pickle
 import requests
+from sklearn.externals import joblib
 
 
 
@@ -26,9 +27,9 @@ DEBUG = False
 def get_humidity():
     url = "http://race.kra.co.kr/chulmainfo/trackView.do?Act=02&Sub=10&meet=1"
     response_body = requests.get(url)
-    line = unicode(response_body.text, 'euc-kr').encode('utf-8')
+    line = response_body.text
     #print("%s" % line)
-    p = re.compile(unicode(r'(?<=함수율 <span>: )\d+(?=\%\()', 'utf-8').encode('utf-8'), re.MULTILINE)
+    p = re.compile(r'(?<=함수율 <span>: )\d+(?=\%\()', re.MULTILINE)
     pl = p.search(line)
     res = 10
     if pl is not None:
@@ -37,7 +38,7 @@ def get_humidity():
 
 
 def get_hr_data(data, name):
-    name = name.replace('★'.encode('utf-8'), '')
+    name = name.replace('★', '')
     for idx, line in data.iterrows():
         #print ("line: ", line)
         #print ("name: %s" % name)
@@ -142,8 +143,8 @@ def get_game_info(date, rcno):
         line = finput.readline()
         if not line:
             break
-        line = unicode(line, 'euc-kr').encode('utf-8')
-        if re.search(unicode(r'%s' % exp, 'utf-8').encode('utf-8'), line) is not None:
+        line = line
+        if re.search(r'%s' % exp, line) is not None:
             found = True
             break
     if not found:
@@ -152,10 +153,10 @@ def get_game_info(date, rcno):
         line = finput.readline()
         if not line:
             break
-        line = unicode(line, 'euc-kr').encode('utf-8')
+        line = line
         #print("%s" % line)
-        num = re.search(unicode(r'(?<=출전:)[\s\d]+(?=두)', 'utf-8').encode('utf-8'), line)
-        kind = re.search(unicode(r'\d+(?=등급)', 'utf-8').encode('utf-8'), line)
+        num = re.search(r'(?<=출전:)[\s\d]+(?=두)', line)
+        kind = re.search(r'\d+(?=등급)', line)
         if num is not None:
             if kind is None:
                 kind = 0
@@ -168,7 +169,7 @@ def get_game_info(date, rcno):
 def get_race_record():
     race_record = RaceRecord()
     with gzip.open('../data/race_record.gz', 'rb') as f:
-        tmp_dict = _pickle.loads(f.read())
+        tmp_dict = _pickle.loads(f.read(), encoding='bytes')
         race_record.__dict__.update(tmp_dict)
     return race_record
 
@@ -178,7 +179,7 @@ def parse_xml_entry(meet, date_i, number, md3):
     data_jk = xj.parse_xml_jk(meet)
     data_tr = xt.parse_xml_tr(meet)
     date_m = date_i / 100
-    date = datetime.date(date_i/10000, date_i/100%100, date_i%100)
+    date = datetime.date(int(date_i/10000), int(date_i/100%100), int(date_i%100))
     data = []
     filename = '../xml/entry/get_entry_%d_%d.xml' % (meet, date_m)
     file_input = open(filename)
@@ -191,7 +192,7 @@ def parse_xml_entry(meet, date_i, number, md3):
     mean_data, weight = gdd.make_mean_race_record(race_record)
     for itemElm in xml_text.findAll('item'):
         #print itemElm
-        course = int(unicode(itemElm.rcdist.string))
+        course = int(itemElm.rcdist.string)
         month = date_i/100%100
         rcdate = int("%s%s%s" % (itemElm.rcdate.string[:4], itemElm.rcdate.string[5:7], itemElm.rcdate.string[8:10]))
         rcno = int("%s" % (itemElm.rcno.string))
@@ -202,14 +203,14 @@ def parse_xml_entry(meet, date_i, number, md3):
         hr_gender, hr_days = get_hr_data(data_hr, itemElm.hrname.string)
         hr_weight = gdd.get_weight(meet, date_i, int(itemElm.rcno.string), itemElm.hrname.string, course)
         hr_dweight = gdd.get_dweight(meet, date_i, int(itemElm.rcno.string), itemElm.hrname.string)
-        hr_dist_rec = gdd.get_distance_record(meet, itemElm.hrname.string, int(itemElm.rcno.string), date, course, md)
-        cnt, kind = get_game_info(datetime.date(date_i / 10000, date_i / 100 % 100, date_i % 100), int(itemElm.rcno.string))
+        hr_dist_rec = gdd.get_distance_record(meet, itemElm.hrname.string, int(itemElm.rcno.string), date, course)
+        cnt, kind = get_game_info(datetime.date(int(date_i/10000), int(date_i/100%100), int(date_i%100)), int(itemElm.rcno.string))
         hr_win = get_hr_win(itemElm.cntt.string, itemElm.ord1t.string, itemElm.ord2t.string, itemElm.cnty.string,
                            itemElm.ord1y.string, itemElm.ord2y.string, course)
         jk_win = get_jk_win(data_jk, itemElm.jkname.string, course)
         tr_win = get_tr_win(data_tr, itemElm.trname.string, course)
 		
-        hrname = unicode(itemElm.hrname.string).encode('utf-8')
+        hrname = str(itemElm.hrname.string)
         dbudam = gdd.get_dbudam(meet, date_i, int(rcno), hrname)
         drweight = gdd.get_drweight(meet, date_i, int(rcno), hrname)
         lastday = gdd.get_lastday(meet, date_i, int(rcno), hrname)
@@ -223,7 +224,7 @@ def parse_xml_entry(meet, date_i, number, md3):
             hr_weight = {1000: 461, 1100: 460, 1200: 463, 1300: 464, 1400: 466, 1700: 466, 1800: 471, 1900: 475, 2000: 482, 2300: 492}[course]
         jc_data = wc.get_jangu_clinic(jangu_clinic, hrname)
 
-        adata = [int(unicode(itemElm.rcdist.string)), int(humidity), int(kind), dbudam, drweight, lastday]
+        adata = [int(itemElm.rcdist.string), int(humidity), int(kind), dbudam, drweight, lastday]
         assert len(adata) == 6
         adata.extend(train_state)
         assert len(adata) == 12

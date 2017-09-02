@@ -11,7 +11,7 @@ from mean_data3 import save_mean_data
 from race_record import RaceRecord
 import get_detail_data as gdd
 import gzip
-import cPickle
+import _pickle
 import get_lineage as lg
 from make_unique_columns import make_unique_columns
 
@@ -29,7 +29,7 @@ def get_data(begin_date, end_date, fname_csv):
     else:
         md = mean_data()
     with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
-        md3 = cPickle.loads(f.read())
+        md3 = _pickle.loads(f.read())
     md3['humidity'][20] = md3['humidity'][25]
     while date < train_ed:
         date += datetime.timedelta(days=1)
@@ -62,12 +62,12 @@ def update_data(end_date, fname_csv):
     print("update data from %d to today" % data.loc[len(data)-1]['date'])
     train_bd = data.loc[len(data)-1]['date']
     train_ed = end_date
-    date = datetime.date(train_bd/10000, train_bd/100%100, train_bd%100)
+    date = datetime.date(int(train_bd/10000), int(train_bd/100%100), int(train_bd%100))
     fname_md = fname_csv.replace('.csv', '_md.pkl')
     md = joblib.load(fname_md)
 
     with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
-        md3 = cPickle.loads(f.read())
+        md3 = _pickle.loads(f.read())
     if 25 in md3['humidity']:
         md3['humidity'][20] = md3['humidity'][25]
 

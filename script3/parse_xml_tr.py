@@ -16,18 +16,19 @@ def parse_xml_tr(meet):
     for itemElm in xml_text.findAll('item'):
         #print itemElm
         try:
-            data.append([unicode(itemElm.birth.string),
-                        unicode(itemElm.cntt.string),
-                        unicode(itemElm.cnty.string),
-                        unicode(itemElm.trname.string),
-                        unicode(itemElm.ord1t.string),
-                        unicode(itemElm.ord1y.string),
-                        unicode(itemElm.ord2t.string),
-                        unicode(itemElm.ord2y.string),
-                        unicode(itemElm.part.string),
-                        unicode(itemElm.stdate.string)])
-        except:
-            pass
+            data.append([(itemElm.birth.string),
+                         (itemElm.cntt.string),
+                         (itemElm.cnty.string),
+                         (itemElm.trname.string),
+                         (itemElm.ord1t.string),
+                         (itemElm.ord1y.string),
+                         (itemElm.ord2t.string),
+                         (itemElm.ord2y.string),
+                         (itemElm.part.string),
+                         (itemElm.stdate.string)])
+        except NameError:
+            print("NameError")
+            raise
 
     df = pd.DataFrame(data)
     df.columns = ["birth", "cntT", "cntY", "trName", "ord1T", "ord1Y", "ord2T", "ord2Y", "part", "stDate"]

@@ -13,6 +13,7 @@ import _pickle, gzip
 import multiprocessing as mp
 from multiprocessing import Value
 import sys
+import requests
 
 with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
     md = _pickle.loads(f.read())
@@ -24,7 +25,7 @@ WORD = re.compile(r"[^\s]+")
 DEBUG = False
 
 def get_hr_days(name, date_i):
-    date = datetime.datetime(date_i/10000, date_i%10000/100, date_i%100)
+    date = datetime.datetime(int(date_i/10000), int(date_i%10000/100), int(date_i%100))
     while True:
         date = date + datetime.timedelta(days=-1)
         date_s = int("%d%02d%02d" % (date.year, date.month, date.day))
@@ -36,17 +37,16 @@ def get_hr_days(name, date_i):
         line = f_input.readline()
         if not line:
             break
-        line = unicode(line, 'euc-kr').encode('utf-8')
         hrname = re.search(r'[가-힣]+', line).group()
         if name == hrname:
-            birth = re.search(unicode(r'\d{4}/\d{2}/\d{2}', 'utf-8').encode('utf-8'), line).group()
+            birth = re.search(r'\d{4}/\d{2}/\d{2}', line).group()
             return (date - datetime.datetime(int(birth[:4]), int(birth[5:7]), int(birth[8:]))).days
     return 1000
 
 
 def parse_txt_race(filename):
     data = []
-    input_file = open(filename)
+    input_file = open(filename, 'rt', encoding='utf-8')
     n_race = 0
     while True:
         # skip header
@@ -60,31 +60,31 @@ def parse_txt_race(filename):
         month = date/100%100
         for _ in range(300):
             line = input_file.readline()
-            line = unicode(line, 'euc-kr').encode('utf-8')
+            #line = line, 'euc-kr').encode('utf-8')
             if len(line) == 0:
                 read_done = True
                 break
-            if re.search(unicode(r'제목', 'utf-8').encode('utf-8'), line) is not None:
-                rcno = int(re.search(unicode(r'\d+(?=경주)', 'utf-8').encode('utf-8'), line).group())
-            if re.search(unicode(r'경주명', 'utf-8').encode('utf-8'), line) is not None:
+            if re.search(r'제목', line) is not None:
+                rcno = int(re.search(r'\d+(?=경주)', line).group())
+            if re.search(r'경주명', line) is not None:
                 if DEBUG: print("%s" % line)
-                course = int(re.search(unicode(r'\d+(?=M)', 'utf-8').encode('utf-8'), line).group())
-                kind = re.search(unicode(r'M.+\d', 'utf-8').encode('utf-8'), line)
+                course = int(re.search(r'\d+(?=M)', line).group())
+                kind = re.search(r'M.+\d', line)
                 if kind is None:
                     kind = 0
                 else:
                     kind = int(kind.group()[-1])
-            if re.search(unicode(r'경주조건', 'utf-8').encode('utf-8'), line) is not None:
+            if re.search(r'경주조건', line) is not None:
                 if DEBUG: print("%s" % line)
-                if re.search(unicode(r'불량', 'utf-8').encode('utf-8'), line) is not None:
+                if re.search(r'불량', line) is not None:
                     humidity = 20
                 else:
-                    humidity = re.search(unicode(r'\d+(?=%\))', 'utf-8').encode('utf-8'), line)
+                    humidity = re.search(r'\d+(?=%\))', line)
                     if humidity is None:
                         humidity = 10
                     else:
                         humidity = int(humidity.group())
-            if re.search(unicode(r'기수명|선수명', 'utf-8').encode('utf-8'), line) is not None:
+            if re.search(r'기수명|선수명', line) is not None:
                 break
         if read_done:
             break
@@ -93,12 +93,11 @@ def parse_txt_race(filename):
         cnt = 0
         for _ in range(300):
             line = input_file.readline()
-            line = unicode(line, 'euc-kr').encode('utf-8')
-            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
+            if re.match(r'[-─]+', line[:5]) is not None:
                 continue
             if NEXT_RC.search(line) is not None:
                 break
-            if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:5]) is None:
+            if re.search(r'[^\s]+', line[:5]) is None:
                 continue
 
             words = WORD.findall(line)
@@ -129,17 +128,16 @@ def parse_txt_race(filename):
         idx = 0
         for _ in range(300):
             line = input_file.readline()
-            line = unicode(line, 'euc-kr').encode('utf-8')
-            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
+            if re.match(r'[-─]+', line[:5]) is not None:
                 continue
             if NEXT_RC.search(line) is not None:
                 break
-            if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:5]) is None:
+            if re.search(r'[^\s]+', line[:5]) is None:
                 continue
             adata = []
-            adata.append(int(re.search(unicode(r'\d+(?=\()', 'utf-8').encode('utf-8'), line).group()))
-            adata.append(int(re.search(unicode(r'[-\d]+(?=\))', 'utf-8').encode('utf-8'), line).group()))
-            rctime = re.search(unicode(r'\d+:\d+\.\d', 'utf-8').encode('utf-8'), line).group()
+            adata.append(int(re.search(r'\d+(?=\()', line).group()))
+            adata.append(int(re.search(r'[-\d]+(?=\))', line).group()))
+            rctime = re.search(r'\d+:\d+\.\d', line).group()
             rctime = int(rctime[0])*600 + int(rctime[2:4])*10 + int(rctime[5])
 
             adata.append(rctime)
@@ -155,13 +153,12 @@ def parse_txt_race(filename):
         idx = 0
         for _ in range(300):
             line = input_file.readline()
-            line = unicode(line, 'euc-kr').encode('utf-8')
-            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
+            if re.match(r'[-─]+', line[:5]) is not None:
                 #print("passing1: %s" % line)
                 continue
             if NEXT_RC.search(line) is not None:
                 break
-            if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:5]) is None:
+            if re.search(r'[^\s]+', line[:5]) is None:
                 #print("passing2: %s" % line)
                 continue
             adata = []
@@ -258,23 +255,22 @@ def parse_ap_rslt(filename):
         month = date/100%100
         for _ in range(300):
             line = input_file.readline()
-            line = unicode(line, 'euc-kr').encode('utf-8')
             if len(line) == 0:
                 read_done = True
                 break
-            if re.search(unicode(r'제목', 'utf-8').encode('utf-8'), line) is not None:
-                rcno = int(re.search(unicode(r'\d+(?=경주)', 'utf-8').encode('utf-8'), line).group())
-            if re.search(unicode(r'주로상태', 'utf-8').encode('utf-8'), line) is not None:
+            if re.search(r'제목', line) is not None:
+                rcno = int(re.search(r'\d+(?=경주)', line).group())
+            if re.search(r'주로상태', line) is not None:
                 if DEBUG: print("%s" % line)
-                if re.search(unicode(r'불량', 'utf-8').encode('utf-8'), line) is not None:
+                if re.search(r'불량', line) is not None:
                     humidity = 20
                 else:
-                    humidity = re.search(unicode(r'\d+(?=%\))', 'utf-8').encode('utf-8'), line)
+                    humidity = re.search(r'\d+(?=%\))', line)
                     if humidity is None:
                         humidity = 10
                     else:
                         humidity = int(humidity.group())
-            if re.search(unicode(r'기수명|선수명', 'utf-8').encode('utf-8'), line) is not None:
+            if re.search(r'기수명|선수명', line) is not None:
                 break
         if read_done:
             break
@@ -283,12 +279,11 @@ def parse_ap_rslt(filename):
         cnt = 0
         for _ in range(300):
             line = input_file.readline()
-            line = unicode(line, 'euc-kr').encode('utf-8')
-            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
+            if re.match(r'[-─]+', line[:5]) is not None:
                 continue
             if NEXT_AP.search(line) is not None:
                 break
-            if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:6]) is None:
+            if re.search(r'[^\s]+', line[:6]) is None:
                 continue
 
             words = WORD.findall(line)
@@ -321,12 +316,11 @@ def parse_ap_rslt(filename):
         idx = 0
         for _ in range(300):
             line = input_file.readline()
-            line = unicode(line, 'euc-kr').encode('utf-8')
-            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
+            if re.match(r'[-─]+', line[:5]) is not None:
                 continue
             if NEXT_AP.search(line) is not None:
                 break
-            if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:6]) is None:
+            if re.search(r'[^\s]+', line[:6]) is None:
                 continue
             adata = []
             words = WORD.findall(line)
@@ -338,7 +332,7 @@ def parse_ap_rslt(filename):
                 n_pass.append(0)
             adata.append(int(words[3]))
             adata.append(0)
-            rctime = re.search(unicode(r'\d+:\d+\.\d', 'utf-8').encode('utf-8'), line).group()
+            rctime = re.search(r'\d+:\d+\.\d', line).group()
             rctime = int(rctime[0])*600 + int(rctime[2:4])*10 + int(rctime[5])
             adata.append(rctime)
             data[-cnt+idx].extend(adata)
@@ -363,12 +357,11 @@ def parse_ap_rslt(filename):
                     data[-cnt+idx].extend([s1f, g1f, g3f])
                 break
             line = input_file.readline()
-            line = unicode(line, 'euc-kr').encode('utf-8')
-            if re.match(unicode(r'[-─]+', 'utf-8').encode('utf-8'), line[:5]) is not None:
+            if re.match(r'[-─]+', line[:5]) is not None:
                 continue
             if NEXT_AP.search(line) is not None:
                 break
-            if re.search(unicode(r'[^\s]+', 'utf-8').encode('utf-8'), line[:6]) is None:
+            if re.search(r'[^\s]+', line[:6]) is None:
                 continue
             adata = []
             words = re.findall(r'\S+', line[:59])
@@ -465,7 +458,7 @@ def parse_ap_rslt(filename):
 def get_data(function_name, fname_queue, data_queue, filename_queue):
     fname = fname_queue.get(True, 10)
     filename_queue.put(fname)
-    #print("%s is processing.."%fname)
+    print("%s is processing.."%fname)
     data = function_name(fname)
     date = int(re.search(r'\d{8}', fname).group())
     jangu_clinic = wc.parse_hr_clinic(datetime.date(date/10000, date%10000/100, date%100))
@@ -537,7 +530,7 @@ class RaceRecord:
             #print("Processing: %d/%d" % (file_queue.qsize(), worker_num))
             time.sleep(0.5)
             while worker_num < file_queue.qsize() + PROCESS_NUM and file_queue.qsize() > 0:
-                #print("run process %d" % (worker_num - file_queue.qsize()))
+                print("run process %d" % (worker_num - file_queue.qsize()))
                 proc = mp.Process(target=get_data, args=(parse_txt_race, file_queue, data_queue, filename_queue))
                 proc.start()
                 if file_queue.qsize() < 20:
@@ -590,8 +583,9 @@ class RaceRecord:
                 break
 
     def load_model(self):
-        with gzip.open('../data/race_record.gz', 'rb') as f:
-            tmp_dict = _pickle.loads(f.read())
+        import pickle
+        with gzip.open('../data/race_record_p.gz', 'rb') as f:
+            tmp_dict = pickle.loads(f.read(), encoding='bytes')
             self.__dict__.update(tmp_dict)
 
     def update_model(self):
@@ -602,11 +596,8 @@ class RaceRecord:
 
 if __name__ == '__main__':
     race_record = RaceRecord()
-    #if os.path.exists('../data/race_record.gz'):
-    #    with gzip.open('../data/race_record.gz', 'rb') as f:
-    #        tmp_dict = _pickle.loads(f.read())
-    #        race_record.__dict__.update(tmp_dict)
-    race_record.get_race_record()
-    race_record.get_ap_record()
-    print(race_record)
+    race_record.load_model()
+    #race_record.get_race_record()
+    #race_record.get_ap_record()
+    print(race_record.data)
 

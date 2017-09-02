@@ -269,50 +269,11 @@ class mean_data:
         except KeyError:
             return 0
 
-    def update_race_detail(self, course, data):
-        if course not in [900, 1000, 1200, 1300, 1400, 1700]:
-            print("%d course is not in data" % course)
-            return -1
-        if data['rd1'] != -1:
-            self.race_detail[900][0] += self.lr * (data['rd1'] - self.race_detail[900][0])
-        if data['rd2'] != -1:
-            self.race_detail[900][1] += self.lr * (data['rd2'] - self.race_detail[900][1])
-        if data['rd3'] != -1:
-            self.race_detail[900][2] += self.lr * (data['rd3'] - self.race_detail[900][2])
-        if data['rd4'] != -1:
-            self.race_detail[1000][0] += self.lr * (data['rd4'] - self.race_detail[1000][0])
-        if data['rd5'] != -1:
-            self.race_detail[1000][1] += self.lr * (data['rd5'] - self.race_detail[1000][1])
-        if data['rd6'] != -1:
-            self.race_detail[1000][2] += self.lr * (data['rd6'] - self.race_detail[1000][2])
-        if data['rd7'] != -1:
-            self.race_detail[1200][0] += self.lr * (data['rd7'] - self.race_detail[1200][0])
-        if data['rd8'] != -1:
-            self.race_detail[1200][1] += self.lr * (data['rd8'] - self.race_detail[1200][1])
-        if data['rd9'] != -1:
-            self.race_detail[1200][2] += self.lr * (data['rd9'] - self.race_detail[1200][2])
-        if data['rd10'] != -1:
-            self.race_detail[1300][0] += self.lr * (data['rd10'] - self.race_detail[1300][0])
-        if data['rd11'] != -1:
-            self.race_detail[1300][1] += self.lr * (data['rd11'] - self.race_detail[1300][1])
-        if data['rd12'] != -1:
-            self.race_detail[1300][2] += self.lr * (data['rd12'] - self.race_detail[1300][2])
-        if data['rd13'] != -1:
-            self.race_detail[1400][0] += self.lr * (data['rd13'] - self.race_detail[1400][0])
-        if data['rd14'] != -1:
-            self.race_detail[1400][1] += self.lr * (data['rd14'] - self.race_detail[1400][1])
-        if data['rd15'] != -1:
-            self.race_detail[1400][2] += self.lr * (data['rd15'] - self.race_detail[1400][2])
-        if data['rd16'] != -1:
-            self.race_detail[1700][0] += self.lr * (data['rd16'] - self.race_detail[1700][0])
-        if data['rd17'] != -1:
-            self.race_detail[1700][1] += self.lr * (data['rd17'] - self.race_detail[1700][1])
-        if data['rd18'] != -1:
-            self.race_detail[1700][2] += self.lr * (data['rd18'] - self.race_detail[1700][2])
-
 
     def update_data(self, df):
         if DEBUG == True:
+            if not os.path.exists('../log'):
+                os.makedirs('../log')
             fout = open('../log/md.log', 'w')
         for idx, row in df.iterrows():
             self.update_hr(int(row['course']), row)
@@ -320,7 +281,6 @@ class mean_data:
             self.update_tr(int(row['course']), row)
             self.update_dist_rec(int(row['course']), row)
             self.update_race_score(int(row['course']), int(row['month'])-1, int(row['humidity']), row)
-            self.update_race_detail(int(row['course']), row)
             if DEBUG == True:
                 if idx % 100 == 1:
                     #fout.write("%f, %f, %f\n" % (self.race_score[1000][0], self.race_score[1000][10], self.race_score[1000][20]))
@@ -340,5 +300,5 @@ def update_md(fname):
 
 if __name__ == '__main__':
     DEBUG = True
-    fname_csv = '../data/1_2007_2016.csv'
+    fname_csv = '../data/1_2007_2016_v1.csv'
     update_md(fname_csv)

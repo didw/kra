@@ -11,6 +11,7 @@ import numpy as np
 import os, gzip, _pickle
 import itertools
 from multiprocessing import Process, Queue
+from sklearn.externals import joblib
 
 MODEL_NUM = 30
 

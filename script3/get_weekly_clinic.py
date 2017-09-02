@@ -37,7 +37,7 @@ def parse_hr_clinic(date):
     name = ''
     while True:
         line = in_data.readline()
-        line = unicode(line, 'euc-kr').encode('utf-8')
+        #line = unicode(line, 'euc-kr').encode('utf-8')
         if line is None or len(line) == 0:
             break
 
@@ -45,13 +45,13 @@ def parse_hr_clinic(date):
             name_list = []
             while re.search(r'[-─]{5}', line) is None:
                 line = in_data.readline()
-                line = unicode(line, 'euc-kr').encode('utf-8')
+                #line = unicode(line, 'euc-kr').encode('utf-8')
                 break
             jangu = []
             clinic = []
             while True:
                 line = in_data.readline()
-                line = unicode(line, 'euc-kr').encode('utf-8')
+                #line = unicode(line, 'euc-kr').encode('utf-8')
                 if DEBUG: print("%s" % unicode(line, 'utf-8'))
                 if len(line) == 0 or line == None:
                     if DEBUG: print("break: end of file")

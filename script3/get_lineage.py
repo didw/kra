@@ -70,15 +70,15 @@ def get_lineage(meet, hrno, mode='File'):
             os.makedirs("../txt/%d/LineageInfo/" % meet)
         base_url = "http://race.kra.co.kr/racehorse/profileLineageInfo.do?Act=02&Sub=1&"
         url = base_url + "meet=%d&hrNo=%06d" % (meet, hrno)
-        response_body = requests.get(url)
+        response_body = requests.get(url).text
         fout = open(fname, 'w')
-        fout.write(response_body.text)
+        fout.write(response_body)
         fout.close()
         if os.path.getsize(fname) < 43000:
             os.remove(fname)
         print("open url %d" % hrno)
 
-    xml_text = BeautifulSoup(response_body.decode('euc-kr'), 'html.parser')
+    xml_text = BeautifulSoup(response_body, 'html.parser')
     idx = 0
     printed = False
     for i1, itemElm in enumerate(xml_text.findAll('tbody')[1:]):
