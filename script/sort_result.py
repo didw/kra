@@ -37,14 +37,14 @@ def make_dict(fname, rcno=1):
     return data_ss
 
 if __name__ == '__main__':
-    init_day = 26
+    init_day = 2
     res_dict = {"Sat": {}, "Sun": {}}
     Day_list = ["Sat", "Sun"]
     for day in [init_day, init_day+1]:
-        fname = '../result/1708/%d_1.txt' % day
+        fname = '../result/1709/%d_1.txt' % day
         for i in range(0,16):
             print("===%d==="%i)
             rcno_dict =  make_dict(fname, i)
             if len(rcno_dict) > 0:
                 res_dict[Day_list[day-init_day]][i] = rcno_dict
-    pickle.dump(res_dict, open("../result/1708/%d.pkl" % init_day, 'wb'))
+    pickle.dump(res_dict, open("../result/1709/%d.pkl" % init_day, 'wb'))

@@ -142,7 +142,7 @@ def predict_next(estimators, data_pre, meet, date, rcno, course=0, nData=47, yea
                 pass
             if row['rcno'] != prev_rc or idx+1 == len(data):
                 if idx+1 == len(data):
-                    rcdata.append([row['idx'], row['name'], float(scaler_y.inverse_transform(pred['predict'][idx]))])
+                    rcdata.append([row['idx'], row['name'], float(scaler_y.inverse_transform(pred['predict'])[idx])])
                 rcdata = pd.DataFrame(rcdata)
                 rcdata.columns = ['idx', 'name', 'time']
                 rcdata = rcdata.sort_values(by='time')
@@ -152,26 +152,26 @@ def predict_next(estimators, data_pre, meet, date, rcno, course=0, nData=47, yea
                 fresult = open(fname, 'a')
                 fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d ===\n" % (int(prev_rc)+1, nData, year, train_course))
                 fresult.close()
-                print_bet(rcdata, target=[[1],[2],[3]], total_bet=1000)
-                print_bet(rcdata, target=[[1,2],[1,2,3],[1,2,3]], total_bet=1000)
-                print_bet(rcdata, target=[[4,5,6],[4,5,6],[4,5,6,7]], total_bet=1000)
+                #print_bet(rcdata, target=[[1],[2],[3]], total_bet=1000)
+                print_bet(rcdata, target=[[1,2],[1,2,3],[1,2,3]], total_bet=2000)
+                print_bet(rcdata, target=[[3,4,5],[4,5,6],[4,5,6]], total_bet=2000)
                 rcdata = []
                 prev_rc = row['rcno']
                 if idx+1 != len(data):
-                    rcdata.append([row['idx'], row['name'], float(scaler_y.inverse_transform(pred['predict'][idx]))])
+                    rcdata.append([row['idx'], row['name'], float(scaler_y.inverse_transform(pred['predict'])[idx])])
             else:
-                rcdata.append([row['idx'], row['name'], float(scaler_y.inverse_transform(pred['predict'][idx]))])
+                rcdata.append([row['idx'], row['name'], float(scaler_y.inverse_transform(pred['predict'])[idx])])
         #print(X_data.columns)
         #print(estimator.feature_importances_)
 
 def load_estimators(train_bd, train_ed):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    estimators = [0] * MODEL_NUM
-    for i in range(MODEL_NUM):
+    estimators = [0] * 12
+    for i in range(12):
         print("loading model[%d]..." % i)
-        #estimators[i] = tfp.TensorflowRegressor('%d_%d/%d' % (train_bd_i, train_ed_i, i))
-        estimators[i] = tfp.TensorflowRegressor('20110716_20170714/%d' % i)
+        estimators[i] = tfp.TensorflowRegressor('%d_%d/%d' % (train_bd_i, train_ed_i, i))
+        #estimators[i] = tfp.TensorflowRegressor('20110423_20170421/%d' % i)
         estimators[i].load()
     return estimators
 
@@ -250,7 +250,7 @@ if __name__ == '__main__':
     #for rcno in range(11, len(courses)):
     course = courses[rcno]
     test_course = course
-    init_date = 20170826
+    init_date = 20170902
     from sklearn.externals import joblib
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
     with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
@@ -262,7 +262,7 @@ if __name__ == '__main__':
     data_pre1 = xe.parse_xml_entry(meet, init_date+0, rcno, md, md3)
     data_pre2 = xe.parse_xml_entry(meet, init_date+1, rcno, md, md3)
     for idx in range(1,2):
-        nData, year, train_course, epoch = [300,151,201,201][idx-1], [6,6,8,6][idx-1], [0,0,0,0][idx-1], [300,200,200,800][idx-1]
+        nData, year, train_course, epoch = [300,151,201,201][idx-1], [6,6,8,6][idx-1], [0,0,0,0][idx-1], [500,200,200,800][idx-1]
         date = init_date
         if train_course == 1: train_course = course
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
@@ -281,12 +281,12 @@ if __name__ == '__main__':
         #scaler_x5 = q.get()
         #scaler_x6 = q.get()
         #scaler_y = q.get()
-        #train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
-        #train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e300_rms_rev/%d_%d/scaler_x.pkl' % (train_bd_i, train_ed_i))
-        #scaler_y = joblib.load('../model/tf/l1_e300_rms_rev/%d_%d/scaler_x.pkl' % (train_bd_i, train_ed_i))
-        scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e300_rms_rev/20110716_20170714/scaler_x.pkl')
-        scaler_y = joblib.load('../model/tf/l1_e300_rms_rev/20110716_20170714/scaler_y.pkl')
+        train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
+        train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
+        scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e500_rms/%d_%d/scaler_xs.pkl2' % (train_bd_i, train_ed_i))
+        scaler_y = joblib.load('../model/tf/l1_e500_rms/%d_%d/scaler_y.pkl' % (train_bd_i, train_ed_i))
+        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e500_rms/20110423_20170421/scaler_xs.pkl2')
+        #scaler_y = joblib.load('../model/tf/l1_e500_rms/20110423_20170421/scaler_y.pkl2')
         #estimators, md, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y = tfp.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData, n_epoch=epoch)
         estimators = load_estimators(train_bd, train_ed)
         if idx != 1:
