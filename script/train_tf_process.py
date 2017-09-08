@@ -83,7 +83,7 @@ class TensorflowRegressor():
 
         self.Input =  tf.placeholder(shape=[None,233],dtype=tf.float32)
         self.p_keep =  tf.placeholder(shape=None,dtype=tf.float32)
-        with tf.device('/gpu:1'):
+        with tf.device('/gpu:0'):
             self.output = tf.reshape(build_model(self.Input, self.p_keep), [-1])
             
             #Below we obtain the loss by taking the sum of squares difference between the target and prediction Q values.
@@ -95,7 +95,7 @@ class TensorflowRegressor():
             elif optimizer_type == 'MomentumOptimizer':
                 self.updateModel = tf.train.MomentumOptimizer(learning_rate, momentum=0.9).minimize(self.loss, global_step=global_step)
         self.saver = tf.train.Saver()
-        self.model_dir = '../model/tf/l1_e1000_rms/%s' % s_date
+        self.model_dir = '../model/tf/l1_e500_rms/%s' % s_date
 
         tf.summary.scalar('loss', self.loss)
         self.merged = tf.summary.merge_all()
@@ -299,7 +299,7 @@ def delete_lack_data(X_data, Y_data):
 def training(train_bd, train_ed, n_epoch, q):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/tf/l1_e1000_rms/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/tf/l1_e500_rms/%d_%d" % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
@@ -316,7 +316,7 @@ def training(train_bd, train_ed, n_epoch, q):
     X_data[:,88:124] = scaler_x5.fit_transform(X_data[:,88:124])
     X_data[:,204:233] = scaler_x6.fit_transform(X_data[:,204:233])
     Y_data = scaler_y.fit_transform(Y_data.reshape(-1,1)).reshape(-1)
-    joblib.dump((scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6), "%s/scaler_xs.pkl2" % (model_dir,))
+    joblib.dump((scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6), "%s/scaler_xs.pkl" % (model_dir,))
     joblib.dump(scaler_y, "%s/scaler_y.pkl" % (model_dir,))
     seed = 7
     np.random.seed(seed)
@@ -328,13 +328,13 @@ def training(train_bd, train_ed, n_epoch, q):
         else:
             X_train, Y_train = X_data, Y_data
             X_val, Y_val = None, None
-        dir_name = '../model/tf/l1_e1000_rms/%s_%s/%d' % (train_bd_i, train_ed_i, i)
+        dir_name = '../model/tf/l1_e500_rms/%s_%s/%d' % (train_bd_i, train_ed_i, i)
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
         tf.reset_default_graph()
         estimator = TensorflowRegressor("%s_%s/%d"%(train_bd_i, train_ed_i, i))
         estimator.set_scaler(scaler_y)
-        model_name = "%s/%d/model.ckpt.index" % (model_dir, i)
+        model_name = "%s/%d/model.index" % (model_dir, i)
         if os.path.exists(model_name):
             #print("loading exists model")
             #estimator.load()
@@ -372,7 +372,7 @@ def print_log(data, pred, fname):
 def process_train(train_bd, train_ed, q):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/tf/l1_e1000_rms/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/tf/l1_e500_rms/%d_%d" % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
@@ -389,10 +389,10 @@ def process_train(train_bd, train_ed, q):
     X_data[:,82:84] = scaler_x4.fit_transform(X_data[:,82:84])
     X_data[:,88:124] = scaler_x5.fit_transform(X_data[:,88:124])
     X_data[:,204:233] = scaler_x6.fit_transform(X_data[:,204:233])
-    Y_data = scaler_y.fit_transform(Y_data.reshape(-1,1)).reshape(-1)
+    Y_data = scaler_y.fit_transform(Y_data.values.reshape(-1,1)).reshape(-1)
 
-    joblib.dump((scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6), "%s/scaler_x.pkl2" % (model_dir,))
-    joblib.dump(scaler_y, "%s/scaler_y.pkl2" % (model_dir,))
+    joblib.dump((scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6), "%s/scaler_xs.pkl" % (model_dir,))
+    joblib.dump(scaler_y, "%s/scaler_y.pkl" % (model_dir,))
 
     for i in range(MODEL_NUM):
         if i < 18:
@@ -415,7 +415,7 @@ def process_train(train_bd, train_ed, q):
             tf.reset_default_graph()
             estimator = TensorflowRegressor("%s_%s/%d"%(train_bd_i, train_ed_i, i))
             estimator.set_scaler(scaler_y)
-            estimator.fit(X_train, Y_train, X_val, Y_val, n_epoch=1000)
+            estimator.fit(X_train, Y_train, X_val, Y_val, n_epoch=500)
     print("Finish train model")
     q.put(scaler_x1)
     q.put(scaler_x2)
@@ -446,7 +446,7 @@ def process_test(train_bd, train_ed, scaler, q):
     
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    data_dir = "../data/tf/l1_e1000_rms"
+    data_dir = "../data/tf/l1_e500_rms"
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
 
@@ -454,6 +454,8 @@ def process_test(train_bd, train_ed, scaler, q):
     print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
     X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.csv', nData=nData)
     if len(X_test) == 0:
+        print("len(X_test): 0")
+        q.put((sr, sscore))
         return
     X_test = np.array(X_test)
     X_test[:,3:5] = scaler_x1.transform(X_test[:,3:5])
@@ -510,132 +512,132 @@ def process_test(train_bd, train_ed, scaler, q):
                         score, res[0], res[1], res[2], res[3], res[4], res[5], res[6]))
         f_result.close()
 
-        for i in range(7):
-            sr[MODEL_NUM][i] = 0
-        sscore[MODEL_NUM] = 0
+    for i in range(7):
+        sr[MODEL_NUM][i] = 0
+    sscore[MODEL_NUM] = 0
 
-        for i in range(MODEL_NUM):
-            for j in range(7):
-                sr[MODEL_NUM][j] += 1./MODEL_NUM * sr[i][j]
-            sscore[MODEL_NUM] += 1./MODEL_NUM * sscore[i]
+    for i in range(MODEL_NUM):
+        for j in range(7):
+            sr[MODEL_NUM][j] += 1./MODEL_NUM * sr[i][j]
+        sscore[MODEL_NUM] += 1./MODEL_NUM * sscore[i]
 
-        fname_result = '%s/ss_m_all.txt' % data_dir
+    fname_result = '%s/ss_m_all.txt' % data_dir
+    f_result = open(fname_result, 'a')
+    f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
+    f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+    f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+    f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                    sscore[MODEL_NUM], sr[MODEL_NUM][0], sr[MODEL_NUM][1], sr[MODEL_NUM][2], sr[MODEL_NUM][3], sr[MODEL_NUM][4], sr[MODEL_NUM][5], sr[MODEL_NUM][6]))
+    f_result.close()
+
+    index_sum = MODEL_NUM + int(MODEL_NUM/NUM_ENSEMBLE) + 1
+    for i in range(int(MODEL_NUM/NUM_ENSEMBLE)):
+        n_split = int(MODEL_NUM/NUM_ENSEMBLE)
+        pred_ens = np.mean(pred[i*n_split:(i+1)*n_split], axis=0)
+        score = np.sqrt(np.mean((pred_ens - Y_test)*(pred_ens - Y_test)))
+
+        res[0] = sim.simulation7(pred_ens, R_test, [[1],[2],[3]])
+        res[1] = sim.simulation7(pred_ens, R_test, [[1,2],[1,2,3],[1,2,3]])
+        res[2] = sim.simulation7(pred_ens, R_test, [[1,2,3],[1,2,3],[1,2,3]])
+        res[3] = sim.simulation7(pred_ens, R_test, [[1,2,3,4],[1,2,3,4],[1,2,3,4]])
+        res[4] = sim.simulation7(pred_ens, R_test, [[3,4,5],[4,5,6],[4,5,6]])
+        res[5] = sim.simulation7(pred_ens, R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
+        res[6] = sim.simulation7(pred_ens, R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
+
+        #print("pred_ens test: ", pred_ens[20:24])
+        #print("Y_test test: ", Y_test[20:24])
+        print("result_ens[%2d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f" % (
+                MODEL_NUM+i+2, score, res[0], res[1], res[2], res[3], res[4], res[5], res[6]))
+
+        index_j = MODEL_NUM+i+1
+        for j in range(7):
+            sr[index_j][j] += res[j]
+        sscore[index_j] += score
+        
+        fname_result = '%s/ss_ens%d.txt' % (data_dir, i)
         f_result = open(fname_result, 'a')
         f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
         f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
         f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
         f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                        sscore[MODEL_NUM], sr[MODEL_NUM][0], sr[MODEL_NUM][1], sr[MODEL_NUM][2], sr[MODEL_NUM][3], sr[MODEL_NUM][4], sr[MODEL_NUM][5], sr[MODEL_NUM][6]))
+                        score, res[0], res[1], res[2], res[3], res[4], res[5], res[6]))
         f_result.close()
 
-        index_sum = MODEL_NUM + int(MODEL_NUM/NUM_ENSEMBLE) + 1
-        for i in range(int(MODEL_NUM/NUM_ENSEMBLE)):
-            n_split = int(MODEL_NUM/NUM_ENSEMBLE)
-            pred_ens = np.mean(pred[i*n_split:(i+1)*n_split], axis=0)
-            score = np.sqrt(np.mean((pred_ens - Y_test)*(pred_ens - Y_test)))
+    sr[index_sum][0] = 0
+    sr[index_sum][1] = 0
+    sr[index_sum][2] = 0
+    sr[index_sum][3] = 0
+    sr[index_sum][4] = 0
+    sr[index_sum][5] = 0
+    sr[index_sum][6] = 0
+    sscore[index_sum] = 0
+    
+    for i in range(int(MODEL_NUM/NUM_ENSEMBLE)):
+        index_j = MODEL_NUM+i+1
+        sr[index_sum][0] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr[index_j][0]
+        sr[index_sum][1] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr[index_j][1]
+        sr[index_sum][2] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr[index_j][2]
+        sr[index_sum][3] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr[index_j][3]
+        sr[index_sum][4] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr[index_j][4]
+        sr[index_sum][5] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr[index_j][5]
+        sr[index_sum][6] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr[index_j][6]
+        sscore[index_sum] += 1.*NUM_ENSEMBLE/MODEL_NUM * sscore[index_j]
 
-            res[0] = sim.simulation7(pred_ens, R_test, [[1],[2],[3]])
-            res[1] = sim.simulation7(pred_ens, R_test, [[1,2],[1,2,3],[1,2,3]])
-            res[2] = sim.simulation7(pred_ens, R_test, [[1,2,3],[1,2,3],[1,2,3]])
-            res[3] = sim.simulation7(pred_ens, R_test, [[1,2,3,4],[1,2,3,4],[1,2,3,4]])
-            res[4] = sim.simulation7(pred_ens, R_test, [[3,4,5],[4,5,6],[4,5,6]])
-            res[5] = sim.simulation7(pred_ens, R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
-            res[6] = sim.simulation7(pred_ens, R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
+    fname_result = '%s/ss_ens_all.txt' % data_dir
+    f_result = open(fname_result, 'a')
+    f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
+    f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+    f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
+    f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
+                    sscore[index_sum], sr[index_sum][0], sr[index_sum][1], sr[index_sum][2], sr[index_sum][3], sr[index_sum][4], sr[index_sum][5], sr[index_sum][6]))
+    f_result.close()
 
-            #print("pred_ens test: ", pred_ens[20:24])
-            #print("Y_test test: ", Y_test[20:24])
-            print("result_ens[%2d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f" % (
-                    MODEL_NUM+i+2, score, res[0], res[1], res[2], res[3], res[4], res[5], res[6]))
+    """
+    res[0] = sim.simulation1(pred, R_test, 1)
+    res[1] = sim.simulation2(pred, R_test, 1)
+    res[2] = sim.simulation3(pred, R_test, [[1,2]])
+    res[3] = sim.simulation4(pred, R_test, [1,2])
+    res[4] = sim.simulation5(pred, R_test, [[1,2]])
+    res[5] = sim.simulation6(pred, R_test, [[1,2,3]])
+    res[6] = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3],[2,3,4]])
 
-            index_j = MODEL_NUM+i+1
-            for j in range(7):
-                sr[index_j][j] += res[j]
-            sscore[index_j] += score
-            
-            fname_result = '%s/ss_ens%d.txt' % (data_dir, i)
-            f_result = open(fname_result, 'a')
-            f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
-            f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
-            f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
-            f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                            score, res[0], res[1], res[2], res[3], res[4], res[5], res[6]))
-            f_result.close()
+    res[0] = sim.simulation5(pred_ens, R_test, [[1,2]])
+    res[1] = sim.simulation5(pred_ens, R_test, [[1,2],[1,3],[2,1],[2,3]])
+    res[2] = sim.simulation5(pred_ens, R_test, [[1,2],[1,3],[2,1],[2,3],[3,1],[3,2]])
+    res[3] = sim.simulation5(pred_ens, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[2,1],[3,1],[3,2],[4,1],[4,2],[4,3]])
+    res[4] = sim.simulation5(pred_ens, R_test, [[3,4],[3,5],[3,6],[4,5],[4,6],[5,4]])
+    res[5] = sim.simulation5(pred_ens, R_test, [[4,5],[4,6],[5,4],[5,6],[6,4],[6,5]])
+    res[6] = sim.simulation5(pred_ens, R_test, [[4,5],[4,6],[4,7],[5,4],[5,6],[5,7],[6,4],[6,5],[6,7],[7,4],[7,5],[7,6]])
+    
+    res[0] = sim.simulation6(pred, R_test, [[1,2,3]])
+    res[1] = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,3,4], [2,3,4]])
+    res[2] = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5]])
+    res[3] = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5],
+                                        [1,2,6], [1,3,6], [1,4,6], [1,5,6], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
+    res[4] = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5],
+                                        [1,2,6], [1,3,6], [1,4,6], [1,5,6], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6],
+                                        [1,2,7], [1,3,7], [1,4,7], [1,5,7], [2,3,7], [2,4,7], [2,5,7], [3,4,7], [3,5,7], [4,5,7],
+                                        [1,6,7], [2,6,7], [3,6,7], [4,6,7], [5,6,7]
+                                        ])
+    res[5] = sim.simulation6(pred, R_test, [[2,3,4], [2,3,5], [2,4,5], [3,4,5], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
+    res[6] = sim.simulation6(pred, R_test, [[3,4,5], [3,4,6], [3,4,7], [3,5,6], [3,5,7], [3,6,7], [4,5,6], [4,5,7], [4,6,7], [5,6,7]])
+    
+    res[0] = sim.simulation7(pred[i], R_test, [[1],[2],[3]])
+    res[1] = sim.simulation7(pred[i], R_test, [[1,2],[1,2,3],[1,2,3]])
+    res[2] = sim.simulation7(pred[i], R_test, [[1,2,3],[1,2,3],[1,2,3]])
+    res[3] = sim.simulation7(pred[i], R_test, [[1,2,3,4],[1,2,3,4],[1,2,3,4]])
+    res[4] = sim.simulation7(pred[i], R_test, [[3,4,5],[4,5,6],[4,5,6]])
+    res[5] = sim.simulation7(pred[i], R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
+    res[6] = sim.simulation7(pred[i], R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
 
-        sr[index_sum][0] = 0
-        sr[index_sum][1] = 0
-        sr[index_sum][2] = 0
-        sr[index_sum][3] = 0
-        sr[index_sum][4] = 0
-        sr[index_sum][5] = 0
-        sr[index_sum][6] = 0
-        sscore[index_sum] = 0
-        
-        for i in range(int(MODEL_NUM/NUM_ENSEMBLE)):
-            index_j = MODEL_NUM+i+1
-            sr[index_sum][0] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr[index_j][0]
-            sr[index_sum][1] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr[index_j][1]
-            sr[index_sum][2] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr[index_j][2]
-            sr[index_sum][3] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr[index_j][3]
-            sr[index_sum][4] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr[index_j][4]
-            sr[index_sum][5] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr[index_j][5]
-            sr[index_sum][6] += 1.*NUM_ENSEMBLE/MODEL_NUM * sr[index_j][6]
-            sscore[index_sum] += 1.*NUM_ENSEMBLE/MODEL_NUM * sscore[index_j]
-
-        fname_result = '%s/ss_ens_all.txt' % data_dir
-        f_result = open(fname_result, 'a')
-        f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
-        f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
-        f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
-        f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
-                        sscore[index_sum], sr[index_sum][0], sr[index_sum][1], sr[index_sum][2], sr[index_sum][3], sr[index_sum][4], sr[index_sum][5], sr[index_sum][6]))
-        f_result.close()
-
-        """
-        res[0] = sim.simulation1(pred, R_test, 1)
-        res[1] = sim.simulation2(pred, R_test, 1)
-        res[2] = sim.simulation3(pred, R_test, [[1,2]])
-        res[3] = sim.simulation4(pred, R_test, [1,2])
-        res[4] = sim.simulation5(pred, R_test, [[1,2]])
-        res[5] = sim.simulation6(pred, R_test, [[1,2,3]])
-        res[6] = sim.simulation7(pred, R_test, [[1,2,3],[1,2,3],[2,3,4]])
-
-        res[0] = sim.simulation5(pred_ens, R_test, [[1,2]])
-        res[1] = sim.simulation5(pred_ens, R_test, [[1,2],[1,3],[2,1],[2,3]])
-        res[2] = sim.simulation5(pred_ens, R_test, [[1,2],[1,3],[2,1],[2,3],[3,1],[3,2]])
-        res[3] = sim.simulation5(pred_ens, R_test, [[1,2],[1,3],[2,3],[1,4],[2,4],[3,4],[2,1],[3,1],[3,2],[4,1],[4,2],[4,3]])
-        res[4] = sim.simulation5(pred_ens, R_test, [[3,4],[3,5],[3,6],[4,5],[4,6],[5,4]])
-        res[5] = sim.simulation5(pred_ens, R_test, [[4,5],[4,6],[5,4],[5,6],[6,4],[6,5]])
-        res[6] = sim.simulation5(pred_ens, R_test, [[4,5],[4,6],[4,7],[5,4],[5,6],[5,7],[6,4],[6,5],[6,7],[7,4],[7,5],[7,6]])
-        
-        res[0] = sim.simulation6(pred, R_test, [[1,2,3]])
-        res[1] = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,3,4], [2,3,4]])
-        res[2] = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5]])
-        res[3] = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5],
-                                            [1,2,6], [1,3,6], [1,4,6], [1,5,6], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
-        res[4] = sim.simulation6(pred, R_test, [[1,2,3], [1,2,4], [1,2,5], [1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5], [3,4,5],
-                                            [1,2,6], [1,3,6], [1,4,6], [1,5,6], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6],
-                                            [1,2,7], [1,3,7], [1,4,7], [1,5,7], [2,3,7], [2,4,7], [2,5,7], [3,4,7], [3,5,7], [4,5,7],
-                                            [1,6,7], [2,6,7], [3,6,7], [4,6,7], [5,6,7]
-                                            ])
-        res[5] = sim.simulation6(pred, R_test, [[2,3,4], [2,3,5], [2,4,5], [3,4,5], [2,3,6], [2,4,6], [2,5,6], [3,4,6], [3,5,6], [4,5,6]])
-        res[6] = sim.simulation6(pred, R_test, [[3,4,5], [3,4,6], [3,4,7], [3,5,6], [3,5,7], [3,6,7], [4,5,6], [4,5,7], [4,6,7], [5,6,7]])
-        
-        res[0] = sim.simulation7(pred[i], R_test, [[1],[2],[3]])
-        res[1] = sim.simulation7(pred[i], R_test, [[1,2],[1,2,3],[1,2,3]])
-        res[2] = sim.simulation7(pred[i], R_test, [[1,2,3],[1,2,3],[1,2,3]])
-        res[3] = sim.simulation7(pred[i], R_test, [[1,2,3,4],[1,2,3,4],[1,2,3,4]])
-        res[4] = sim.simulation7(pred[i], R_test, [[3,4,5],[4,5,6],[4,5,6]])
-        res[5] = sim.simulation7(pred[i], R_test, [[4,5,6],[4,5,6],[4,5,6,7]])
-        res[6] = sim.simulation7(pred[i], R_test, [[4,5,6,7],[4,5,6,7],[4,5,6,7]])
-
-        res[0] = sim.simulation2(pred, R_test, 1)
-        res[1] = sim.simulation2(pred, R_test, 2)
-        res[2] = sim.simulation2(pred, R_test, 3)
-        res[3] = sim.simulation2(pred, R_test, 4)
-        res[4] = sim.simulation2(pred, R_test, 5)
-        res[5] = sim.simulation2(pred, R_test, 6)
-        res[6] = sim.simulation2(pred, R_test, 7)
-        """
+    res[0] = sim.simulation2(pred, R_test, 1)
+    res[1] = sim.simulation2(pred, R_test, 2)
+    res[2] = sim.simulation2(pred, R_test, 3)
+    res[3] = sim.simulation2(pred, R_test, 4)
+    res[4] = sim.simulation2(pred, R_test, 5)
+    res[5] = sim.simulation2(pred, R_test, 6)
+    res[6] = sim.simulation2(pred, R_test, 7)
+    """
     for m in range(MODEL_NUM+int(MODEL_NUM/NUM_ENSEMBLE)+2):
         print("result[%02d]: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f" % (
                 m, sscore[m], sr[m][0], sr[m][1], sr[m][2], sr[m][3], sr[m][4], sr[m][5], sr[m][6]))
@@ -673,8 +675,8 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         scaler_x5 = q.get()
         scaler_x6 = q.get()
         scaler_y = q.get()
-        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e1000_rms/reference/scaler_x.pkl2')
-        #scaler_y = joblib.load('../model/tf/l1_e1000_rms/reference/scaler_y.pkl')
+        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e500_rms/reference/scaler_x.pkl')
+        #scaler_y = joblib.load('../model/tf/l1_e500_rms/reference/scaler_y.pkl')
         q.put((sr, sscore))
         p = Process(target=process_test, args=(train_bd, train_ed, (scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y), q))
         p.start()
