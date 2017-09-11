@@ -230,7 +230,7 @@ def predict_next_ens(estimators_, data_pre, meet, date, rcno, course=0, nData=47
                     fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d, model: %d ===\n" % (int(prev_rc)+1, nData, year, train_course, i))
                     fresult.close()
                     #print_bet(rcdata, target=[[1],[2],[3]], total_bet=5000)
-                    print_bet(rcdata, target=[[1,2],[1,2,3],[1,2,3]], total_bet=1200)
+                    print_bet(rcdata, target=[[1,2],[1,2,3],[1,2,3]], total_bet=2000)
                     #print_bet(rcdata, target=[[3,4,5],[4,5,6],[4,5,6]], total_bet=5000)
                     rcdata = []
                     prev_rc = row['rcno']
@@ -259,7 +259,7 @@ if __name__ == '__main__':
     data_pre1, data_pre2 = None, None
     data_pre1 = xe.parse_xml_entry(meet, init_date+0, rcno, md, md3)
     data_pre2 = xe.parse_xml_entry(meet, init_date+1, rcno, md, md3)
-    for idx in range(4,5):
+    for idx in range(2,3):
         nData, year, train_course, epoch = [300,300,300,300][idx-1], [6,6,6,6][idx-1], [0,0,0,0][idx-1], [500,1000,500,1000][idx-1]
         train_bd = datetime.date(init_date/10000, init_date/100%100, init_date%100) + datetime.timedelta(days=-365*year-1)
         train_ed = datetime.date(init_date/10000, init_date/100%100, init_date%100) + datetime.timedelta(days=-1)
