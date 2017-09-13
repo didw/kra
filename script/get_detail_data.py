@@ -28,7 +28,7 @@ def get_budam(meet, date, rcno, name):
             if len(itemList) == 14:
                 ret_idx = 6
             elif len(itemList) == 15:
-                ret_idx = 7
+                ret_idx = 6
             else:
                 continue
             if name in unicode(itemList[1].string).encode('utf-8'):
@@ -53,11 +53,11 @@ def get_dbudam(meet, date, rcno, name):
             if len(itemList) == 14:
                 ret_idx = 7
             elif len(itemList) == 15:
-                ret_idx = 8
+                ret_idx = 7
             else:
                 continue
             if len(itemList) >= 10 and name in unicode(itemList[1].string).encode('utf-8'):
-                value = int(re.search(r'[-\d]+', unicode(itemList[ret_idx].string)).group())
+                value = float(re.search(r'[-\.\d]+', unicode(itemList[ret_idx].string)).group())
                 return value
     #print("can not find dbudam of %s in %s" % (name, fname))
     return 0

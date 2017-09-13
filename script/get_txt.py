@@ -91,17 +91,17 @@ def download_chulmaDetailInfo(bd, ed, meet, overwrite=False):
     data = [# seoul http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=1&rcNo=3&rcDate=20070415
         #      http://race.kra.co.kr/chulmainfo/chulmaDetailInfoDistanceRecord.do?Act=02&Sub=1&meet=1&rcNo=5&rcDate=20070714
             [["DistanceRecord.do?Act=02&Sub=1", "dist_rec", [5, 6], 31700],
-             ["Chulmapyo.do?Act=02&Sub=1", "chulmapyo", [5, 6], 33400],
+             ["Chulmapyo.do?Act=02&Sub=1", "chulmapyo", [5, 6], 33700],
              ["Weight.do?Act=02&Sub=1", "weight", [5, 6], 31400],
              ["TrainState.do?Act=02&Sub=1", "train_state", [5, 6], 32000]
              ],
             [["DistanceRecord.do?Act=02&Sub=1", "dist_rec", [4, 5], 31700],
-             ["Chulmapyo.do?Act=02&Sub=1", "chulmapyo", [4, 5], 33400],
+             ["Chulmapyo.do?Act=02&Sub=1", "chulmapyo", [4, 5], 33700],
              ["Weight.do?Act=02&Sub=1", "weight", [4, 5], 31400],
              ["TrainState.do?Act=02&Sub=1", "train_state", [4, 5], 32000],
              ],
             [["DistanceRecord.do?Act=02&Sub=1", "dist_rec", [4, 6], 31700],
-             ["Chulmapyo.do?Act=02&Sub=1", "chulmapyo", [4, 6], 33400],
+             ["Chulmapyo.do?Act=02&Sub=1", "chulmapyo", [4, 6], 33700],
              ["Weight.do?Act=02&Sub=1", "weight", [4, 6], 31400],
              ["TrainState.do?Act=02&Sub=1", "train_state", [4, 6], 32000],
              ],
