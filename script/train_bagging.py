@@ -249,7 +249,10 @@ def print_log(data, pred, fname):
 
 
 def train_bagging_nn(dir_path, X_train, y_train, X_val, y_val):
-    clf = BaggingRegressor(base_estimator=KNeighborsRegressor(10), random_state=np.random.randint(100))
+    clf = BaggingRegressor(base_estimator=KNeighborsRegressor(10, n_jobs=5), 
+                           random_state=np.random.randint(100),
+                           n_estimators=50,
+                           oob_score=True)
     clf.fit(X_train, y_train)
     # get prediction
     if y_val is not None:
@@ -261,7 +264,7 @@ def train_bagging_nn(dir_path, X_train, y_train, X_val, y_val):
     joblib.dump(clf, "../model/bagging_nn/ens_e1000/%s/model.pkl"%dir_path)
 
 
-def process_train(train_bd, train_ed, q):
+def process_train(train_bd, train_ed, course, q):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
     model_dir = "../model/bagging_nn/ens_e1000/%d_%d" % (train_bd_i, train_ed_i)
@@ -269,7 +272,7 @@ def process_train(train_bd, train_ed, q):
         os.makedirs(model_dir)
 
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-    X_data, Y_data, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', 0, nData=nData)
+    X_data, Y_data, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv', course, nData=nData)
     scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y = StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler(), StandardScaler()
     X_data = np.array(X_data)
     X_data = np.array(X_data)
@@ -284,24 +287,26 @@ def process_train(train_bd, train_ed, q):
     Y_data = scaler_y.fit_transform(Y_data.reshape(-1,1))
     print("Done")
 
-    joblib.dump((scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6), "%s/scaler_x.pkl" % (model_dir,))
-    joblib.dump(scaler_y, "%s/scaler_y.pkl" % (model_dir,))
+    if not os.path.exists("%s/c%d" % (model_dir,course)):
+        os.makedirs("%s/c%d" % (model_dir,course))
+    joblib.dump((scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6), "%s/c%d/scaler_x.pkl" % (model_dir,course))
+    joblib.dump(scaler_y, "%s/c%d/scaler_y.pkl" % (model_dir,course))
 
     for i in range(MODEL_NUM):
-        if i < 5:
+        if i < 0:
             X_train, X_val, y_train, y_val = train_test_split(X_data, Y_data, random_state=np.random.randint(100))
         else:
             X_train, y_train = X_data, Y_data
             X_val, y_val = None, None
 
-        model_name = "%s/%d/model.pkl" % (model_dir,i)
+        model_name = "%s/c%d/%d/model.pkl" % (model_dir,course,i)
         if os.path.exists(model_name):
             print("model[%d] exist. pass.. %s - %s" % (i, str(train_bd), str(train_ed)))
         else:
-            if not os.path.exists("%s/%d" % (model_dir, i)):
-                os.makedirs("%s/%d" % (model_dir, i))
+            if not os.path.exists("%s/c%d/%d" % (model_dir,course,i)):
+                os.makedirs("%s/c%d/%d" % (model_dir,course,i))
             print("model[%d] training.." % (i+1))
-            train_bagging_nn("%s_%s/%d"%(train_bd_i, train_ed_i, i), X_train, y_train, X_val, y_val)
+            train_bagging_nn("%s_%s/c%d/%d"%(train_bd_i, train_ed_i, course, i), X_train, y_train, X_val, y_val)
     print("Finish train model")
     q.put(scaler_x1)
     q.put(scaler_x2)
@@ -321,7 +326,7 @@ def load_g_estimators():
     return g_estimators
 
 
-def process_test(train_bd, train_ed, scaler, q):
+def process_test(train_bd, train_ed, course, scaler, q):
     scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y = scaler
     sr, sscore = q.get()
 
@@ -338,7 +343,7 @@ def process_test(train_bd, train_ed, scaler, q):
 
     fname_result = '%s/result.txt' % (data_dir,)
     print("Loading Datadata at %s - %s" % (str(test_bd), str(test_ed)))
-    X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.csv', nData=nData)
+    X_test, Y_test, R_test, X_data = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.csv', course, nData=nData)
     X_test = np.array(X_test)
     X_test[:,3:5] = scaler_x1.transform(X_test[:,3:5])
     X_test[:,6:12] = scaler_x2.transform(X_test[:,6:12])
@@ -367,8 +372,8 @@ def process_test(train_bd, train_ed, scaler, q):
         Y_test = np.array(Y_test.values.reshape(-1,1)).reshape(-1)
         pred = [0] * MODEL_NUM
         for i in range(MODEL_NUM):
-            estimator = joblib.load("../model/bagging_nn/ens_e1000/%d_%d/%d/model.pkl"%(train_bd_i, train_ed_i, i))
-            #estimator = joblib.load("../model/bagging_nn/ens_e1000/20110212_20170210/%d/model.pkl"%i)
+            estimator = joblib.load("../model/bagging_nn/ens_e1000/%d_%d/c%d/%d/model.pkl"%(train_bd_i, train_ed_i, course, i))
+            #estimator = joblib.load("../model/bagging_nn/ens_e1000/20110813_20170811/%d/model.pkl"%i)
 
             pred[i] = estimator.predict(X_test)
             pred[i] = scaler_y.inverse_transform(pred[i])
@@ -392,8 +397,8 @@ def process_test(train_bd, train_ed, scaler, q):
 
             fname_result = '%s/ss_m%02d.txt' % (data_dir, i)
             f_result = open(fname_result, 'a')
-            f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
-            f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+            f_result.write("train data[%d]: %s - %s\n" % (course, str(train_bd), str(train_ed)))
+            f_result.write("test data[%d]: %s - %s\n" % (course, str(test_bd), str(test_ed)))
             f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
             f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
                             score, res[0], res[1], res[2], res[3], res[4], res[5], res[6]))
@@ -410,8 +415,8 @@ def process_test(train_bd, train_ed, scaler, q):
 
         fname_result = '%s/ss_m_all.txt' % data_dir
         f_result = open(fname_result, 'a')
-        f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
-        f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+        f_result.write("train data[%d]: %s - %s\n" % (course, str(train_bd), str(train_ed)))
+        f_result.write("test data[%d]: %s - %s\n" % (course, str(test_bd), str(test_ed)))
         f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
         f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
                         sscore[MODEL_NUM], sr[MODEL_NUM][0], sr[MODEL_NUM][1], sr[MODEL_NUM][2], sr[MODEL_NUM][3], sr[MODEL_NUM][4], sr[MODEL_NUM][5], sr[MODEL_NUM][6]))
@@ -443,8 +448,8 @@ def process_test(train_bd, train_ed, scaler, q):
             
             fname_result = '%s/ss_ens%d.txt' % (data_dir, i)
             f_result = open(fname_result, 'a')
-            f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
-            f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+            f_result.write("train data[%d]: %s - %s\n" % (course, str(train_bd), str(train_ed)))
+            f_result.write("test data[%d]: %s - %s\n" % (course, str(test_bd), str(test_ed)))
             f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
             f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
                             score, res[0], res[1], res[2], res[3], res[4], res[5], res[6]))
@@ -472,8 +477,8 @@ def process_test(train_bd, train_ed, scaler, q):
 
         fname_result = '%s/ss_ens_all.txt' % data_dir
         f_result = open(fname_result, 'a')
-        f_result.write("train data: %s - %s\n" % (str(train_bd), str(train_ed)))
-        f_result.write("test data: %s - %s\n" % (str(test_bd), str(test_ed)))
+        f_result.write("train data[%d]: %s - %s\n" % (course, str(train_bd), str(train_ed)))
+        f_result.write("test data[%d]: %s - %s\n" % (course, str(test_bd), str(test_ed)))
         f_result.write("%15s%10s%10s%10s%10s%10s%10s%10s\n" % ("score", "d", "y", "b", "by", "s", "sb", "ss"))
         f_result.write("result: %4.5f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f,%9.0f\n" % (
                         sscore[index_sum], sr[index_sum][0], sr[index_sum][1], sr[index_sum][2], sr[index_sum][3], sr[index_sum][4], sr[index_sum][5], sr[index_sum][6]))
@@ -487,50 +492,51 @@ def process_test(train_bd, train_ed, scaler, q):
 
 def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, courses=[0], kinds=[0], nData=47):
     remove_outlier = False
-    today = begin_date
+    today = end_date
     sr = [[0 for _ in range(10)] for _ in range(MODEL_NUM+int(MODEL_NUM/NUM_ENSEMBLE)+2)]
     sscore = [0 for _ in range(MODEL_NUM+int(MODEL_NUM/NUM_ENSEMBLE)+2)]
     q = Queue()
-    while today <= end_date:
-        while today.weekday() != 3:
-            today = today + datetime.timedelta(days=1)
-        today = today + datetime.timedelta(days=1)
+    while today >= begin_date:
+        while today.weekday() != 4:
+            today = today - datetime.timedelta(days=1)
         train_bd = today + datetime.timedelta(days=-365*delta_year)
         #train_bd = datetime.date(2011, 1, 1)
         train_ed = today + datetime.timedelta(days=-delta_day)
         test_bd = today + datetime.timedelta(days=1)
         test_ed = today + datetime.timedelta(days=2)
+        today = today - datetime.timedelta(days=2)
         test_bd_s = "%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day)
         test_ed_s = "%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day)
         if not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_bd_s) and not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_ed_s):
             continue
-        p = Process(target=process_train, args=(train_bd, train_ed, q))
-        p.start()
-        p.join()
-        scaler_x1 = q.get()
-        scaler_x2 = q.get()
-        scaler_x3 = q.get()
-        scaler_x4 = q.get()
-        scaler_x5 = q.get()
-        scaler_x6 = q.get()
-        scaler_y = q.get()
-        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/bagging_nn/ens_e1000/20110212_20170210/scaler_x.pkl')
-        #scaler_y = joblib.load('../model/bagging_nn/ens_e1000/20110212_20170210/scaler_y.pkl')
-        q.put((sr, sscore))
-        p = Process(target=process_test, args=(train_bd, train_ed, (scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y), q))
-        p.start()
-        p.join()
-        sr, sscore = q.get()
+        for course in courses:
+            p = Process(target=process_train, args=(train_bd, train_ed, course, q))
+            p.start()
+            p.join()
+            scaler_x1 = q.get()
+            scaler_x2 = q.get()
+            scaler_x3 = q.get()
+            scaler_x4 = q.get()
+            scaler_x5 = q.get()
+            scaler_x6 = q.get()
+            scaler_y = q.get()
+            #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/bagging_nn/ens_e1000/20110813_20170811/scaler_x.pkl')
+            #scaler_y = joblib.load('../model/bagging_nn/ens_e1000/20110813_20170811/scaler_y.pkl')
+            q.put((sr, sscore))
+            p = Process(target=process_test, args=(train_bd, train_ed, course, (scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y), q))
+            p.start()
+            p.join()
+            sr, sscore = q.get()
 
 
 if __name__ == '__main__':
     delta_year = 4
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2017, 3, 15)
-    test_ed = datetime.date(2017, 8, 25)
+    test_bd = datetime.date(2016, 8, 10)
+    test_ed = datetime.date(2017, 9, 15)
 
     for delta_year in [6]:
         for nData in [186]:
-            simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[0], nData=nData)
+            simulation_weekly_train0(test_bd, test_ed, 0, delta_year, courses=[0,1000,1200,1300,1400,1700], nData=nData)
 
