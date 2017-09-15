@@ -272,7 +272,7 @@ def train_xgboost(dir_path, X_train, y_train, X_val, y_val):
     bst = xgb.train(param, xg_train, num_round, watchlist, verbose_eval=False)
     # get prediction
     if y_val is not None:
-        pred = bst.predict(X_val)
+        pred = bst.predict(xg_val)
         error_rate = sqrt(mean_squared_error(pred, y_val))
         print('Test error using softmax = {}'.format(error_rate))
     if not os.path.exists("../model/xgboost/ens_e1000/%s"%dir_path):
@@ -389,7 +389,7 @@ def process_test(train_bd, train_ed, scaler, q):
             #estimator = joblib.load("../model/xgboost/ens_e1000/%d_%d/%d/model.pkl"%(train_bd_i, train_ed_i, i))
             estimator = joblib.load("../model/xgboost/ens_e1000/20100814_20160812/%d/model.pkl"%i)
             xg_test = xgb.DMatrix(X_test)
-            pred[i] = estimator.predict(X_test)
+            pred[i] = estimator.predict(xg_test)
             pred[i] = scaler_y.inverse_transform(pred[i])
             score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
 
@@ -438,8 +438,7 @@ def process_test(train_bd, train_ed, scaler, q):
 
         index_sum = MODEL_NUM + int(MODEL_NUM/NUM_ENSEMBLE) + 1
         for i in range(int(MODEL_NUM/NUM_ENSEMBLE)):
-            n_split = int(MODEL_NUM/NUM_ENSEMBLE)
-            pred_ens = np.mean(pred[i*n_split:(i+1)*n_split], axis=0)
+            pred_ens = np.mean(pred[i*NUM_ENSEMBLE:(i+1)*NUM_ENSEMBLE], axis=0)
             score = np.sqrt(np.mean((pred_ens - Y_test)*(pred_ens - Y_test)))
 
             res[0] = sim.simulation7(pred_ens, R_test, [[1],[2],[3]])
@@ -546,8 +545,8 @@ if __name__ == '__main__':
     delta_year = 4
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2016, 6, 5)
-    test_ed = datetime.date(2017, 9, 15)
+    test_bd = datetime.date(2016, 8, 10)
+    test_ed = datetime.date(2017, 8, 15)
 
     for delta_year in [6]:
         for nData in [186]:
