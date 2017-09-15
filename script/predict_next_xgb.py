@@ -106,14 +106,12 @@ def print_bet(rcdata, target=[[1],[2],[3]], total_bet=5000):
     fresult.close()
 
 
-def predict_next(estimators, data_pre, meet, date, rcno, course=0, nData=47, year=4, train_course=0, scaler_x1=None, scaler_x2=None, scaler_x3=None, scaler_x4=None, scaler_x5=None, scaler_x6=None, scaler_y=None):
+def predict_next(model_dir, data_pre, meet, date, rcno, course=0, nData=47, year=4, train_course=0, scaler_x1=None, scaler_x2=None, scaler_x3=None, scaler_x4=None, scaler_x5=None, scaler_x6=None, scaler_y=None):
     data = normalize_data(data_pre)
     print(len(data.columns))
     X_data = data.copy()
     print(len(X_data.columns))
     X_data = X_data.drop(['name', 'index'], axis=1)
-    if nData in [118, 151]:
-        del X_data['rcno']
     __DEBUG__ = True
     if not os.path.exists('../log'):
         os.makedirs('../log')
@@ -128,42 +126,43 @@ def predict_next(estimators, data_pre, meet, date, rcno, course=0, nData=47, yea
     X_array[:,88:124] = scaler_x5.transform(X_array[:,88:124])
     X_array[:,204:233] = scaler_x6.transform(X_array[:,204:233])
 
-    __DEBUG__ = False
-    for estimator in estimators:
-        rcdata = []
-        prev_rc = data['rcno'][0]
-        pred = pd.DataFrame(estimator.predict(X_array))
-        if __DEBUG__:
-            pd.concat([data_pre, pred], axis=1).to_csv('../log/predict_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
-            X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
-        pred.columns = ['predict']
-        for idx, row in data.iterrows():
-            try:
-                if int(data['hr_nt'][idx]) == 0 or int(data['jk_nt'][idx]) == 0 or int(data['tr_nt'][idx]) == 0:
-                    print("%s data is not enough. be careful[hr:%d, jk:%d, tr:%d]" % (data['name'][idx], int(data['hr_nt'][idx]), int(data['jk_nt'][idx]), int(data['tr_nt'][idx])))
-            except KeyError:
-                pass
-            if row['rcno'] != prev_rc or idx+1 == len(data):
-                if idx+1 == len(data):
-                    rcdata.append([row['idx'], row['name'], float(scaler_y.inverse_transform(pred['predict'][idx]))])
-                rcdata = pd.DataFrame(rcdata)
-                rcdata.columns = ['idx', 'name', 'time']
-                rcdata = rcdata.sort_values(by='time')
-                rcdata = rcdata.reset_index(drop=True)
-                print("=========== %s ==========" % prev_rc)
-                print(rcdata)
-                fresult = open(fname, 'a')
-                fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d ===\n" % (int(prev_rc)+1, nData, year, train_course))
-                fresult.close()
-                print_bet(rcdata, target=[[1],[2],[3]], total_bet=1000)
-                rcdata = []
-                prev_rc = row['rcno']
-                if idx+1 != len(data):
-                    rcdata.append([row['idx'], row['name'], float(scaler_y.inverse_transform(pred['predict'][idx]))])
-            else:
-                rcdata.append([row['idx'], row['name'], float(scaler_y.inverse_transform(pred['predict'][idx]))])
-        #print(X_data.columns)
-        #print(estimator.feature_importances_)
+    X_array = xgb.DMatrix(X_array)
+    idx_model = 9
+    # Loading only for all data trained model
+    estimator = joblib.load("%s/%d/model.pkl"% (model_dir, idx_model))
+    pred = estimator.predict(X_array)
+    pred = pd.DataFrame(pred)
+    pred.columns = ['predict']
+    __DEBUG__ = True
+    if __DEBUG__:
+        pd.concat([data_pre, pred], axis=1).to_csv('../log/predict_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
+        X_data.to_csv('../log/predict_x_%d_m%d_r%d.csv' % (date, meet, rcno), index=False)
+    prev_rc = data['rcno'][0]
+    rcdata = []
+    for idx, row in data.iterrows():
+        if int(data['hr_nt'][idx]) == 0 or int(data['jk_nt'][idx]) == 0 or int(data['tr_nt'][idx]) == 0:
+            print("%s data is not enough. be careful[hr:%d, jk:%d, tr:%d]" % (
+                data['name'][idx], int(data['hr_nt'][idx]), int(data['jk_nt'][idx]), int(data['tr_nt'][idx])))
+        if row['rcno'] != prev_rc or idx+1 == len(data):
+            if idx+1 == len(data):
+                rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
+            rcdata = pd.DataFrame(rcdata)
+            rcdata.columns = ['idx', 'name', 'time']
+            rcdata = rcdata.sort_values(by='time')
+            rcdata = rcdata.reset_index(drop=True)
+            print("=========== %s ==========" % prev_rc)
+            print(rcdata)
+            fresult = open(fname, 'a')
+            fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d ===\n" % (int(prev_rc)+1, nData, year, train_course))
+            fresult.close()
+            print_bet(rcdata, target=[[1],[2],[3]], total_bet=6000)
+            print_bet(rcdata, target=[[1,2,3],[1,2,3],[1,2,3]], total_bet=9000)
+            rcdata = []
+            prev_rc = row['rcno']
+            if idx+1 != len(data):
+                rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
+        else:
+            rcdata.append([row['idx'], row['name'], float(pred['predict'][idx])])
 
 
 def predict_next_ens(model_dir, data_pre, meet, date, rcno, course=0, nData=47, year=4, train_course=0, scaler_x1=None, scaler_x2=None, scaler_x3=None, scaler_x4=None, scaler_x5=None, scaler_x6=None, scaler_y=None):
@@ -225,8 +224,7 @@ def predict_next_ens(model_dir, data_pre, meet, date, rcno, course=0, nData=47, 
                     fresult = open(fname, 'a')
                     fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d, model: %d ===\n" % (int(prev_rc)+1, nData, year, train_course, i))
                     fresult.close()
-                    print_bet(rcdata, target=[[1],[2],[3]], total_bet=2500)
-                    #print_bet(rcdata, target=[[1,2,3],[1,2,3],[1,2,3]], total_bet=2500)
+                    print_bet(rcdata, target=[[4,5,6],[4,5,6],[4,5,6,7]], total_bet=5000)
                     rcdata = []
                     prev_rc = row['rcno']
                     if idx+1 != len(data):
@@ -243,7 +241,7 @@ if __name__ == '__main__':
     #for rcno in range(11, len(courses)):
     course = courses[rcno]
     test_course = course
-    init_date = 20170819
+    init_date = 20170916
     from sklearn.externals import joblib
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
     with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
@@ -262,43 +260,44 @@ if __name__ == '__main__':
 
         train_bd = datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1)
         train_ed = datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1)
-        n_epoch = epoch
-        q = Queue()
-        p = Process(target=txg.training, args=(train_bd, train_ed, q))
-        p.start()
-        p.join()
-        scaler_x1 = q.get()
-        scaler_x2 = q.get()
-        scaler_x3 = q.get()
-        scaler_x4 = q.get()
-        scaler_x5 = q.get()
-        scaler_x6 = q.get()
-        scaler_y = q.get()
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-        scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/xgboost/ens_e1000/%d_%d/scaler_x.pkl' % (train_bd_i, train_ed_i))
-        scaler_y = joblib.load('../model/xgboost/ens_e1000/%d_%d/scaler_y.pkl' % (train_bd_i, train_ed_i))
-        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/xgboost/ens_e1000/20100814_20160812/scaler_x.pkl')
-        #scaler_y = joblib.load('../model/xgboost/ens_e1000/20100814_20160812/scaler_y.pkl')
+        today_s = "%d_%d"%(train_bd_i, train_ed_i)
+        model_base_dir = ["20100814_20160812", today_s][idx-1]
+        n_epoch = epoch
+        #q = Queue()
+        #p = Process(target=txg.training, args=(train_bd, train_ed, q))
+        #p.start()
+        #p.join()
+        #scaler_x1 = q.get()
+        #scaler_x2 = q.get()
+        #scaler_x3 = q.get()
+        #scaler_x4 = q.get()
+        #scaler_x5 = q.get()
+        #scaler_x6 = q.get()
+        #scaler_y = q.get()
+        scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/xgboost/ens_e1000/%s/scaler_x.pkl' % (model_base_dir,))
+        scaler_y = joblib.load('../model/xgboost/ens_e1000/%s/scaler_y.pkl' % (model_base_dir,))
         #estimators, md, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y = tfp.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData, n_epoch=epoch)
-        model_dir = "../model/xgboost/ens_e1000/%d_%d/"%(train_bd_i, train_ed_i)
+        #model_dir = "../model/xgboost/ens_e1000/%d_%d/"%(train_bd_i, train_ed_i)
+        model_dir = "../model/xgboost/ens_e1000/%s/"%model_base_dir
         if idx == 1:
             idx = 2
-            fname = '../result/1708/%d_%d.txt' % (date%100, idx)
+            fname = '../result/1709/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            predict_next_ens(model_dir, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
-            #predict_next(estimators, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
+            #predict_next_ens(model_dir, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
+            predict_next(model_dir, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
             date += 1
-            fname = '../result/1708/%d_%d.txt' % (date%100, idx)
+            fname = '../result/1709/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            predict_next_ens(model_dir, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
-            #predict_next(estimators, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
+            #predict_next_ens(model_dir, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
+            predict_next(model_dir, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
         else:
-            fname = '../result/1708/%d_%d.txt' % (date%100, idx)
+            fname = '../result/1709/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
             predict_next(estimators, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
             date += 1
-            fname = '../result/1708/%d_%d.txt' % (date%100, idx)
+            fname = '../result/1709/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
             predict_next(estimators, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
         idx += 1

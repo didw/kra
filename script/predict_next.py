@@ -229,8 +229,8 @@ def predict_next_ens(estimators_, data_pre, meet, date, rcno, course=0, nData=47
                     fresult = open(fname, 'a')
                     fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d, model: %d ===\n" % (int(prev_rc)+1, nData, year, train_course, i))
                     fresult.close()
-                    #print_bet(rcdata, target=[[1],[2],[3]], total_bet=5000)
-                    print_bet(rcdata, target=[[1,2],[1,2,3],[1,2,3]], total_bet=2000)
+                    print_bet(rcdata, target=[[1],[2],[3]], total_bet=1500)
+                    print_bet(rcdata, target=[[3,4,5],[4,5,6],[4,5,6]], total_bet=1500)
                     #print_bet(rcdata, target=[[3,4,5],[4,5,6],[4,5,6]], total_bet=5000)
                     rcdata = []
                     prev_rc = row['rcno']
@@ -248,7 +248,7 @@ if __name__ == '__main__':
     #for rcno in range(11, len(courses)):
     course = courses[rcno]
     test_course = course
-    init_date = 20170909
+    init_date = 20170916
     from sklearn.externals import joblib
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
     with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
@@ -259,14 +259,14 @@ if __name__ == '__main__':
     data_pre1, data_pre2 = None, None
     data_pre1 = xe.parse_xml_entry(meet, init_date+0, rcno, md, md3)
     data_pre2 = xe.parse_xml_entry(meet, init_date+1, rcno, md, md3)
-    for idx in range(2,3):
+    for idx in range(1,2):
         nData, year, train_course, epoch = [300,300,300,300][idx-1], [6,6,6,6][idx-1], [0,0,0,0][idx-1], [500,1000,500,1000][idx-1]
         train_bd = datetime.date(init_date/10000, init_date/100%100, init_date%100) + datetime.timedelta(days=-365*year-1)
         train_ed = datetime.date(init_date/10000, init_date/100%100, init_date%100) + datetime.timedelta(days=-1)
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
         today_s = "%d_%d"%(train_bd_i, train_ed_i)
-        model_dir = ["20110226_20170224", "20110827_20170825", today_s, today_s][idx-1]
+        model_dir = ["20110910_20170908", "20110827_20170825", today_s, today_s][idx-1]
         date = init_date
         if train_course == 1: train_course = course
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))

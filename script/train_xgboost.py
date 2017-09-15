@@ -272,7 +272,7 @@ def train_xgboost(dir_path, X_train, y_train, X_val, y_val):
     bst = xgb.train(param, xg_train, num_round, watchlist, verbose_eval=False)
     # get prediction
     if y_val is not None:
-        pred = bst.predict(X_val)
+        pred = bst.predict(xg_val)
         error_rate = sqrt(mean_squared_error(pred, y_val))
         print('Test error using softmax = {}'.format(error_rate))
     if not os.path.exists("../model/xgboost/ens_e1000/%s"%dir_path):
@@ -389,7 +389,7 @@ def process_test(train_bd, train_ed, scaler, q):
             #estimator = joblib.load("../model/xgboost/ens_e1000/%d_%d/%d/model.pkl"%(train_bd_i, train_ed_i, i))
             estimator = joblib.load("../model/xgboost/ens_e1000/20100814_20160812/%d/model.pkl"%i)
             xg_test = xgb.DMatrix(X_test)
-            pred[i] = estimator.predict(X_test)
+            pred[i] = estimator.predict(xg_test)
             pred[i] = scaler_y.inverse_transform(pred[i])
             score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
 
@@ -438,8 +438,7 @@ def process_test(train_bd, train_ed, scaler, q):
 
         index_sum = MODEL_NUM + int(MODEL_NUM/NUM_ENSEMBLE) + 1
         for i in range(int(MODEL_NUM/NUM_ENSEMBLE)):
-            n_split = int(MODEL_NUM/NUM_ENSEMBLE)
-            pred_ens = np.mean(pred[i*n_split:(i+1)*n_split], axis=0)
+            pred_ens = np.mean(pred[i*NUM_ENSEMBLE:(i+1)*NUM_ENSEMBLE], axis=0)
             score = np.sqrt(np.mean((pred_ens - Y_test)*(pred_ens - Y_test)))
 
             res[0] = sim.simulation7(pred_ens, R_test, [[1],[2],[3]])
@@ -506,19 +505,19 @@ def process_test(train_bd, train_ed, scaler, q):
 
 def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, courses=[0], kinds=[0], nData=47):
     remove_outlier = False
-    today = begin_date
+    today = end_date
     sr = [[0 for _ in range(10)] for _ in range(MODEL_NUM+int(MODEL_NUM/NUM_ENSEMBLE)+2)]
     sscore = [0 for _ in range(MODEL_NUM+int(MODEL_NUM/NUM_ENSEMBLE)+2)]
     q = Queue()
-    while today <= end_date:
-        while today.weekday() != 3:
-            today = today + datetime.timedelta(days=1)
-        today = today + datetime.timedelta(days=1)
+    while today >= begin_date:
+        while today.weekday() != 4:
+            today = today - datetime.timedelta(days=1)
         train_bd = today + datetime.timedelta(days=-365*delta_year)
         #train_bd = datetime.date(2011, 1, 1)
         train_ed = today + datetime.timedelta(days=-delta_day)
         test_bd = today + datetime.timedelta(days=1)
         test_ed = today + datetime.timedelta(days=2)
+        today = today - datetime.timedelta(days=2)
         test_bd_s = "%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day)
         test_ed_s = "%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day)
         if not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_bd_s) and not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_ed_s):
@@ -546,9 +545,8 @@ if __name__ == '__main__':
     delta_year = 4
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2016, 6, 5)
-    test_bd = datetime.date(2016, 8, 14)
-    test_ed = datetime.date(2017, 7, 25)
+    test_bd = datetime.date(2016, 8, 10)
+    test_ed = datetime.date(2017, 8, 15)
 
     for delta_year in [6]:
         for nData in [186]:
