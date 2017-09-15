@@ -95,7 +95,7 @@ class TensorflowRegressor():
             elif optimizer_type == 'MomentumOptimizer':
                 self.updateModel = tf.train.MomentumOptimizer(learning_rate, momentum=0.9).minimize(self.loss, global_step=global_step)
         self.saver = tf.train.Saver()
-        self.model_dir = '../model/tf/l1_e1000_rms/%s' % s_date
+        self.model_dir = '../model/tf/l1_e500_rms/%s' % s_date
 
         tf.summary.scalar('loss', self.loss)
         self.merged = tf.summary.merge_all()
@@ -299,7 +299,7 @@ def delete_lack_data(X_data, Y_data):
 def training(train_bd, train_ed, n_epoch, q):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/tf/l1_e1000_rms/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/tf/l1_e500_rms/%d_%d" % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
@@ -328,7 +328,7 @@ def training(train_bd, train_ed, n_epoch, q):
         else:
             X_train, Y_train = X_data, Y_data
             X_val, Y_val = None, None
-        dir_name = '../model/tf/l1_e1000_rms/%s_%s/%d' % (train_bd_i, train_ed_i, i)
+        dir_name = '../model/tf/l1_e500_rms/%s_%s/%d' % (train_bd_i, train_ed_i, i)
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
         tf.reset_default_graph()
@@ -372,7 +372,7 @@ def print_log(data, pred, fname):
 def process_train(train_bd, train_ed, q):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    model_dir = "../model/tf/l1_e1000_rms/%d_%d" % (train_bd_i, train_ed_i)
+    model_dir = "../model/tf/l1_e500_rms/%d_%d" % (train_bd_i, train_ed_i)
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
@@ -415,7 +415,7 @@ def process_train(train_bd, train_ed, q):
             tf.reset_default_graph()
             estimator = TensorflowRegressor("%s_%s/%d"%(train_bd_i, train_ed_i, i))
             estimator.set_scaler(scaler_y)
-            estimator.fit(X_train, Y_train, X_val, Y_val, n_epoch=1000)
+            estimator.fit(X_train, Y_train, X_val, Y_val, n_epoch=500)
     print("Finish train model")
     q.put(scaler_x1)
     q.put(scaler_x2)
@@ -446,7 +446,7 @@ def process_test(train_bd, train_ed, scaler, q):
     
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    data_dir = "../data/tf/l1_e1000_rms"
+    data_dir = "../data/tf/l1_e500_rms"
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
 
@@ -481,8 +481,8 @@ def process_test(train_bd, train_ed, scaler, q):
     Y_test = np.array(Y_test.values.reshape(-1,1)).reshape(-1)
     pred = [0] * MODEL_NUM
     for i in range(MODEL_NUM):
-        estimator = TensorflowRegressor('%d_%d/%d' % (train_bd_i, train_ed_i, i))
-        #estimator = TensorflowRegressor('reference/%d' % i)
+        #estimator = TensorflowRegressor('%d_%d/%d' % (train_bd_i, train_ed_i, i))
+        estimator = TensorflowRegressor('20110910_20170908/%d' % i)
         pred[i] = estimator.predict(X_test)
         pred[i] = scaler_y.inverse_transform(pred[i])
         score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
@@ -665,18 +665,18 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         today = today - datetime.timedelta(days=1)
         if not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_bd_s) and not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_ed_s):
             continue
-        p = Process(target=process_train, args=(train_bd, train_ed, q))
-        p.start()
-        p.join()
-        scaler_x1 = q.get()
-        scaler_x2 = q.get()
-        scaler_x3 = q.get()
-        scaler_x4 = q.get()
-        scaler_x5 = q.get()
-        scaler_x6 = q.get()
-        scaler_y = q.get()
-        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e1000_rms/reference/scaler_x.pkl')
-        #scaler_y = joblib.load('../model/tf/l1_e1000_rms/reference/scaler_y.pkl')
+        #p = Process(target=process_train, args=(train_bd, train_ed, q))
+        #p.start()
+        #p.join()
+        #scaler_x1 = q.get()
+        #scaler_x2 = q.get()
+        #scaler_x3 = q.get()
+        #scaler_x4 = q.get()
+        #scaler_x5 = q.get()
+        #scaler_x6 = q.get()
+        #scaler_y = q.get()
+        scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e500_rms/20110910_20170908/scaler_xs.pkl')
+        scaler_y = joblib.load('../model/tf/l1_e500_rms/20110910_20170908/scaler_y.pkl')
         q.put((sr, sscore))
         p = Process(target=process_test, args=(train_bd, train_ed, (scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y), q))
         p.start()
@@ -688,7 +688,7 @@ if __name__ == '__main__':
     delta_year = 4
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2016, 10, 5)
+    test_bd = datetime.date(2017, 6, 25)
     test_ed = datetime.date(2017, 9, 11)
 
     for delta_year in [6]:

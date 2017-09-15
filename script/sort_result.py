@@ -39,7 +39,7 @@ def make_dict(day, rcno=1):
     return data_ss
 
 if __name__ == '__main__':
-    init_day = 9
+    init_day = 16
     res_dict = {"Sat": {}, "Sun": {}}
     Day_list = ["Sat", "Sun"]
     for day in [init_day, init_day+1]:
