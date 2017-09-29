@@ -305,7 +305,7 @@ def process_train(train_bd, train_ed, course, q):
         else:
             if not os.path.exists("%s/c%d/%d" % (model_dir,course,i)):
                 os.makedirs("%s/c%d/%d" % (model_dir,course,i))
-            print("model[%d] training.." % (i+1))
+            print("model[%d][c%d] training.." % (i+1, course))
             train_bagging_nn("%s_%s/c%d/%d"%(train_bd_i, train_ed_i, course, i), X_train, y_train, X_val, y_val)
     print("Finish train model")
     q.put(scaler_x1)

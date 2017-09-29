@@ -224,7 +224,7 @@ def predict_next_ens(model_dir, data_pre, meet, date, rcno, course=0, nData=47, 
                     fresult = open(fname, 'a')
                     fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d, model: %d ===\n" % (int(prev_rc)+1, nData, year, train_course, i))
                     fresult.close()
-                    print_bet(rcdata, target=[[4,5,6],[4,5,6],[4,5,6,7]], total_bet=5000)
+                    print_bet(rcdata, target=[[1,2,3,4],[1,2,3,4],[1,2,3,4]], total_bet=10000)
                     rcdata = []
                     prev_rc = row['rcno']
                     if idx+1 != len(data):
@@ -241,7 +241,7 @@ if __name__ == '__main__':
     #for rcno in range(11, len(courses)):
     course = courses[rcno]
     test_course = course
-    init_date = 20170916
+    init_date = 20170930
     from sklearn.externals import joblib
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
     with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
@@ -251,7 +251,9 @@ if __name__ == '__main__':
 
     data_pre1, data_pre2 = None, None
     data_pre1 = xe.parse_xml_entry(meet, init_date+0, rcno, md, md3)
-    data_pre2 = xe.parse_xml_entry(meet, init_date+1, rcno, md, md3)
+    init_date = 20171001
+    data_pre2 = xe.parse_xml_entry(meet, init_date+0, rcno, md, md3)
+    init_date = 20170930
     for idx in range(1,2):
         nData, year, train_course, epoch = [300,151,201,201][idx-1], [6,6,8,6][idx-1], [0,0,0,0][idx-1], [300,200,200,800][idx-1]
         date = init_date
@@ -263,7 +265,7 @@ if __name__ == '__main__':
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
         today_s = "%d_%d"%(train_bd_i, train_ed_i)
-        model_base_dir = ["20100814_20160812", today_s][idx-1]
+        model_base_dir = ["20110226_20170224", today_s][idx-1]
         n_epoch = epoch
         #q = Queue()
         #p = Process(target=txg.training, args=(train_bd, train_ed, q))
@@ -282,16 +284,17 @@ if __name__ == '__main__':
         #model_dir = "../model/xgboost/ens_e1000/%d_%d/"%(train_bd_i, train_ed_i)
         model_dir = "../model/xgboost/ens_e1000/%s/"%model_base_dir
         if idx == 1:
-            idx = 2
+            idx = 1
             fname = '../result/1709/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            #predict_next_ens(model_dir, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
-            predict_next(model_dir, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
+            predict_next_ens(model_dir, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
+            #predict_next(model_dir, data_pre1, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
             date += 1
+            date = 20171001
             fname = '../result/1709/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)
-            #predict_next_ens(model_dir, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
-            predict_next(model_dir, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
+            predict_next_ens(model_dir, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
+            #predict_next(model_dir, data_pre2, meet, date, rcno, test_course, nData, year, train_course, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y)
         else:
             fname = '../result/1709/%d_%d.txt' % (date%100, idx)
             os.system("rm %s" % fname)

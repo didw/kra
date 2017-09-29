@@ -39,14 +39,16 @@ def make_dict(day, rcno=1):
     return data_ss
 
 if __name__ == '__main__':
-    init_day = 16
+    init_day = 30
     res_dict = {"Sat": {}, "Sun": {}}
     Day_list = ["Sat", "Sun"]
-    for day in [init_day, init_day+1]:
+    day_list = [30, 1]
+    #for day in [init_day, init_day+1]:
+    for idx in range(2):
         for i in range(0,16):
-            rcno_dict =  make_dict(day, i)
+            rcno_dict =  make_dict(day_list[idx], i)
             if len(rcno_dict) > 0:
-                res_dict[Day_list[day-init_day]][i] = rcno_dict
+                res_dict[Day_list[idx]][i] = rcno_dict
     print("ss")
     for day in Day_list:
         for rcno in range(0,16):

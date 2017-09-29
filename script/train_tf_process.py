@@ -83,7 +83,7 @@ class TensorflowRegressor():
 
         self.Input =  tf.placeholder(shape=[None,233],dtype=tf.float32)
         self.p_keep =  tf.placeholder(shape=None,dtype=tf.float32)
-        with tf.device('/gpu:1'):
+        with tf.device('/gpu:0'):
             self.output = tf.reshape(build_model(self.Input, self.p_keep), [-1])
             
             #Below we obtain the loss by taking the sum of squares difference between the target and prediction Q values.
@@ -415,7 +415,7 @@ def process_train(train_bd, train_ed, q):
             tf.reset_default_graph()
             estimator = TensorflowRegressor("%s_%s/%d"%(train_bd_i, train_ed_i, i))
             estimator.set_scaler(scaler_y)
-            estimator.fit(X_train, Y_train, X_val, Y_val, n_epoch=500)
+            estimator.fit(X_train, Y_train, X_val, Y_val, n_epoch=1000)
     print("Finish train model")
     q.put(scaler_x1)
     q.put(scaler_x2)
@@ -447,6 +447,7 @@ def process_test(train_bd, train_ed, scaler, q):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
     data_dir = "../data/tf/l1_e500_rms"
+    #data_dir = "../data/tf/l1_e500_rms_20110625_20170623"
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
 
@@ -481,8 +482,8 @@ def process_test(train_bd, train_ed, scaler, q):
     Y_test = np.array(Y_test.values.reshape(-1,1)).reshape(-1)
     pred = [0] * MODEL_NUM
     for i in range(MODEL_NUM):
-        #estimator = TensorflowRegressor('%d_%d/%d' % (train_bd_i, train_ed_i, i))
-        estimator = TensorflowRegressor('20110910_20170908/%d' % i)
+        estimator = TensorflowRegressor('%d_%d/%d' % (train_bd_i, train_ed_i, i))
+        #estimator = TensorflowRegressor('20110625_20170623/%d' % i)
         pred[i] = estimator.predict(X_test)
         pred[i] = scaler_y.inverse_transform(pred[i])
         score = np.sqrt(np.mean((pred[i] - Y_test)*(pred[i] - Y_test)))
@@ -665,18 +666,18 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         today = today - datetime.timedelta(days=1)
         if not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_bd_s) and not os.path.exists('../txt/1/rcresult/rcresult_1_%s.txt' % test_ed_s):
             continue
-        #p = Process(target=process_train, args=(train_bd, train_ed, q))
-        #p.start()
-        #p.join()
-        #scaler_x1 = q.get()
-        #scaler_x2 = q.get()
-        #scaler_x3 = q.get()
-        #scaler_x4 = q.get()
-        #scaler_x5 = q.get()
-        #scaler_x6 = q.get()
-        #scaler_y = q.get()
-        scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e500_rms/20110910_20170908/scaler_xs.pkl')
-        scaler_y = joblib.load('../model/tf/l1_e500_rms/20110910_20170908/scaler_y.pkl')
+        p = Process(target=process_train, args=(train_bd, train_ed, q))
+        p.start()
+        p.join()
+        scaler_x1 = q.get()
+        scaler_x2 = q.get()
+        scaler_x3 = q.get()
+        scaler_x4 = q.get()
+        scaler_x5 = q.get()
+        scaler_x6 = q.get()
+        scaler_y = q.get()
+        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e500_rms/20110625_20170623/scaler_xs.pkl')
+        #scaler_y = joblib.load('../model/tf/l1_e500_rms/20110625_20170623/scaler_y.pkl')
         q.put((sr, sscore))
         p = Process(target=process_test, args=(train_bd, train_ed, (scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y), q))
         p.start()
@@ -686,10 +687,8 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
 
 if __name__ == '__main__':
     delta_year = 4
-    train_bd = datetime.date(2011, 11, 1)
-    train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2017, 6, 25)
-    test_ed = datetime.date(2017, 9, 11)
+    test_bd = datetime.date(2017, 6, 28)
+    test_ed = datetime.date(2017, 9, 20)
 
     for delta_year in [6]:
         for nData in [186]:

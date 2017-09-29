@@ -351,7 +351,8 @@ def process_test(train_bd, train_ed, scaler, q):
     
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
-    data_dir = "../data/xgboost/ens_e1000_20100814_20160812"
+    data_dir = "../data/xgboost/ens_e1000"
+    data_dir = "../data/xgboost/ens_e1000_20110226_20170224"
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
 
@@ -387,7 +388,7 @@ def process_test(train_bd, train_ed, scaler, q):
         pred = [0] * MODEL_NUM
         for i in range(MODEL_NUM):
             #estimator = joblib.load("../model/xgboost/ens_e1000/%d_%d/%d/model.pkl"%(train_bd_i, train_ed_i, i))
-            estimator = joblib.load("../model/xgboost/ens_e1000/20100814_20160812/%d/model.pkl"%i)
+            estimator = joblib.load("../model/xgboost/ens_e1000/20110226_20170224/%d/model.pkl"%i)
             xg_test = xgb.DMatrix(X_test)
             pred[i] = estimator.predict(xg_test)
             pred[i] = scaler_y.inverse_transform(pred[i])
@@ -532,8 +533,8 @@ def simulation_weekly_train0(begin_date, end_date, delta_day=0, delta_year=0, co
         #scaler_x5 = q.get()
         #scaler_x6 = q.get()
         #scaler_y = q.get()
-        scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/xgboost/ens_e1000/20100814_20160812/scaler_x.pkl')
-        scaler_y = joblib.load('../model/xgboost/ens_e1000/20100814_20160812/scaler_y.pkl')
+        scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/xgboost/ens_e1000/20110226_20170224/scaler_x.pkl')
+        scaler_y = joblib.load('../model/xgboost/ens_e1000/20110226_20170224/scaler_y.pkl')
         q.put((sr, sscore))
         p = Process(target=process_test, args=(train_bd, train_ed, (scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y), q))
         p.start()
@@ -545,8 +546,8 @@ if __name__ == '__main__':
     delta_year = 4
     train_bd = datetime.date(2011, 11, 1)
     train_ed = datetime.date(2016, 10, 31)
-    test_bd = datetime.date(2016, 8, 10)
-    test_ed = datetime.date(2017, 8, 15)
+    test_bd = datetime.date(2017, 3, 1)
+    test_ed = datetime.date(2017, 9, 5)
 
     for delta_year in [6]:
         for nData in [186]:
