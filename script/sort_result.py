@@ -8,7 +8,7 @@ def make_dict(day, rcno=1):
     first = True
     data_ss = {}
     for idx in [1,2,3,4]:
-        fname = '../result/1709/%d_%d.txt' % (day, idx)
+        fname = '../result/1710/%d_%d.txt' % (day, idx)
         try:
             fInput = open(fname)
         except IOError:
@@ -39,16 +39,14 @@ def make_dict(day, rcno=1):
     return data_ss
 
 if __name__ == '__main__':
-    init_day = 30
+    init_day = 14
     res_dict = {"Sat": {}, "Sun": {}}
     Day_list = ["Sat", "Sun"]
-    day_list = [30, 1]
-    #for day in [init_day, init_day+1]:
-    for idx in range(2):
+    for day in [init_day, init_day+1]:
         for i in range(0,16):
-            rcno_dict =  make_dict(day_list[idx], i)
+            rcno_dict =  make_dict(day, i)
             if len(rcno_dict) > 0:
-                res_dict[Day_list[idx]][i] = rcno_dict
+                res_dict[Day_list[day-init_day]][i] = rcno_dict
     print("ss")
     for day in Day_list:
         for rcno in range(0,16):
@@ -59,4 +57,4 @@ if __name__ == '__main__':
                 v = int((v+499)/500)*500
                 res_dict[day][rcno][k] = v
                 print(k, v)
-    pickle.dump(res_dict, open("../result/1709/%d.pkl" % init_day, 'wb'))
+    pickle.dump(res_dict, open("../result/1710/%d.pkl" % init_day, 'wb'))
