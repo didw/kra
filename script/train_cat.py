@@ -14,7 +14,6 @@ import time
 from etaprogress.progress import ProgressBar
 import sys, os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
-import tensorflow as tf
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split

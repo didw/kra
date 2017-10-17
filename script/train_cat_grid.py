@@ -6,6 +6,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from catboost import CatBoostRegressor, Pool, cv
 from sklearn.model_selection import GridSearchCV
+from itertools import product
 
 MODEL_NUM = 10
 NUM_ENSEMBLE = 5
@@ -40,34 +41,41 @@ def parameter_tunning(train_bd, train_ed):
     train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
     train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
 
+    test_bd = train_ed + datetime.timedelta(days=7)
+    test_ed = train_ed + datetime.timedelta(days=7+30)
+    test_bd_i = int("%d%02d%02d" % (test_bd.year, test_bd.month, test_bd.day))
+    test_ed_i = int("%d%02d%02d" % (test_ed.year, test_ed.month, test_ed.day))
+
     print("Loading Datadata at %s - %s" % (str(train_bd), str(train_ed)))
-    X_data, Y_data, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv')
-    #scaler_y = StandardScaler()
-    #Y_data = scaler_y.fit_transform(Y_data)
+    X_train, Y_train, _, _ = get_data_from_csv(train_bd_i, train_ed_i, '../data/1_2007_2016_v1.csv')
+    X_test, Y_test, _, _ = get_data_from_csv(test_bd_i, test_ed_i, '../data/1_2007_2016_v1.csv')
+
+    train_pool = Pool(X_train, Y_train, cat_features=cat_feature_inds)
+    test_pool = Pool(X_test, Y_test, cat_features=cat_feature_inds)
+
     print("Done")
 
-    for itr in [100,1000]:
-        for lr in [10,1]:
-            for dep in [3,10]:
-                for llr in [1,5]:
-                    print("SETUP: iter: %d, lr: %f, depth: %d, l2_leaf_reg: %d" % 
-                        (itr, lr, dep, llr))
-                    train_pool = Pool(X_data, Y_data, cat_features=cat_feature_inds)
+    for itr in [500,1000,2000,3000]:
+        for lr in [5,10,20]:
+            for dep in [3,5,7]:
+                for llr in [1,3,5]:
+                    print("SETUP: iter: %5d, lr: %2.3f, depth: %2d, l2_leaf_reg: %2d" % 
+                        (itr, lr, dep, llr), end='\t')
                     scores = []
                     # Use CV
-                    params = {'iterations':itr, 
-                            'learning_rate':lr,
-                            'depth':dep, 
-                            'l2_leaf_reg':llr,
-                            'loss_function':'MAE',
-                            'eval_metric':'MAE'}
-                    scores = cv(params, train_pool, fold_count=5)
-                    #print(scores)
-                    print("train: %.10f, test: %.10f" % (scores['MAE_train_avg'][-1], scores['MAE_test_avg'][-1]))
+                    clf = CatBoostRegressor(iterations=itr,
+                                            learning_rate=lr,
+                                            depth=dep, 
+                                            l2_leaf_reg=llr,
+                                            thread_count=50,
+                                            loss_function='MAE',
+                                            eval_metric='MAE')
+                    clf.fit(train_pool)
+                    print("score train: %6.1f, test: %6.1f" % (clf.score(test_pool, Y_test), clf.score(train_pool, Y_train)))
 
 
 if __name__ == '__main__':
     for delta_year in [2,3,4,5,6,7,8]:
         print("delta year: %d" % delta_year)
-        parameter_tunning(datetime.date(2017, 9, 1) + datetime.timedelta(days=-365*delta_year), datetime.date(2017, 9, 1))
+        parameter_tunning(datetime.date(2017, 8, 1) + datetime.timedelta(days=-365*delta_year), datetime.date(2017, 8, 1))
 
