@@ -229,8 +229,8 @@ def predict_next_ens(estimators_, data_pre, meet, date, rcno, course=0, nData=47
                     fresult = open(fname, 'a')
                     fresult.write("\n\n\n=== rcno: %d, nData: %d, year: %d, train_course: %d, model: %d ===\n" % (int(prev_rc)+1, nData, year, train_course, i))
                     fresult.close()
-                    print_bet(rcdata, target=[[1],[2],[3]], total_bet=1500)
-                    print_bet(rcdata, target=[[3,4,5],[4,5,6],[4,5,6]], total_bet=1500)
+                    #print_bet(rcdata, target=[[1],[2],[3]], total_bet=1500)
+                    print_bet(rcdata, target=[[3,4,5],[4,5,6],[4,5,6]], total_bet=2000)
                     #print_bet(rcdata, target=[[3,4,5],[4,5,6],[4,5,6]], total_bet=5000)
                     rcdata = []
                     prev_rc = row['rcno']
@@ -248,7 +248,7 @@ if __name__ == '__main__':
     #for rcno in range(11, len(courses)):
     course = courses[rcno]
     test_course = course
-    init_date = 20170923
+    init_date = 20171021
     from sklearn.externals import joblib
     md = joblib.load('../data/1_2007_2016_v1_md.pkl')
     with gzip.open('../data/1_2007_2016_v1_md3.gz', 'rb') as f:
@@ -266,25 +266,25 @@ if __name__ == '__main__':
         train_bd_i = int("%d%02d%02d" % (train_bd.year, train_bd.month, train_bd.day))
         train_ed_i = int("%d%02d%02d" % (train_ed.year, train_ed.month, train_ed.day))
         today_s = "%d_%d"%(train_bd_i, train_ed_i)
-        model_dir = ["20110910_20170908", "20110827_20170825", today_s, today_s][idx-1]
+        model_dir = [today_s, today_s, "20110910_20170908", "20110827_20170825"][idx-1]
         date = init_date
         if train_course == 1: train_course = course
         print("Process in train: %d, ndata: %d, year: %d" % (train_course, nData, year))
 
         n_epoch = epoch
-        #q = Queue()
-        #p = Process(target=tfp.training, args=(train_bd, train_ed, n_epoch, q))
-        #p.start()
-        #p.join()
-        #scaler_x1 = q.get()
-        #scaler_x2 = q.get()
-        #scaler_x3 = q.get()
-        #scaler_x4 = q.get()
-        #scaler_x5 = q.get()
-        #scaler_x6 = q.get()
-        #scaler_y = q.get()
-        scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e%d_rms/%s/scaler_xs.pkl' % (epoch, model_dir))
-        scaler_y = joblib.load('../model/tf/l1_e%d_rms/%s/scaler_y.pkl' % (epoch, model_dir))
+        q = Queue()
+        p = Process(target=tfp.training, args=(train_bd, train_ed, n_epoch, q))
+        p.start()
+        p.join()
+        scaler_x1 = q.get()
+        scaler_x2 = q.get()
+        scaler_x3 = q.get()
+        scaler_x4 = q.get()
+        scaler_x5 = q.get()
+        scaler_x6 = q.get()
+        scaler_y = q.get()
+        #scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6 = joblib.load('../model/tf/l1_e%d_rms/%s/scaler_xs.pkl' % (epoch, model_dir))
+        #scaler_y = joblib.load('../model/tf/l1_e%d_rms/%s/scaler_y.pkl' % (epoch, model_dir))
         #estimators, md, scaler_x1, scaler_x2, scaler_x3, scaler_x4, scaler_x5, scaler_x6, scaler_y = tfp.training(datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-365*year-1), datetime.date(date/10000, date/100%100, date%100) + datetime.timedelta(days=-1), train_course, nData, n_epoch=epoch)
         estimators = load_estimators(model_dir)
         if idx in [1,2,3,4]:
