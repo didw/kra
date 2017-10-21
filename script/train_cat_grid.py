@@ -1,12 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from __future__ import print_function
+import os
 import datetime
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from catboost import CatBoostRegressor, Pool, cv
 from sklearn.model_selection import GridSearchCV
 from itertools import product
+import time
 
 MODEL_NUM = 10
 NUM_ENSEMBLE = 5
@@ -55,11 +57,11 @@ def parameter_tunning(train_bd, train_ed):
 
     print("Done")
 
-    for itr in [500,1000,2000,3000]:
-        for lr in [5,10,20]:
-            for dep in [3,5,7]:
-                for llr in [1,3,5]:
-                    print("SETUP: iter: %5d, lr: %2.3f, depth: %2d, l2_leaf_reg: %2d" % 
+    for itr in [500,700,1000,1500]:
+        for lr in [4,5,6,7,8]:
+            for dep in [3,4,5]:
+                for llr in [1,2,3]:
+                    print("SETUP: iter: %5d, lr: %2.0f, depth: %2d, l2_leaf_reg: %2d" % 
                         (itr, lr, dep, llr), end='\t')
                     scores = []
                     # Use CV
@@ -70,12 +72,23 @@ def parameter_tunning(train_bd, train_ed):
                                             thread_count=50,
                                             loss_function='MAE',
                                             eval_metric='MAE')
-                    clf.fit(train_pool)
-                    print("score train: %6.1f, test: %6.1f" % (clf.score(test_pool, Y_test), clf.score(train_pool, Y_train)))
+                    model_path = '../model/catboost/i%d_lr%d_dep%d_llr%d/%d_%d' % (itr, lr, dep, llr, train_bd_i, train_ed_i)
+                    if os.path.exists("%s/model.pkl" % model_path):
+                        clf.load_model("%s/model.pkl" % model_path)
+                    else:
+                        time1 = time.time()
+                        clf.fit(train_pool)
+                        time2 = time.time()
+                        print("time took %.3f s" % ((time2-time1),), end='\t')
+                        if (time2-time1) > 120:
+                            if not os.path.exists("%s" % model_path):
+                                os.makedirs("%s" % model_path)
+                            clf.save_model("%s/model.pkl" % model_path)
+                    print("score train: %6.0f, test: %6.0f" % (clf.score(train_pool, Y_train), clf.score(test_pool, Y_test)))
 
 
 if __name__ == '__main__':
-    for delta_year in [2,3,4,5,6,7,8]:
+    for delta_year in [2,4,6,8]:
         print("delta year: %d" % delta_year)
         parameter_tunning(datetime.date(2017, 8, 1) + datetime.timedelta(days=-365*delta_year), datetime.date(2017, 8, 1))
 
