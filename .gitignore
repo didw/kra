@@ -1,1 +1,5 @@
 .vscode
+data
+txt
+xml
+*.pyc
