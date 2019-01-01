@@ -1,11 +1,28 @@
 import re
-
+import datetime
 import requests
+import mysql.connector
+import json
+
+with open('src/mysql_key.json') as f:
+    mysql_key = json.load(f)
+mydb = mysql.connector.connect(
+    host="kra-rds-mysql.cbc9afwyti4d.ap-northeast-2.rds.amazonaws.com",
+    user=mysql_key['user'],
+    passwd=mysql_key['passwd'],
+    database="kra"
+)
+
+mycursor = mydb.cursor()
 
 def update_horse(update_date):
-    test_url = 'http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/horse/{}sdb1.txt&meet=1'.format(update_date)
+    update_date_i = update_date.strftime("%Y%m%d")
+    test_url = 'http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/horse/{}sdb1.txt&meet=1'.format(update_date_i)
 
     r = requests.get(test_url)
+    if len(r.text) < 10:
+        print("pass {}".format(test_url))
+        return
     for line in r.text.split('\r\n'):
         if len(line) == 0 or line[0]=='-' or line[:2]=='마명':
             continue
@@ -58,7 +75,7 @@ def update_horse(update_date):
         p = re.compile(r'\d')
         m = p.match(line)
         try:
-            age = m.group()
+            age = int(m.group())
             line = line[m.end():].strip()
             #print(age)
         except Exception as e:
@@ -135,7 +152,7 @@ def update_horse(update_date):
         p = re.compile(r'\d+')
         m = p.match(line)
         try:
-            total_participate = m.group()
+            total_participate = int(m.group())
             line = line[m.end():].strip()
             #print(total_participate)
         except Exception as e:
@@ -146,7 +163,7 @@ def update_horse(update_date):
         p = re.compile(r'\d+')
         m = p.match(line)
         try:
-            total_first = m.group()
+            total_first = int(m.group())
             line = line[m.end():].strip()
             #print(total_first)
         except Exception as e:
@@ -157,7 +174,7 @@ def update_horse(update_date):
         p = re.compile(r'\d+')
         m = p.match(line)
         try:
-            total_second = m.group()
+            total_second = int(m.group())
             line = line[m.end():].strip()
             #print(total_second)
         except Exception as e:
@@ -168,7 +185,7 @@ def update_horse(update_date):
         p = re.compile(r'\d+')
         m = p.match(line)
         try:
-            total_third = m.group()
+            total_third = int(int(m.group()))
             line = line[m.end():].strip()
             #print(total_third)
         except Exception as e:
@@ -179,7 +196,7 @@ def update_horse(update_date):
         p = re.compile(r'\d+')
         m = p.match(line)
         try:
-            total_1year = m.group()
+            total_1year = int(m.group())
             line = line[m.end():].strip()
             #print(total_1year)
         except Exception as e:
@@ -190,7 +207,7 @@ def update_horse(update_date):
         p = re.compile(r'\d+')
         m = p.match(line)
         try:
-            total_1y_first = m.group()
+            total_1y_first = int(m.group())
             line = line[m.end():].strip()
             #print(total_1y_first)
         except Exception as e:
@@ -201,7 +218,7 @@ def update_horse(update_date):
         p = re.compile(r'\d+')
         m = p.match(line)
         try:
-            total_1y_second = m.group()
+            total_1y_second = int(m.group())
             line = line[m.end():].strip()
             #print(total_1y_second)
         except Exception as e:
@@ -212,7 +229,7 @@ def update_horse(update_date):
         p = re.compile(r'\d+')
         m = p.match(line)
         try:
-            total_1y_third = m.group()
+            total_1y_third = int(m.group())
             line = line[m.end():].strip()
             #print(total_1y_third)
         except Exception as e:
@@ -223,7 +240,7 @@ def update_horse(update_date):
         p = re.compile(r'\d+')
         m = p.match(line)
         try:
-            total_prize = m.group()
+            total_prize = int(m.group())
             line = line[m.end():]
             #print(total_prize)
         except Exception as e:
@@ -234,7 +251,7 @@ def update_horse(update_date):
         p = re.compile(r'.*[\d{2} ]  ')
         m = p.match(line)
         try:
-            rating = m.group()
+            rating = int(m.group())
             line = line[m.end():].strip()
             #print(rating)
         except Exception as e:
@@ -245,14 +262,35 @@ def update_horse(update_date):
         p = re.compile(r'\d+')
         m = p.match(line)
         try:
-            recent_price = m.group()
+            recent_price = int(m.group())
             line = line[m.end():].strip()
             #print(recent_price)
         except Exception as e:
             print(e, "line:{}".format(line))
             pass
         
-        
-        print(name, hometown, gender, birthdate, age, grade, group, trainer, owner, father, mother, total_participate, total_first, total_second, total_third,
-            total_1year, total_1y_first, total_1y_second, total_1y_third, total_prize, rating, recent_price, update_date)
-        
+
+        sql = "INSERT INTO horse (name, hometown, gender, birthdate, age, grade, group, trainer, owner, \
+            father, mother, total_participate, total_first, total_second, total_third, \
+            total_1year, total_1y_first, total_1y_second, total_1y_third, total_prize, rating, \
+            recent_price, update_date) VALUES \
+            (\'{}\', \'{}\', \'{}\', \'{}\', {}, \'{}\', \'{}\', \'{}\', \'{}\', \'{}\', \
+             \'{}\', {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})"
+        sql = sql.format(name, hometown, gender, birthdate, age, grade, group, trainer, owner, father, 
+            mother, total_participate, total_first, total_second, total_third, total_1year, 
+            total_1y_first, total_1y_second, total_1y_third, total_prize, rating, recent_price, update_date)
+        print(sql)
+        mycursor.execute(sql)
+        mydb.commit()
+        #print(name, hometown, gender, birthdate, age, grade, group, trainer, owner, father, mother, total_participate, total_first, total_second, total_third,
+        #    total_1year, total_1y_first, total_1y_second, total_1y_third, total_prize, rating, recent_price, update_date)
+
+    print("updated {}".format(update_date))
+
+if __name__ == '__main__':
+    cur_date = datetime.datetime(2018,12,10)
+    while True:
+        cur_date += datetime.timedelta(days=1)
+        if cur_date > datetime.datetime(2018,12,15):
+            break
+        update_horse(cur_date)
