@@ -1,17 +1,13 @@
 import re
 import datetime
 import requests
-import mysql.connector
+import pymysql
 import json
 
 with open('src/mysql_key.json') as f:
     mysql_key = json.load(f)
-mydb = mysql.connector.connect(
-    host="kra-rds-mysql.cbc9afwyti4d.ap-northeast-2.rds.amazonaws.com",
-    user=mysql_key['user'],
-    passwd=mysql_key['passwd'],
-    database="kra"
-)
+
+mydb = pymysql.connect(host='kra-rds-mysql.cbc9afwyti4d.ap-northeast-2.rds.amazonaws.com', user=mysql_key['user'], password=mysql_key['passwd'], db='kra', charset='utf8')
 
 mycursor = mydb.cursor()
 
@@ -127,7 +123,7 @@ def update_horse(update_date):
             pass
         
         # father
-        p = re.compile(r'[가-힣a-zA-ZⅡ\'\. ]+?  ')
+        p = re.compile(r'[가-힣a-zA-ZⅡ`\. ]+?  ')
         m = p.match(line)
         try:
             father = m.group().strip()
@@ -138,7 +134,7 @@ def update_horse(update_date):
             pass
         
         # mother
-        p = re.compile(r'[가-힣a-zA-ZⅡ\'\. ]+  ')
+        p = re.compile(r'[가-힣a-zA-ZⅡ`\. ]+  ')
         m = p.match(line)
         try:
             mother = m.group().strip()
@@ -270,12 +266,12 @@ def update_horse(update_date):
             pass
         
 
-        sql = "INSERT INTO horse (name, hometown, gender, birthdate, age, grade, group, trainer, owner, \
-            father, mother, total_participate, total_first, total_second, total_third, \
-            total_1year, total_1y_first, total_1y_second, total_1y_third, total_prize, rating, \
-            recent_price, update_date) VALUES \
+        sql = "INSERT INTO `horse` (`name`, `hometown`, `gender`, `birthdate`, `age`, `grade`, `group`, `trainer`, `owner`, \
+            `father`, `mother`, `total_participate`, `total_first`, `total_second`, `total_third`, \
+            `total_1year`, `total_1y_first`, `total_1y_second`, `total_1y_third`, `total_prize`, `rating`, \
+            `recent_price`, `update_date`) VALUES \
             (\'{}\', \'{}\', \'{}\', \'{}\', {}, \'{}\', \'{}\', \'{}\', \'{}\', \'{}\', \
-             \'{}\', {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})"
+             \'{}\', {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \'{}\');"
         sql = sql.format(name, hometown, gender, birthdate, age, grade, group, trainer, owner, father, 
             mother, total_participate, total_first, total_second, total_third, total_1year, 
             total_1y_first, total_1y_second, total_1y_third, total_prize, rating, recent_price, update_date)
