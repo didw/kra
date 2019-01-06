@@ -104,7 +104,7 @@ class _RegExLib:
                 'add_prize','dash', 'get_info01','rank','no_gate','hr_name','hr_hometown',
                 'hr_gender','hr_age','hr_impost','jk_name','tr_name','owner_name',
                 'rating','get_info02','weight','dweight','rc_score','dist','score_detail',
-                'get_info03','g3f','s1f','1c','2c','3c','4c','g1f','bet_win','bet_perfecta',
+                'get_info03','g3f','s1f','get_1c','get_2c','get_3c','get_4c','g1f','bet_win','bet_perfecta',
                 'total_sales','total_sales_dan','total_sales_yeon','total_sales_bok',
                 'total_sales_bokyeon','total_sales_ssang','total_sales_sambok','total_sales_samssang',
                 'total_sales_total','bet_rate','bet_rate_dan','bet_rate_yeon','bet_rate_bok',
@@ -130,7 +130,7 @@ class _RegExLib:
         self.win_prize = self._reg_win_prize.search(line)
         self.add_prize = self._reg_add_prize.search(line)
         self.dash = self._reg_dash.search(line)
-        
+
         self.get_info01 = self._reg_get_info01.search(line)
         self.rank = self._reg_rank.search(line)
         self.no_gate = self._reg_no_gate.search(line)
@@ -154,10 +154,10 @@ class _RegExLib:
         self.get_info03 = self._reg_get_info03.search(line)
         self.g3f = self._reg_g3f.search(line)
         self.s1f = self._reg_s1f.search(line)
-        self.1c = self._reg_1c.search(line)
-        self.2c = self._reg_2c.search(line)
-        self.3c = self._reg_3c.search(line)
-        self.4c = self._reg_4c.search(line)
+        self.get_1c = self._reg_1c.search(line)
+        self.get_2c = self._reg_2c.search(line)
+        self.get_3c = self._reg_3c.search(line)
+        self.get_4c = self._reg_4c.search(line)
         self.g1f = self._reg_g1f.search(line)
         self.bet_win = self._reg_bet_win.search(line)
         self.bet_perfecta = self._reg_bet_perfecta.search(line)
