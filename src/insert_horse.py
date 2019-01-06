@@ -11,15 +11,23 @@ mydb = pymysql.connect(host='kra-rds-mysql.cbc9afwyti4d.ap-northeast-2.rds.amazo
 
 mycursor = mydb.cursor()
 
-def update_horse(update_date):
-    update_date_i = update_date.strftime("%Y%m%d")
-    test_url = 'http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/horse/{}sdb1.txt&meet=1'.format(update_date_i)
+def update_horse(update_date, url=False):
+    if url is True:
+        update_date_i = update_date.strftime("%Y%m%d")
+        test_url = 'http://race.kra.co.kr/dbdata/fileDownLoad.do?fn=internet/seoul/horse/{}sdb1.txt&meet=1'.format(update_date_i)
 
-    r = requests.get(test_url)
-    if len(r.text) < 10:
-        print("pass {}".format(test_url))
-        return
-    for line in r.text.split('\r\n'):
+        r = requests.get(test_url)
+        if len(r.text) < 10:
+            print("pass {}".format(test_url))
+            return
+        body = r.text.split('\r\n')
+    else:
+        try:
+            with open('../txt/1/horse/horse_1_{}.txt'.format(update_date)) as f:
+                body = f.readlines()
+        except FileNotFoundError as e:
+            return
+    for line in body:
         if len(line) == 0 or line[0]=='-' or line[:2]=='마명':
             continue
 
