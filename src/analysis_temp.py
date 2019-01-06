@@ -8,9 +8,9 @@ flist = glob.glob('txt/1/rcresult/*txt')
 
 
 GD = False
-GS = True
+GS = False
 GSB = False
-GSS = False
+GSS = True
 d = []
 s = []
 sb = []
@@ -18,7 +18,8 @@ ss = []
 for fname in flist:
     bdr = False
     nh = False
-    if int(os.path.basename(fname)[-12:-4]) < 20160700: continue
+    today = int(os.path.basename(fname)[-12:-4])
+    if today < 20160700: continue
     print("process {}".format(os.path.basename(fname)[-12:-4]))
     with codecs.open(fname, 'r', 'euc-kr') as f:
         body = f.readlines()
@@ -82,7 +83,7 @@ for fname in flist:
                     num_possible = total_horse*(total_horse-1)*(total_horse-2)
                     res = a/num_possible
                     ss.append(res)
-                    print("ss appended {}/{}={}, {}".format(a,num_possible,100*res, 100*np.mean(ss)))
+                    print("[{}] ss appended {}/{}={}, {}".format(today,a,num_possible,100*res, 100*np.mean(ss)))
                 except AttributeError as e:
                     print(e)
                     print(line)
